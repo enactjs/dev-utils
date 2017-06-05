@@ -1,4 +1,4 @@
-# webos-meta-webpack-plugin
+# WebOSMetaPlugin
 
 > Webpack plugin that automatically detects and copies webOS meta assets.
 
