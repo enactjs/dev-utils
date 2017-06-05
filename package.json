@@ -1,0 +1,32 @@
+{
+  "name": "@enact/dev-utils",
+  "version": "0.1.0",
+  "description": "A collection of development utilities for Enact apps.",
+  "main": "index.js",
+  "author": "Jason Robitaille <jason.robitaille@lge.com>",
+  "repository": "https://github.com/enyojs/enact-dev-utils",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=6.4.0"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "console.mute": "^0.3.0",
+    "glob": "^7.1.2",
+    "graceful-fs": "^4.1.11",
+    "node-fetch": "^1.7.1",
+    "webpack-bundle-analyzer": "^2.8.2"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "webpack": "^2.6.1",
+    "webpack-sources": "^0.2.3"
+  },
+  "peerDependencies": {
+    "webpack": "1 || ^2 || ^2.1.0-beta || ^2.2.0-rc",
+    "webpack-sources": "0 || ^1"
+  }
+}
