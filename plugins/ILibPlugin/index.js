@@ -168,8 +168,6 @@ function ILibPlugin(options) {
 			console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
 			process.exit(1);
 		}
-	} else {
-		this.options.emit = false;
 	}
 	if(typeof this.options.resources === 'undefined') {
 		this.options.resources = 'resources';
