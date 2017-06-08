@@ -149,10 +149,6 @@ function emitAsset(compilation, name, data) {
 function ILibPlugin(options) {
 	this.options = options || {};
 	this.options.ilib = this.options.ilib || process.env.ILIB_BASE_PATH;
-	// Temporary backwards compatibility until the build system is updated for ILIB_BASE_PATH.
-	if(process.env.ILIB_LOCALE_PATH) {
-		this.options.ilib = path.dirname(process.env.ILIB_LOCALE_PATH);
-	}
 	if(typeof this.options.ilib === 'undefined') {
 		try {
 			const pkgName = packageName('./package.json');
