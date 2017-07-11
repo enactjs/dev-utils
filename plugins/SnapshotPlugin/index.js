@@ -70,7 +70,7 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 						err = new Error(child.stdout + '\n' + child.stderr);
 					}
 				} catch(e) {
-					// Temporary fix: mksnapshot always returns exit code 0, even on error.
+					// Temporary fix: mksnapshot may return exit code 0, even on error.
 					// Exception thrown when file not found
 					err = new Error(child.stdout + '\n' + child.stderr);
 				}
