@@ -353,6 +353,14 @@ LocaleHtmlPlugin.prototype.apply = function(compiler) {
 				return locList;
 			});
 
+			// Update any root appinfo to tag as using prerendering to avoid webOS splash screen.
+			compilation.plugin('webos-meta-root-appinfo', (meta) => {
+				if(locales.length>0) {
+					meta.usePrerendering = true;
+				}
+				return meta;
+			});
+			
 			// For each prerendered target locale's appinfo, update the 'main' and 'usePrerendering' values.
 			compilation.plugin('webos-meta-localized-appinfo', (meta, info) => {
 				let loc = info.locale.replace(/[\\-]+/g, '/');
@@ -368,7 +376,6 @@ LocaleHtmlPlugin.prototype.apply = function(compiler) {
 					}
 					if(loc) {
 						meta.main = 'index.' + locCode(loc) + '.html';
-						meta.usePrerendering = true;
 					}
 				}
 				return meta;
