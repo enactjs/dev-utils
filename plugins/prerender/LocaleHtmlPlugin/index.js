@@ -104,10 +104,19 @@ function simplifyAliases(locales, status) {
 	for(let i=0; i<status.alias.length; i++) {
 		if(status.alias[i]) {
 			const lang = locales[i].split(/[\\\/]+/)[0];
-			links[status.alias[i]] = links[status.alias[i]] || status.alias[i].split(/[\\\/]+/)[0];
-			if(links[status.alias[i]]!==lang && links[status.alias[i]].indexOf('multi')!==0) {
+			if(!links[status.alias[i]]) {
+				const alias = status.alias[i].split(/[\\\/]+/)[0];
+				let regionCount = 0;
+				for(const x in links) {
+					if(links[x]===alias || links[x].indexOf(alias + '.') === 0) {
+						regionCount++;
+					}
+				}
+				links[status.alias[i]] = regionCount>0 ? alias + '.' + (regionCount+1) : alias;
+			}
+			if(links[status.alias[i]].indexOf(lang)!==0 && links[status.alias[i]].indexOf('multi')!==0) {
 				if(multiCount>1) {
-					links[status.alias[i]] = 'multi' + multiCount;
+					links[status.alias[i]] = 'multi.' + multiCount;
 				} else {
 					links[status.alias[i]] = 'multi';
 				}
@@ -324,29 +333,32 @@ LocaleHtmlPlugin.prototype.apply = function(compiler) {
 			// For any target locales that don't already have appinfo files, dynamically generate new ones.
 			compilation.plugin('webos-meta-list-localized', (locList) => {
 				for(let i=0; i<locales.length; i++) {
-					if(!status.err[locales[i]] && locales[i].indexOf('multi')!==0) {
+					if(!status.err[locales[i]] && locales[i].indexOf('multi')!==0 && !/\.\d+$/.test(locales[i])) {
 						// Handle each locale that isn't a multi-language group item and hasn't failed prerendering.
 						const lang = locales[i].split(/[\\\/]+/)[0];
+						let aiFile = path.join('resources', locales[i], 'appinfo.json');
 						if(status.alias[i] && status.alias[i].indexOf('multi')===0) {
 							// Locale is part of a multi-language grouping.
 							if(locales.indexOf(lang)>=0 || (aiOptimize.groups[lang] && aiOptimize.groups[lang]!==status.alias[i])) {
 								// Parent language entry already exists, or the appinfo optimization group for this language points
 								// to a different alias, so we can't simplify any further.
-								if(locList.indexOf(locales[i])===-1 && locList.indexOf(locales[i].replace(/\\+/g, '/'))===-1) {
+								if(locList.indexOf(aiFile)===-1) {
 									// Add full locale appinfo entry if not already there.
-									locList.push({generate:path.join('resources', locales[i], 'appinfo.json')});
+									locList.push({generate: aiFile});
 								}
 							} else if(!aiOptimize.groups[lang]) {
 								// No parent language and no existing appinfo optimization group for this language, so let's
 								// create one and simplify the output for the locale.
 								aiOptimize.groups[lang] = status.alias[i];
 								aiOptimize.coverage.push(locales[i]);
-								locList.push({generate:path.join('resources', lang, 'appinfo.json')});
+								aiFile = path.join('resources', lang, 'appinfo.json');
+								if(locList.indexOf(aiFile)===-1) {
+									locList.push({generate: aiFile});
+								}
 							}
-						} else if(status.alias[i]!==lang && locList.indexOf(locales[i])===-1
-								&& locList.indexOf(locales[i].replace(/\\+/g, '/'))===-1) {
+						} else if(status.alias[i]!==lang && locList.indexOf(aiFile)===-1) {
 							// Not aliased, or not aliased to parent language so create appinfo if it does not exist.
-							locList.push({generate:path.join('resources', locales[i], 'appinfo.json')});
+							locList.push({generate: aiFile});
 						}
 					}
 				}
@@ -354,13 +366,14 @@ LocaleHtmlPlugin.prototype.apply = function(compiler) {
 			});
 
 			// Update any root appinfo to tag as using prerendering to avoid webOS splash screen.
+			// Temporary root value used until webOS parsing of localized appinfo.json boolean values is fixed.
 			compilation.plugin('webos-meta-root-appinfo', (meta) => {
 				if(typeof meta.usePrerendering === 'undefined' && locales.length>0) {
 					meta.usePrerendering = true;
 				}
 				return meta;
 			});
-			
+
 			// For each prerendered target locale's appinfo, update the 'main' and 'usePrerendering' values.
 			compilation.plugin('webos-meta-localized-appinfo', (meta, info) => {
 				let loc = info.locale.replace(/[\\-]+/g, '/');

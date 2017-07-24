@@ -23,22 +23,9 @@ module.exports = function(config, opts) {
 	// Only use isomorphic if an isomorphic entrypoint is specified.
 	if(iso) {
 		// Resolve ReactDOM and ReactDOMSever relative to the app, with enact-dev's copy as fallback.
-		const reactDOM = path.join(process.cwd(), 'node_modules', 'react-dom', 'index.js');
 		const reactDOMServer = path.join(process.cwd(), 'node_modules', 'react-dom', 'server.js');
 
 		if(!opts.externals) {
-			// Prepend react-dom as top level entrypoint so espose-loader will expose
-			// it to window.ReactDOM to allow runtime rendering of the app.
-			config.entry.main.splice(-1, 0, reactDOM);
-
-			// Expose the 'react-dom' on a global context for App's rendering
-			// Currently maps the toolset to window.ReactDOM.
-			config.module.rules.push({
-				test: reactDOM,
-				loader: 'expose-loader',
-				options: 'ReactDOM'
-			});
-
 			// Expose iLib locale utility function module so we can update the locale on page load, if used.
 			if(opts.locales) {
 				const locale = path.join(process.cwd(), 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');

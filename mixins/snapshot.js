@@ -22,6 +22,10 @@ module.exports = function(config, opts) {
 		target: (opts.framework ? 'enact.js' : 'main.js')
 	}));
 
+	config.resolve.alias['SNAPSHOT_REACT_DOM'] = path.resolve(path.join(process.cwd(),
+			'node_modules', 'react-dom'));
+	config.resolve.alias['react-dom'] = require.resolve('./util/snapshot-helper');
+
 	['@enact/i18n', '@enact/moonstone'].forEach(lib => {
 		if(!fs.existsSync(path.join(process.cwd(), 'node_modules', lib))) {
 			config.plugins.push(new IgnorePlugin(new RegExp(lib)));
