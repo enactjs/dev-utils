@@ -23,7 +23,7 @@ function findRoot(curr) {
 			if(meta.name) {
 				return {path:pkg.dir, meta:meta};
 			} else {
-				return findRoot(path.resolve(curr, '..'));
+				return findRoot(path.resolve(pkg.dir, '..'));
 			}
 		} catch (e) {
 			return null;

@@ -46,7 +46,7 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 				if(file === opts.chunk) {
 					try {
 						compilation.applyPlugins('prerender-chunk', {chunk:opts.chunk});
-						vdomServer.stage(compilation.assets[opts.chunk].source(), opts)
+						vdomServer.stage(compilation.assets[opts.chunk].source(), opts);
 						status.prerender = vdomServer.render(opts);
 						vdomServer.unstage();
 					} catch(e) {
@@ -89,8 +89,7 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 				if(!status.err) {
 					let startup = fs.readFileSync(path.join(__dirname, '..', 'startup.txt'), {encoding:'utf8'});
 					startup = '\n\t\t' + startup.replace('%SCREENTYPES%', JSON.stringify(opts.screenTypes))
-							.replace('%JSASSETS%', JSON.stringify(jsAssets)).replace(/[\n\r]+(.)/g, '\n\t\t$1')
-							.replace(/[\n\r]+$/, '\n\t');
+							.replace('%JSASSETS%', JSON.stringify(jsAssets));
 					htmlPluginData.head.unshift({
 						tagName: 'script',
 						closeTag: true,
@@ -106,8 +105,20 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 			// Replace the contents of the root div with our prerendered result as necessary.
 			compilation.plugin('html-webpack-plugin-after-html-processing', (htmlPluginData, callback) => {
 				if(!status.err) {
+					status.prerender = status.prerender.replace(/<!-- head append start -->([\s\S]*)<!-- head append end -->/, (m, head) => {
+						htmlPluginData.html = htmlPluginData.html.replace(/(\s*<\/head>)/, '\n' + head + '$1');
+						return '';
+					});
+					let appendContent = '';
+					if(opts.deep) {
+						appendContent = '\n\t\t<script>(function() {'
+								+ '\n\t\t\tif(' + (Array.isArray(opts.deep) ? opts.deep.join(' && ') : opts.deep) + ') {'
+								+ '\n\t\t\t\tvar div = document.getElementById("root");'
+								+ '\n\t\t\t\twhile(div && div.firstChild) { div.removeChild(div.firstChild); }'
+								+ '\n\t\t\t}\n\t\t})();</script>';
+					}
 					const html = replaceRootDiv(htmlPluginData.html, 0, htmlPluginData.html.length-6, '<div id="root">'
-							+ status.prerender + '</div>');
+							+ status.prerender + '</div>' + appendContent);
 					if(html) {
 						htmlPluginData.html = html;
 					} else {

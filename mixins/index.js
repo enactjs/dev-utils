@@ -1,6 +1,4 @@
 const
-	path = require('path'),
-	fs = require('fs'),
 	externalsSetup = require('./externals'),
 	frameworkSetup = require('./framework'),
 	isomorphicSetup = require('./isomorphic'),
@@ -8,7 +6,8 @@ const
 	unmangledSetup = require('./unmangled');
 
 module.exports = {
-	apply: function(config, opts) {
+	apply: function(config, opts = {}) {
+		opts.production |= process.env.NODE_ENV === 'production';
 		if(opts.production && !opts['minify']) {
 			unmangledSetup(config, opts);
 		}
@@ -16,10 +15,6 @@ module.exports = {
 		if(opts.framework) {
 			frameworkSetup(config, opts);
 		} else {
-			// Backwards compatibility for <15.4.0 React
-			if(!fs.existsSync(path.join(process.cwd(), 'node_modules', 'react-dom', 'lib', 'ReactPerf.js'))) {
-				config.resolve.alias['react-dom/lib/ReactPerf'] = 'react/lib/ReactPerf';
-			}
 			if(opts.isomorphic) {
 				isomorphicSetup(config, opts);
 			}
