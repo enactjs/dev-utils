@@ -173,7 +173,7 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 				locMeta = loc[i].value || {};
 			}
 			if(locMeta) {
-				locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile)).replace(/[\\\/]+/g, '-');
+				locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile)).replace(/[\\/]+/g, '-');
 				locMeta = compilation.applyPluginsWaterfall('webos-meta-localized-appinfo', locMeta, {path:locFile, locale:locCode});
 				handleSysAssetPath(context, locMeta);
 				addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
