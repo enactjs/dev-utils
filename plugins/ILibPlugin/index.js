@@ -2,7 +2,7 @@ const
 	path = require('path'),
 	fs = require('graceful-fs'),
 	glob = require('glob'),
-	webpack = require('webpack');
+	{DefinePlugin} = require('webpack');
 
 function packageName(file) {
 	try {
@@ -206,13 +206,11 @@ ILibPlugin.prototype.apply = function(compiler) {
 		}
 
 		// Rewrite the iLib global constants to specific values corresponding to the build.
-		if(webpack && webpack.DefinePlugin) {
-			compiler.apply(new webpack.DefinePlugin(definedConstants));
-		}
+		compiler.apply(new DefinePlugin(definedConstants));
 		// Add a unique ID value to the webpack require-function, so that the value is correctly updated,
 		// even when hot-reloading and serving.
 		compiler.plugin('compilation', compilation => {
-			compilation.mainTemplate.plugin('require-extensions', (source) => {
+			compilation.mainTemplate.plugin('require-extensions', function(source) {
 				const buf = [source];
 				buf.push('');
 				buf.push(this.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');

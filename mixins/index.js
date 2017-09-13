@@ -1,35 +1,23 @@
-const
-	externalsSetup = require('./externals'),
-	frameworkSetup = require('./framework'),
-	isomorphicSetup = require('./isomorphic'),
-	statsSetup = require('./stats'),
-	unmangledSetup = require('./unmangled');
-
 module.exports = {
 	apply: function(config, opts = {}) {
 		opts.production |= process.env.NODE_ENV === 'production';
 		if(opts.production && !opts['minify']) {
-			unmangledSetup(config, opts);
+			require('./unmangled').apply(config, opts);
 		}
 
 		if(opts.framework) {
-			frameworkSetup(config, opts);
+			require('./framework').apply(config, opts);
 		} else {
 			if(opts.isomorphic) {
-				isomorphicSetup(config, opts);
+				require('./isomorphic').apply(config, opts);
 			}
 			if(opts.externals) {
-				externalsSetup(config, opts);
+				require('./externals').apply(config, opts);
 			}
 		}
 
 		if(opts.stats) {
-			statsSetup(config, opts);
+			require('./stats').apply(config, opts);
 		}
-	},
-	externals: externalsSetup,
-	framework: frameworkSetup,
-	isomorphic: isomorphicSetup,
-	stats: statsSetup,
-	unmangled: unmangledSetup
+	}
 };

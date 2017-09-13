@@ -3,7 +3,7 @@ const
 	fs = require('fs'),
 	DllEntryPlugin = require('webpack/lib/DllEntryPlugin'),
 	DllModule = require('webpack/lib/DllModule'),
-	RawSource = require('webpack-sources').RawSource;
+	{RawSource} = require('webpack-sources');
 
 const pkgCache = {};
 const checkPkgMain = function(dir) {
