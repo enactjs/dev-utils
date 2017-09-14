@@ -1,8 +1,9 @@
 const pkgRoot = require('./package-root');
+let rootCache;
 
 module.exports = {
 	appRoot: function() {
-		return pkgRoot().path;
+		return (rootCache ? rootCache : (rootCache=pkgRoot().path));
 	},
 	injectEntry: function(config, entry, opts = {}) {
 		if(typeof config.entry === 'string') {
