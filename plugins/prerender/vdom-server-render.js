@@ -7,17 +7,11 @@
 
 const path = require('path'),
 	fs = require('fs'),
-	nodeFetch = require('node-fetch'),
 	findCacheDir = require('find-cache-dir'),
 	requireUncached = require('import-fresh'),
 	FileXHR = require('./FileXHR');
 
 require('console.mute');
-
-global.fetch = nodeFetch;
-global.Response = nodeFetch.Response;
-global.Headers = nodeFetch.Headers;
-global.Request = nodeFetch.Request;
 
 const prerenderCache = path.join(findCacheDir({
 	name: 'enact-dev',
