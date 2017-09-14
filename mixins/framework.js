@@ -42,7 +42,12 @@ module.exports = {
 		config.plugins.push(new EnactFrameworkPlugin());
 
 		if(opts.snapshot) {
-			require('./snapshot').apply(config, {framework:true});
+			const SnapshotPlugin = require('../plugins/SnapshotPlugin');
+
+			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
+			config.plugins.push(new SnapshotPlugin({
+				target: 'enact.js'
+			}));
 		}
 	}
 };

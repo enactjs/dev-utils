@@ -2,7 +2,10 @@ const
 	path = require('path'),
 	fs = require('fs'),
 	cp = require('child_process'),
-	chalk = require('chalk');
+	chalk = require('chalk'),
+	{IgnorePlugin} = require('webpack'),
+	helper = require('../../config-helper');
+
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 function isNodeOutputFS(compiler) {
@@ -37,7 +40,36 @@ function SnapshotPlugin(options) {
 module.exports = SnapshotPlugin;
 SnapshotPlugin.prototype.apply = function(compiler) {
 	const opts = this.options;
+	const app = helper.appRoot();
+	const snapshotJS = require.resolve('./snapshot-helper');
+	const reactDOM = path.resolve(path.join(app, 'node_modules', 'react-dom'));
 	opts.blob = getBlobName(opts.args);
+
+	// Ignore packages that don't exists so snapshot helper can skip them
+	['@enact/i18n', '@enact/moonstone'].forEach(lib => {
+		if(!fs.existsSync(path.join(app, 'node_modules', lib))) {
+			compiler.apply(new IgnorePlugin(new RegExp(lib)));
+		}
+	});
+
+	// Inject snapshot helper for the transition from v8 snapshot into the window
+	compiler.plugin('after-environment', () => {
+		helper.injectEntry(compiler.options, snapshotJS);
+	});
+
+	// Redirect external 'react-dom' import/require statements to the snapshot helper
+	compiler.plugin('normal-module-factory', (factory) => {
+		factory.plugin('before-resolve', (result, callback) => {
+			if(!result) return callback();
+
+			if(result.request === 'react-dom') {
+				// When the request originates from the injected helper, point to real 'react-dom'
+				result.request = (result.contextInfo.issuer===snapshotJS) ? reactDOM : snapshotJS;
+			}
+			return callback(null, result);
+		});
+	});
+
 
 	// Record the v8 blob file in the root appinfo if applicable
 	compiler.plugin('compilation', (compilation) => {

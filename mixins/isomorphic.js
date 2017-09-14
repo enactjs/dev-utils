@@ -28,8 +28,7 @@ module.exports = {
 		const app = helper.appRoot();
 
 		// Resolve ReactDOM and ReactDOMSever relative to the app.
-		// @TODO: dynamically determine app root rather than assuming cwd
-		const reactDOMServer = path.join(process.cwd(), 'node_modules', 'react-dom', 'server.js');
+		const reactDOMServer = path.join(app, 'node_modules', 'react-dom', 'server.js');
 
 		if(!opts.externals) {
 			// Expose iLib locale utility function module so we can update the locale on page load, if used.
@@ -79,8 +78,12 @@ module.exports = {
 
 		// Apply snapshot specialization options if needed
 		if(opts.snapshot && !opts.externals) {
-			// @TODO: once snapshot changes are complete directly add plugin handling here.
-			require('./snapshot').apply(config, opts);
+			const SnapshotPlugin = require('../plugins/SnapshotPlugin');
+
+			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
+			config.plugins.push(new SnapshotPlugin({
+				target: 'main.js'
+			}));
 		}
 	}
 };
