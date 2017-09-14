@@ -22,7 +22,7 @@ module.exports = {
 			}
 
 			// Snapshot helper API for the transition from v8 snapshot into the window
-			helper.injectEntry(config, require.resolve('../utils/snapshot-helper'));
+			helper.injectEntry(config, require.resolve('../plugins/SnapshotPlugin/snapshot-helper'));
 		}
 
 		// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
@@ -31,7 +31,7 @@ module.exports = {
 		}));
 
 		config.resolve.alias['SNAPSHOT_REACT_DOM'] = path.resolve(path.join(app, 'node_modules', 'react-dom'));
-		config.resolve.alias['react-dom'] = require.resolve('./util/snapshot-helper');
+		config.resolve.alias['react-dom'] = require.resolve('../plugins/SnapshotPlugin/snapshot-helper');
 
 		['@enact/i18n', '@enact/moonstone'].forEach(lib => {
 			if(!fs.existsSync(path.join(app, 'node_modules', lib))) {
