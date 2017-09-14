@@ -19,7 +19,7 @@ module.exports = {
 		} else if(typeof config.entry === 'object') {
 			const o = {entry:config.entry[opts.chunk || 'main']};
 			this.injectEntry(o, entry, opts);
-			config.entry = o.entry;
+			config.entry[opts.chunk || 'main'] = o.entry;
 		}
 	},
 	mainEntry: function(config, opts = {}) {
