@@ -277,6 +277,7 @@ function emitAsset(compilation, file, data) {
 function LocaleHtmlPlugin(options) {
 	this.options = options || {};
 	this.options.chunk = this.options.chunk || 'main.js';
+	this.options.mapfile = (typeof this.options.mapfile === 'undefined') || this.options.mapfile;
 	if(typeof this.options.locales === 'undefined') {
 		this.options.locales = 'used';
 	}
