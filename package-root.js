@@ -26,10 +26,11 @@ function findRoot(curr) {
 				return findRoot(path.resolve(pkg.dir, '..'));
 			}
 		} catch (e) {
-			return null;
+			return findRoot(path.resolve(pkg.dir, '..'));
 		}
 	} else {
-		return null;
+		throw new Error('Unable to locate project root directory. '
+			+ 'Valid project-level package.json file not found.');
 	}
 }
 
