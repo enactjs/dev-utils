@@ -32,6 +32,15 @@ module.exports = {
 			return this.mainEntry({entry:config.entry[opts.chunk || 'main']}, opts);
 		}
 	},
+	replaceMain: function(config, replacement, opts = {}) {
+		if(typeof config.entry === 'string') {
+			config.entry = replacement;
+		} else if(Array.isArray(config.entry)) {
+			config.entry[config.entry.length-1] = replacement;
+		} else if(typeof config.entry === 'object') {
+			this.replaceMain({entry:config.entry[opts.chunk || 'main']}, replacement, opts);
+		}
+	},
 	findLoader: function(config, name) {
 		let index = -1;
 		if(config && config.module && config.module.rules && name) {
