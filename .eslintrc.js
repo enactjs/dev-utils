@@ -67,7 +67,7 @@ module.exports = {
 		'func-call-spacing': 1,
 		'no-trailing-spaces': 1,
 		'no-unneeded-ternary': 1,
-		'operator-linebreak': [1, 'before'],
+		'operator-linebreak': [1, 'before', {'overrides': {'=':'after'}}],
 		'quotes': [1, 'single', {'avoidEscape':true}],
 		'space-before-function-paren': [1, 'never'],
 		'space-infix-ops': 0,
