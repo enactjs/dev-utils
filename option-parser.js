@@ -1,9 +1,11 @@
 const fs = require('fs');
-const path = require('fs');
+const path = require('path');
 const pkgRoot = require('./package-root');
 
 const pkg = pkgRoot();
 const enact = pkg.meta.enact || {};
+const defaultEnv = 'web';
+const defaultBrowsers = ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'];
 
 function gentlyParse(file) {
 	try {
@@ -29,7 +31,7 @@ function fontGenerator(theme) {
 
 module.exports = {
 	// Project base directory
-	context: pkg.dir,
+	context: pkg.path,
 	// Project name
 	name: pkg.meta.name,
 	// Main application entrypoint.
@@ -41,9 +43,10 @@ module.exports = {
 	// Optional <title></title> value for HTML
 	title: enact.title,
 	// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
-	node: enact.node,
-	// Optional webpack target value (see https://webpack.js.org/configuration/target/).
-	environment: enact.target,
+	nodeBuiltins: enact.nodeBuiltins || (typeof enact.node === 'object' && enact.node),
+	// Optional property to specify a version of NodeJS to target required polyfills.
+	// True or 'current' will use latest, otherwise will use a specified version number.
+	node: (typeof enact.node !== 'object' && enact.node),
 	// Optional window condition(s) that indicate deeplinking and invalidate HTML prerender.
 	deep: enact.deep,
 	// Proxy target to use within the http-proxy-middleware during serving.
@@ -52,12 +55,12 @@ module.exports = {
 	theme: enact.theme
 };
 
-// Resolved array of screenType configurations. When not found, falls back to any theme preset or moonstone.
+// Resolve array of screenType configurations. When not found, falls back to any theme preset or moonstone.
 module.exports.screenTypes =
 		(Array.isArray(enact.screenTypes) && enact.screenTypes)
 		|| (typeof enact.screenTypes === 'string'
-			&& (gentlyParse(path.join(pkg.dir, enact.screenTypes))
-				|| gentlyParse(path.join(pkg.dir, 'node_modules', enact.screenTypes))))
+			&& (gentlyParse(path.join(pkg.path, enact.screenTypes))
+				|| gentlyParse(path.join(pkg.path, 'node_modules', enact.screenTypes))))
 		|| gentlyParse(screenTypes(enact.theme || 'moonstone'));
 
 // Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
@@ -66,6 +69,39 @@ module.exports.ri =	enact.ri || module.exports.screenTypes.reduce((r, s) => (s.b
 // Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
 module.exports.fontGenerator =
 		((typeof enact.screenTypes === 'string'
-			&& [path.join(pkg.dir, enact.fontGenerator), path.join(pkg.dir, 'node_modules', enact.fontGenerator)]
+			&& [path.join(pkg.path, enact.fontGenerator), path.join(pkg.path, 'node_modules', enact.fontGenerator)]
 				.find(fs.existsSync))
 		|| fontGenerator(enact.theme || 'moonstone'));
+
+// Handle dynamic resolving of targets for both browserlist format and webpack target string format.
+if(Array.isArray(pkg.meta.browserlist || enact.target)) {
+	// Standard browserlist format (https://github.com/ai/browserslist)
+	module.exports.environment = defaultEnv;
+	module.exports.browsers = pkg.meta.browserlist;
+	if(module.exports.browsers.find(b => !b.startsWith('not') && b.indexOf('Electron')>-1)) {
+		module.exports.environment = enact.environment || 'electron-main';
+	} else {
+		module.exports.environment = enact.environment || defaultEnv;
+	}
+} else if(typeof enact.target === 'string' || enact.environment) {
+	// Optional webpack target value (see https://webpack.js.org/configuration/target/).
+	module.exports.environment = enact.environment || enact.target;
+	switch(module.exports.environment) {
+		case 'atom':
+		case 'electron':
+		case 'electron-main':
+		case 'electron-renderer':
+			module.exports.browsers = ['last 4 Electron versions'];
+			break;
+		case 'node':
+			module.exports.node |= true;
+			module.exports.browsers = [];
+			delete module.exports.nodeBuiltins;
+			break;
+		default:
+			module.exports.browsers = defaultBrowsers;
+	}
+} else {
+	module.exports.environment = defaultEnv;
+	module.exports.browsers = defaultBrowsers;
+}
