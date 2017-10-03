@@ -45,7 +45,7 @@ module.exports = {
 	// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 	nodeBuiltins: enact.nodeBuiltins || (typeof enact.node === 'object' && enact.node),
 	// Optional property to specify a version of NodeJS to target required polyfills.
-	// True or 'current' will use latest, otherwise will use a specified version number.
+	// True or 'current' will use active version of Node, otherwise will use a specified version number.
 	node: (typeof enact.node !== 'object' && enact.node),
 	// Optional window condition(s) that indicate deeplinking and invalidate HTML prerender.
 	deep: enact.deep,
@@ -74,9 +74,14 @@ module.exports.fontGenerator =
 		|| fontGenerator(enact.theme || 'moonstone'));
 
 // Handle dynamic resolving of targets for both browserlist format and webpack target string format.
-if(Array.isArray(pkg.meta.browserlist || enact.target)) {
-	// Standard browserlist format (https://github.com/ai/browserslist)
-	module.exports.environment = defaultEnv;
+if(process.env['BROWSERSLIST'] || pkg.meta.browserlist || fs.existsSync(path.join(pkg.path, 'browserslist'))
+		|| fs.existsSync(path.join(pkg.path, 'browserslist'))) {
+	// Using other format of 
+	module.exports.environment = enact.environment || defaultEnv;
+	delete module.exports.browsers;
+} else if(Array.isArray(enact.target)) {
+	// Standard browserslist format (https://github.com/ai/browserslist)
+	module.exports.environment = enact.environment || defaultEnv;
 	module.exports.browsers = pkg.meta.browserlist;
 	if(module.exports.browsers.find(b => !b.startsWith('not') && b.indexOf('Electron')>-1)) {
 		module.exports.environment = enact.environment || 'electron-main';
@@ -90,9 +95,22 @@ if(Array.isArray(pkg.meta.browserlist || enact.target)) {
 		case 'atom':
 		case 'electron':
 		case 'electron-main':
-		case 'electron-renderer':
-			module.exports.browsers = ['last 4 Electron versions'];
+		case 'electron-renderer': {
+			const versionMap = require('electron-to-chromium/versions');
+			const lastFour = Object.keys(versionMap).sort((a, b) => parseInt(versionMap[a]) - parseInt(versionMap[b]))
+					.slice(-4).map(v => 'Electron ' + v);
+			try {
+				// Attempt to detect current-used Electron version
+				const electron = JSON.parse(fs.readFileSync(path.join(pkg.path, 'node_modules', 'electron',
+						'package.json'), {encoding:'utf8'}));
+				const label = (electron.version + '').replace(/^(\d+\.\d+).*$/, '$1');
+				module.exports.browsers = versionMap[label] ? ['Electron ' + label] : lastFour;
+			} catch(e) {
+				// Fallback to last 4 releases of Electron.
+				module.exports.browsers = lastFour;
+			}
 			break;
+		}
 		case 'node':
 			module.exports.node |= true;
 			module.exports.browsers = [];
