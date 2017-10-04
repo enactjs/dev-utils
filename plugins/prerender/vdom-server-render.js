@@ -70,7 +70,7 @@ module.exports = {
 				const generator = require(opts.fontGenerator);
 				style = generator(opts.locale || 'en-US');
 			} catch(e) {
-				// Temporary fallback to use depreciated global hook.
+				// Temporary fallback to use deprecated global hook.
 				global.enactHooks = global.enactHooks || {};
 				global.enactHooks.prerender = function(hook) {
 					if(hook.appendToHead) {
