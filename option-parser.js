@@ -43,7 +43,7 @@ module.exports = {
 	// Optional <title></title> value for HTML
 	title: enact.title,
 	// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
-	nodeBuiltins: enact.nodeBuiltins || (typeof enact.node === 'object' && enact.node),
+	nodeBuiltins: enact.nodeBuiltins,
 	// Optional property to specify a version of NodeJS to target required polyfills.
 	// True or 'current' will use active version of Node, otherwise will use a specified version number.
 	node: (typeof enact.node !== 'object' && enact.node),
