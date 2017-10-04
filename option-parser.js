@@ -112,7 +112,7 @@ if(process.env['BROWSERSLIST'] || pkg.meta.browserlist || fs.existsSync(path.joi
 			break;
 		}
 		case 'node':
-			module.exports.node |= true;
+			module.exports.node = module.exports.node || true;
 			module.exports.browsers = [];
 			delete module.exports.nodeBuiltins;
 			break;
