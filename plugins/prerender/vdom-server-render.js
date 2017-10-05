@@ -49,13 +49,13 @@ module.exports = {
 				server			ReactDomServer or server with compatible APIs
 				locale 			Specific locale to use in rendering
 				externals		Filepath to external Enact framework to use with rendering
+				fontGenerator	Optional font-generator which can be used to dynamically generate locale-specific font settings
 		Returns:
 			HTML static rendered string of the app's initial state.
 	*/
 	render: function(opts) {
 		if(!chunkTarget) throw new Error('Source code not staged, unable render vdom into HTML string.');
-		const head = [];
-		let rendered;
+		let style, rendered;
 
 		if(opts.locale) {
 			global.XMLHttpRequest = FileXHR;
@@ -66,12 +66,18 @@ module.exports = {
 		try {
 			console.mute();
 
-			global.enactHooks = global.enactHooks || {};
-			global.enactHooks.prerender = function(hook) {
-				if(hook.appendToHead) {
-					head.push(hook.appendToHead);
-				}
-			};
+			try {
+				const generator = require(opts.fontGenerator);
+				style = generator(opts.locale || 'en-US');
+			} catch(e) {
+				// Temporary fallback to use deprecated global hook.
+				global.enactHooks = global.enactHooks || {};
+				global.enactHooks.prerender = function(hook) {
+					if(hook.appendToHead) {
+						style = hook.appendToHead;
+					}
+				};
+			}
 
 			if(opts.externals) {
 				// Ensure locale switching  support is loaded globally with external framework usage.
@@ -91,15 +97,9 @@ module.exports = {
 			}
 
 			rendered = opts.server.renderToString(chunk['default'] || chunk);
-			if(head.length>0) {
-				let prepend = '<!-- head append start -->';
-				for(let i=0; i<head.length; i++) {
-					prepend += '\t' + head[i].replace(/\n/g, '\n\t') + '\n';
-				}
-				prepend += '<!-- head append end -->';
-				rendered = prepend + rendered;
+			if(style) {
+				rendered = '<!-- head append start -->\n' + style + '\n<!-- head append end -->' + rendered;
 			}
-
 
 			// If --expose-gc is used in NodeJS, force garbage collect after prerender for minimal memory usage.
 			if(global.gc) global.gc();
