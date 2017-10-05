@@ -312,7 +312,8 @@ LocaleHtmlPlugin.prototype.apply = function(compiler) {
 							let appHtml = vdomServer.render({
 								server: opts.server,
 								locale: locStr,
-								externals: opts.externals
+								externals: opts.externals,
+								fontGenerator: opts.fontGenerator
 							});
 
 							// Extract the root CSS classes and react checksum from the prerendered html code.
