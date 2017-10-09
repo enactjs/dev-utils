@@ -5,7 +5,7 @@ const pkgRoot = require('./package-root');
 const pkg = pkgRoot();
 const enact = pkg.meta.enact || {};
 const defaultEnv = 'web';
-const defaultBrowsers = ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'];
+const defaultBrowsers = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12', 'not ie_mob < 12'];
 
 function gentlyParse(file) {
 	try {
@@ -113,7 +113,7 @@ if(process.env['BROWSERSLIST'] || pkg.meta.browserlist || fs.existsSync(path.joi
 		}
 		case 'node':
 			module.exports.node = module.exports.node || true;
-			module.exports.browsers = [];
+			delete module.exports.browsers;
 			delete module.exports.nodeBuiltins;
 			break;
 		default:
