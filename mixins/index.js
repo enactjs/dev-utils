@@ -2,7 +2,12 @@ module.exports = {
 	apply: function(config, opts = {}) {
 		opts.isomorphic |= opts.snapshot;
 		opts.production |= process.env.NODE_ENV === 'production';
-		if(opts.production && !opts['minify']) {
+
+		if(opts.webOS || opts.webos) {
+			require('./webos').apply(config, opts);
+		}
+
+		if(opts.production && !opts.minify) {
 			require('./unmangled').apply(config, opts);
 		}
 
