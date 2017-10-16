@@ -15,6 +15,14 @@ function gentlyParse(file) {
 	}
 }
 
+function parseBL(file) {
+	try {
+		return fs.readFileSync(file, {encoding:'utf8'}).split(/[\r\n]+/).filter(t => t.trim() && t.charAt(0)!=='#');
+	} catch(e) {
+		return undefined;
+	}
+}
+
 function screenTypes(theme) {
 	const decorator = theme.charAt(0).toUpperCase() + theme.slice(1) + 'Decorator';
 	const scoped = path.join('node_modules', '@enact', theme, decorator, 'screenTypes.json');
@@ -74,11 +82,14 @@ module.exports.fontGenerator =
 		|| fontGenerator(enact.theme || 'moonstone'));
 
 // Handle dynamic resolving of targets for both browserlist format and webpack target string format.
-if(process.env['BROWSERSLIST'] || pkg.meta.browserlist || fs.existsSync(path.join(pkg.path, 'browserslist'))
-		|| fs.existsSync(path.join(pkg.path, 'browserslist'))) {
-	// Using other format of 
+// Temporary support for parsing BROWSERSLIST env var. Will be supported out-of-the-box in Babel 7 in all forms.
+const browserslist = (process.env['BROWSERSLIST'] && process.env['BROWSERSLIST'].split(/\s*,\s*/))
+		|| pkg.meta.browserlist
+		|| parseBL(path.join(pkg.path, '.browserslistrc'))
+		|| parseBL(path.join(pkg.path, 'browserslist'));
+if(browserslist) {
 	module.exports.environment = enact.environment || defaultEnv;
-	delete module.exports.browsers;
+	module.exports.browsers = browserslist;
 } else if(Array.isArray(enact.target)) {
 	// Standard browserslist format (https://github.com/ai/browserslist)
 	module.exports.environment = enact.environment || defaultEnv;
