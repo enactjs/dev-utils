@@ -33,7 +33,9 @@ module.exports = {
 				externals		Filepath to external Enact framework to use with rendering
 	*/
 	stage: function(code, opts) {
-		code = code.replace('return __webpack_require__(0);', '__webpack_require__.e = function() {};\nreturn __webpack_require__(0);');
+		code = code.replace('__webpack_require__.e =', '__webpack_require__.e = function() {}; var origE =');
+		code = code.replace('function webpackAsyncContext(req) {',
+				'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});');
 
 		if(opts.externals) {
 			// Add external Enact framework filepath if it's used.
