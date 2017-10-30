@@ -21,6 +21,8 @@ let chunkTarget;
 
 if(!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
 
+require('core-js');
+
 module.exports = {
 	/*
 		Stages a target chunk of sourcecode to a temporary directory to be prerendered.
