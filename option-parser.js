@@ -69,7 +69,8 @@ module.exports.screenTypes =
 		|| (typeof enact.screenTypes === 'string'
 			&& (gentlyParse(path.join(pkg.path, enact.screenTypes))
 				|| gentlyParse(path.join(pkg.path, 'node_modules', enact.screenTypes))))
-		|| gentlyParse(screenTypes(enact.theme || 'moonstone'));
+		|| gentlyParse(screenTypes(enact.theme || 'moonstone'))
+		|| [];
 
 // Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
 module.exports.ri =	enact.ri || module.exports.screenTypes.reduce((r, s) => (s.base && s.pxPerRem) || r, null);
@@ -86,19 +87,16 @@ module.exports.fontGenerator =
 const browserslist = (process.env['BROWSERSLIST'] && process.env['BROWSERSLIST'].split(/\s*,\s*/))
 		|| pkg.meta.browserlist
 		|| parseBL(path.join(pkg.path, '.browserslistrc'))
-		|| parseBL(path.join(pkg.path, 'browserslist'));
+		|| parseBL(path.join(pkg.path, 'browserslist'))
+		|| (Array.isArray(enact.target) && enact.target);
 if(browserslist) {
-	module.exports.environment = enact.environment || defaultEnv;
-	module.exports.browsers = browserslist;
-} else if(Array.isArray(enact.target)) {
 	// Standard browserslist format (https://github.com/ai/browserslist)
-	module.exports.environment = enact.environment || defaultEnv;
-	module.exports.browsers = pkg.meta.browserlist;
-	if(module.exports.browsers.find(b => !b.startsWith('not') && b.indexOf('Electron')>-1)) {
+	if(browserslist.find(b => !b.startsWith('not') && b.indexOf('Electron')>-1)) {
 		module.exports.environment = enact.environment || 'electron-main';
 	} else {
 		module.exports.environment = enact.environment || defaultEnv;
 	}
+	module.exports.browsers = browserslist;
 } else if(typeof enact.target === 'string' || enact.environment) {
 	// Optional webpack target value (see https://webpack.js.org/configuration/target/).
 	module.exports.environment = enact.environment || enact.target;
