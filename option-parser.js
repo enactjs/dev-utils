@@ -5,11 +5,19 @@ const pkgRoot = require('./package-root');
 const pkg = pkgRoot();
 const enact = pkg.meta.enact || {};
 const defaultEnv = 'web';
-const defaultBrowsers = ['>1%', 'last 4 versions', 'Firefox ESR', 'not ie < 9'];
+const defaultBrowsers = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12', 'not ie_mob < 12'];
 
 function gentlyParse(file) {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding:'utf8'}));
+	} catch(e) {
+		return undefined;
+	}
+}
+
+function parseBL(file) {
+	try {
+		return fs.readFileSync(file, {encoding:'utf8'}).split(/[\r\n]+/).filter(t => t.trim() && t.charAt(0)!=='#');
 	} catch(e) {
 		return undefined;
 	}
@@ -74,11 +82,14 @@ module.exports.fontGenerator =
 		|| fontGenerator(enact.theme || 'moonstone'));
 
 // Handle dynamic resolving of targets for both browserlist format and webpack target string format.
-if(process.env['BROWSERSLIST'] || pkg.meta.browserlist || fs.existsSync(path.join(pkg.path, 'browserslist'))
-		|| fs.existsSync(path.join(pkg.path, 'browserslist'))) {
-	// Using other format of 
+// Temporary support for parsing BROWSERSLIST env var. Will be supported out-of-the-box in Babel 7 in all forms.
+const browserslist = (process.env['BROWSERSLIST'] && process.env['BROWSERSLIST'].split(/\s*,\s*/))
+		|| pkg.meta.browserlist
+		|| parseBL(path.join(pkg.path, '.browserslistrc'))
+		|| parseBL(path.join(pkg.path, 'browserslist'));
+if(browserslist) {
 	module.exports.environment = enact.environment || defaultEnv;
-	delete module.exports.browsers;
+	module.exports.browsers = browserslist;
 } else if(Array.isArray(enact.target)) {
 	// Standard browserslist format (https://github.com/ai/browserslist)
 	module.exports.environment = enact.environment || defaultEnv;
@@ -113,7 +124,7 @@ if(process.env['BROWSERSLIST'] || pkg.meta.browserlist || fs.existsSync(path.joi
 		}
 		case 'node':
 			module.exports.node = module.exports.node || true;
-			module.exports.browsers = [];
+			delete module.exports.browsers;
 			delete module.exports.nodeBuiltins;
 			break;
 		default:
