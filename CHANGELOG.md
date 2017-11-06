@@ -1,3 +1,23 @@
+## 0.4.0 (Nov. 6, 2017)
+
+* Unify PrerenderPlugin and LocaleHtmlPlugin into a single general-purpose plugin
+* Defaults to `en-US` locale but supports all the same locale option as LocaleHtmlPlugin (json files, literal objects, presets, etc.).
+* Locale preset json format updated to a more readable layout. For example:
+```json
+{
+	"locales": [
+		"en-US",
+		"es-ES",
+		"fr-FR",
+		"ko-KR",
+		"zh-Hans-CN",
+	]
+}
+```
+* Fixed webpack 3.x prerendering when using asynchronous chunks.
+* Fixed screentype detection when not using an identifiable theme like moonstone.
+* Fixed browserslist support when using Electron browser to auto-determine webpack should use `electron-main` environment.
+
 ## 0.3.0 (Oct. 30, 2017)
 
 * Added support for targetted builds using the `BROWSERSLIST` browser [standard format](https://github.com/ai/browserslist).
