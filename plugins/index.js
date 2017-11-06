@@ -3,8 +3,7 @@ module.exports = {
 	EnactFrameworkRefPlugin: require('./dll/EnactFrameworkRefPlugin'),
 	GracefulFsPlugin: require('./GracefulFsPlugin'),
 	ILibPlugin: require('./ILibPlugin'),
-	PrerenderPlugin: require('./prerender/PrerenderPlugin'),
-	LocaleHtmlPlugin: require('./prerender/LocaleHtmlPlugin'),
+	PrerenderPlugin: require('./PrerenderPlugin'),
 	SnapshotPlugin: require('./SnapshotPlugin'),
 	WebOSMetaPlugin: require('./WebOSMetaPlugin')
 };

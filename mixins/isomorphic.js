@@ -3,8 +3,7 @@ const
 	fs = require('fs'),
 	helper = require('../config-helper'),
 	app = require('../option-parser'),
-	PrerenderPlugin = require('../plugins/prerender/PrerenderPlugin'),
-	LocaleHtmlPlugin = require('../plugins/prerender/LocaleHtmlPlugin');
+	PrerenderPlugin = require('../plugins/PrerenderPlugin');
 
 module.exports = {
 	apply: function(config, opts = {}) {
@@ -38,20 +37,15 @@ module.exports = {
 		config.output.libraryTarget = 'umd';
 
 		// Include plugin to prerender the html into the index.html
-		// @TODO: combine into a single plugin
-		const prerenderOpts = {
+		config.plugins.push(new PrerenderPlugin({
 			server: require(reactDOMServer),
 			locales: opts.locales,
 			deep: app.deep,
 			externals: opts.externals,
 			screenTypes: app.screenTypes,
-			fontGenerator: app.fontGenerator
-		}
-		if(!opts.locales) {
-			config.plugins.push(new PrerenderPlugin(prerenderOpts));
-		} else {
-			config.plugins.push(new LocaleHtmlPlugin(prerenderOpts));
-		}
+			fontGenerator: app.fontGenerator,
+			mapfile: false
+		}));
 
 		// Apply snapshot specialization options if needed
 		if(opts.snapshot && !opts.externals) {
