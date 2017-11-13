@@ -189,7 +189,8 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 				}
 
 				const appHtml = parsePrerender(status.prerender[i]);
-				const updater = templates.update(mapping, opts.deep);
+				const updater = templates.update(mapping, opts.deep, appHtml.prerender);
+				if(opts.deep) appHtml.prerender = '';
 				if(updater) {
 					body.push({
 						tagName: 'script',
