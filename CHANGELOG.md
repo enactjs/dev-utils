@@ -1,3 +1,9 @@
+## 0.5.0
+
+* Added a new plugin for webpack, EnzymeAdapterPlugin, which automates the Enzyme initialization of an adapter. Whenever an app imports/requires Enzyme, a small proxy will intervene and ensure the desired Enzyme adapter is configured and used. This allows easier Enzyme usage within karma-webpack, for example.
+* PrerenderPlugin inline script to initialize root `fontSize` now considers window height in addition to window width.
+* Deep linking support in a prerendered page will now default to empty content, inserting prerendered app HTML as needed.
+
 ## 0.4.0 (Nov. 6, 2017)
 
 * Unify PrerenderPlugin and LocaleHtmlPlugin into a single general-purpose plugin
@@ -31,7 +37,7 @@
 * Added an `option-parser` module to parse and store the Enact build options from the `package.json` and to handle intertwined values and fallbacks to do with `fontGenerator`, `screenTypes`, `ri`, `theme`, `target`, etc.
 * Added support for a CommonJS font generator to generate localized font CSS (deprecating the previous global prerender hook).
 * Added support for dynamic replacement of main entrypoint to `config-helper`.
-* Updated `package-toot` to now throw an error when no root is found.
+* Updated `package-root` to now throw an error when no root is found.
 * Updated dependencies.
 
 ## 0.1.0 (Sept. 28, 2017)
