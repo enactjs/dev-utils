@@ -15,10 +15,11 @@ const startup = (screenTypes, jsAssets) => `
 		width = window.innerWidth;
 	var scrObj = screenTypes[screenTypes.length - 1];
 	if(height > width) {
-		width = height;
+		height = window.innerWidth;
+		width = window.innerHeight;
 	}
 	for(var i=screenTypes.length-1; i>=0; i--) {
-		if(width <= screenTypes[i].width) {
+		if(height <= screenTypes[i].height && width <= screenTypes[i].width) {
 			scrObj = screenTypes[i];
 		}
 	}
@@ -54,15 +55,13 @@ const startup = (screenTypes, jsAssets) => `
 	}, 0); };
 `;
 
-const deepLink = (conditions, fallback) => conditions ? `
+const deepLink = (conditions, prerender, wrapped) => conditions ? `
 	// Handle any deep link conditions.
-	if(${(Array.isArray(conditions) ? conditions.join(' && ') : conditions)}) {
-		var div = document.getElementById("root");
-		while(div && div.firstChild) { div.removeChild(div.firstChild); }
-	${fallback ? `} else {
-		${fallback.replace(/\n/g, '\n\t')}
-	}` : '}'}
-` : (fallback || null);
+	if(!(${(Array.isArray(conditions) ? conditions.join(' && ') : conditions)})) {
+		document.getElementById("root").innerHTML = ${JSON.stringify(prerender)};
+		${wrapped ? wrapped.replace(/\n/g, '\n\t') : ''}
+	}
+` : (wrapped || null);
 
 const multiLocale = (mapping) => mapping && `
 	// Apply locale-specific root classes and checksum.
@@ -81,5 +80,5 @@ module.exports = {
 	startup: (screenTypes, jsAssets) => fn(startup(screenTypes, jsAssets)),
 	// Update inline script, which updates the template/prerender content prior to app render.
 	// Used for locale and deeplinking customizations.
-	update: (mapping, deep) => fn(deepLink(deep, multiLocale(mapping)))
+	update: (mapping, deep, prerender) => fn(deepLink(deep, prerender, multiLocale(mapping)))
 };
