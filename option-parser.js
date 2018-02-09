@@ -42,8 +42,6 @@ module.exports = {
 	context: pkg.path,
 	// Project name
 	name: pkg.meta.name,
-	// Main application entrypoint.
-	main: pkg.meta.main,
 	// Optional alternate entrypoint for isomorphic builds.
 	isomorphic: enact.isomorphic,
 	// Optional filepath to an alternate HTML template for html-webpack-plugin.
@@ -99,7 +97,7 @@ if(browserslist) {
 	module.exports.browsers = browserslist;
 } else if(typeof enact.target === 'string' || enact.environment) {
 	// Optional webpack target value (see https://webpack.js.org/configuration/target/).
-	module.exports.environment = enact.environment || enact.target;
+	module.exports.environment = enact.environment || enact.target || defaultEnv;
 	switch(module.exports.environment) {
 		case 'atom':
 		case 'electron':
