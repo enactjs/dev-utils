@@ -18,6 +18,7 @@ module.exports = {
 					'./karma.conf.js',
 					'./build/**/*.*',
 					'./dist/**/*.*',
+					path.join(config.output.path, '*'),
 					'./node_modules/**/*.*',
 					'**/tests/*.js'
 				]
