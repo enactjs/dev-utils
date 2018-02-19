@@ -3,14 +3,15 @@ const
 	fs = require('fs');
 
 function findPackageJSON(curr) {
-	if(curr.replace(/(^[.\\/]+|[\\/]+$)/g, '').length === 0) {
+	const parent = path.dirname(curr);
+	if(parent === curr || curr.length === 0) {
 		return null;
 	} else {
 		const pkg = path.join(curr, 'package.json');
 		if(fs.existsSync(pkg)) {
 			return {dir:curr, file:pkg};
 		} else {
-			return findPackageJSON(path.dirname(curr));
+			return findPackageJSON(parent);
 		}
 	}
 }
