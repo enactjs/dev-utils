@@ -1,9 +1,8 @@
-const
-	path = require('path'),
-	fs = require('fs'),
-	helper = require('../config-helper'),
-	app = require('../option-parser'),
-	PrerenderPlugin = require('../plugins/PrerenderPlugin');
+const fs = require('fs');
+const path = require('path');
+const helper = require('../config-helper');
+const app = require('../option-parser');
+const PrerenderPlugin = require('../plugins/PrerenderPlugin');
 
 module.exports = {
 	apply: function(config, opts = {}) {

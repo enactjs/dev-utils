@@ -13,7 +13,9 @@
     "lint": "eslint ."
   },
   "eslintIgnore": [
-  	"plugins/SnapshotPlugin/snapshot-helper.js"
+    "plugins/EnzymeAdapterPlugin/enzyme-proxy.js",
+  	"plugins/SnapshotPlugin/snapshot-helper.js",
+    "plugins/SnapshotPlugin/mock-window.js"
   ],
   "dependencies": {
     "chalk": "^2.1.0",

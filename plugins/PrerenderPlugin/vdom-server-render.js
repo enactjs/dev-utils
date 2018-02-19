@@ -5,11 +5,11 @@
  *  for a given javascript virtualdom Enact codebase.
  */
 
-const path = require('path'),
-	fs = require('fs'),
-	findCacheDir = require('find-cache-dir'),
-	requireUncached = require('import-fresh'),
-	FileXHR = require('./FileXHR');
+const fs = require('fs');
+const path = require('path');
+const findCacheDir = require('find-cache-dir');
+const requireUncached = require('import-fresh');
+const FileXHR = require('./FileXHR');
 
 require('console.mute');
 

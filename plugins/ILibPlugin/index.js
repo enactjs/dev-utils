@@ -1,8 +1,7 @@
-const
-	path = require('path'),
-	fs = require('graceful-fs'),
-	glob = require('glob'),
-	{DefinePlugin} = require('webpack');
+const path = require('path');
+const glob = require('glob');
+const fs = require('graceful-fs');
+const {DefinePlugin} = require('webpack');
 
 function packageName(file) {
 	try {

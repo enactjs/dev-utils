@@ -1,9 +1,8 @@
-const
-	path = require('path'),
-	fs = require('fs'),
-	DllEntryPlugin = require('webpack/lib/DllEntryPlugin'),
-	DllModule = require('webpack/lib/DllModule'),
-	{RawSource} = require('webpack-sources');
+const fs = require('fs');
+const path = require('path');
+const DllEntryPlugin = require('webpack/lib/DllEntryPlugin');
+const DllModule = require('webpack/lib/DllModule');
+const {RawSource} = require('webpack-sources');
 
 const pkgCache = {};
 const checkPkgMain = function(dir) {

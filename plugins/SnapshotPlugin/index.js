@@ -1,10 +1,9 @@
-const
-	path = require('path'),
-	fs = require('fs'),
-	cp = require('child_process'),
-	chalk = require('chalk'),
-	{IgnorePlugin} = require('webpack'),
-	helper = require('../../config-helper');
+const cp = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const chalk = require('chalk');
+const {IgnorePlugin} = require('webpack');
+const helper = require('../../config-helper');
 
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.

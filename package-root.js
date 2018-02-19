@@ -1,6 +1,5 @@
-const
-	path = require('path'),
-	fs = require('fs');
+const fs = require('fs');
+const path = require('path');
 
 function findPackageJSON(curr) {
 	const parent = path.dirname(curr);

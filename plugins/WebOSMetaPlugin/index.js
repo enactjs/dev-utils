@@ -1,7 +1,6 @@
-const
-	path = require('path'),
-	fs = require('fs'),
-	glob = require('glob');
+const fs = require('fs');
+const path = require('path');
+const glob = require('glob');
 
 // List of asset-pointing appinfo properties.
 const props = [

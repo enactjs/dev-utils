@@ -1,9 +1,8 @@
-const
-	fs = require('fs'),
-	path = require('path'),
-	chalk = require('chalk'),
-	templates = require('./templates'),
-	vdomServer = require('./vdom-server-render');
+const fs = require('fs');
+const path = require('path');
+const chalk = require('chalk');
+const templates = require('./templates');
+const vdomServer = require('./vdom-server-render');
 
 function PrerenderPlugin(options = {}) {
 	this.options = options;

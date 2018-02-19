@@ -1,8 +1,7 @@
-const
-	path = require('path'),
-	glob = require('glob'),
-	helper = require('../config-helper'),
-	EnactFrameworkPlugin = require('../plugins/dll/EnactFrameworkPlugin');
+const path = require('path');
+const glob = require('glob');
+const helper = require('../config-helper');
+const EnactFrameworkPlugin = require('../plugins/dll/EnactFrameworkPlugin');
 
 module.exports = {
 	apply: function(config, opts = {}) {

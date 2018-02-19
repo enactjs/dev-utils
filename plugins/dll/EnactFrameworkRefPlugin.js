@@ -1,8 +1,7 @@
-const
-	path = require('path'),
-	ExternalsPlugin = require('webpack/lib/ExternalsPlugin'),
-	DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency'),
-	DelegatedModule = require('webpack/lib/DelegatedModule');
+const path = require('path');
+const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
+const DelegatedModule = require('webpack/lib/DelegatedModule');
+const ExternalsPlugin = require('webpack/lib/ExternalsPlugin');
 
 // Custom DelegateFactoryPlugin designed to redirect Enact framework require() calls
 // to the external framework
