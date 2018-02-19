@@ -19,8 +19,8 @@ EnzymeAdapterPlugin.prototype.apply = function(compiler) {
 	// Redirect external 'enzyme' import/require statements to the enzyme proxy
 	compiler.plugin('normal-module-factory', (factory) => {
 		factory.plugin('before-resolve', (result, callback) => {
-			if(!result) return callback();
-			if(result.request === 'enzyme' && result.contextInfo.issuer !== proxyJS
+			if (!result) return callback();
+			if (result.request === 'enzyme' && result.contextInfo.issuer !== proxyJS
 					&& !result.contextInfo.issuer.includes('enzyme')) {
 				result.request = proxyJS;
 			}

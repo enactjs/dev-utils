@@ -31,7 +31,7 @@ module.exports = {
 
 		// Modify the iLib plugin options to skip './resources' detection/generation
 		const ilibPlugin = helper.getPluginByName(config, 'ILibPlugin');
-		if(ilibPlugin) {
+		if (ilibPlugin) {
 			ilibPlugin.options.create = false;
 			ilibPlugin.options.resources = false;
 		}
@@ -42,7 +42,7 @@ module.exports = {
 		// Add the framework plugin to build in an externally accessible manner
 		config.plugins.push(new EnactFrameworkPlugin());
 
-		if(opts.snapshot) {
+		if (opts.snapshot) {
 			const SnapshotPlugin = require('../plugins/SnapshotPlugin');
 
 			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set

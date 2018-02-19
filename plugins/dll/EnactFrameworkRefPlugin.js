@@ -15,7 +15,7 @@ DelegatedEnactFactoryPlugin.prototype.apply = function(normalModuleFactory) {
 	normalModuleFactory.plugin('factory', (factory) => {
 		return function(data, callback) {
 			const request = data.request;
-			if(request && libReg.test(request)) {
+			if (request && libReg.test(request)) {
 				return callback(null, new DelegatedModule(name, {id:request}, 'require', request));
 			}
 			return factory(data, callback);
@@ -25,7 +25,7 @@ DelegatedEnactFactoryPlugin.prototype.apply = function(normalModuleFactory) {
 
 // Form a correct filepath that can be used within the build's output directory
 function normalizePath(dir, file, compiler) {
-	if(path.isAbsolute(dir)) {
+	if (path.isAbsolute(dir)) {
 		return path.join(dir, file);
 	} else {
 		return path.relative(path.resolve(compiler.options.output.path), path.join(process.cwd(), dir, file));
@@ -47,7 +47,7 @@ function EnactFrameworkRefPlugin(opts) {
 	this.options.external = this.options.external || {};
 	this.options.external.inject = this.options.external.inject || this.options.external.path;
 
-	if(!process.env.ILIB_BASE_PATH) {
+	if (!process.env.ILIB_BASE_PATH) {
 		process.env.ILIB_BASE_PATH = path.join(this.options.external.inject, 'node_module',
 				'@enact', 'i18n', 'ilib');
 	}
@@ -69,7 +69,7 @@ EnactFrameworkRefPlugin.prototype.apply = function(compiler) {
 
 		compilation.plugin('html-webpack-plugin-alter-chunks', (chunks) => {
 			const chunkFiles = [normalizePath(external.inject, 'enact.css', compiler)];
-			if(!external.snapshot) {
+			if (!external.snapshot) {
 				chunkFiles.unshift(normalizePath(external.inject, 'enact.js', compiler));
 			}
 			// Add the framework files as a pseudo-chunk so they get injected into the HTML
@@ -80,7 +80,7 @@ EnactFrameworkRefPlugin.prototype.apply = function(compiler) {
 			return chunks;
 		});
 
-		if(external.snapshot && isNodeOutputFS(compiler)) {
+		if (external.snapshot && isNodeOutputFS(compiler)) {
 			compilation.plugin('webos-meta-root-appinfo', (meta) => {
 				meta.v8SnapshotFile = normalizePath(external.inject, 'snapshot_blob.bin', compiler);
 				return meta;

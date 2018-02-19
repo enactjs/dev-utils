@@ -12,6 +12,9 @@
   "scripts": {
     "lint": "eslint ."
   },
+  "eslintIgnore": [
+  	"plugins/SnapshotPlugin/snapshot-helper.js"
+  ],
   "dependencies": {
     "chalk": "^2.1.0",
     "console.mute": "^0.3.0",
@@ -26,6 +29,7 @@
   },
   "devDependencies": {
     "eslint": "~4.15.0",
+    "eslint-plugin-import": "~2.8.0",
     "webpack": "~3.10.0"
   },
   "peerDependencies": {

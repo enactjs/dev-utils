@@ -10,7 +10,7 @@ const defaultBrowsers = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12',
 function gentlyParse(file) {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding:'utf8'}));
-	} catch(e) {
+	} catch (e) {
 		return undefined;
 	}
 }
@@ -18,7 +18,7 @@ function gentlyParse(file) {
 function parseBL(file) {
 	try {
 		return fs.readFileSync(file, {encoding:'utf8'}).split(/[\r\n]+/).filter(t => t.trim() && t.charAt(0)!=='#');
-	} catch(e) {
+	} catch (e) {
 		return undefined;
 	}
 }
@@ -87,18 +87,18 @@ const browserslist = (process.env['BROWSERSLIST'] && process.env['BROWSERSLIST']
 		|| parseBL(path.join(pkg.path, '.browserslistrc'))
 		|| parseBL(path.join(pkg.path, 'browserslist'))
 		|| (Array.isArray(enact.target) && enact.target);
-if(browserslist) {
+if (browserslist) {
 	// Standard browserslist format (https://github.com/ai/browserslist)
-	if(browserslist.find(b => !b.startsWith('not') && b.indexOf('Electron')>-1)) {
+	if (browserslist.find(b => !b.startsWith('not') && b.indexOf('Electron')>-1)) {
 		module.exports.environment = enact.environment || 'electron-main';
 	} else {
 		module.exports.environment = enact.environment || defaultEnv;
 	}
 	module.exports.browsers = browserslist;
-} else if(typeof enact.target === 'string' || enact.environment) {
+} else if (typeof enact.target === 'string' || enact.environment) {
 	// Optional webpack target value (see https://webpack.js.org/configuration/target/).
 	module.exports.environment = enact.environment || enact.target || defaultEnv;
-	switch(module.exports.environment) {
+	switch (module.exports.environment) {
 		case 'atom':
 		case 'electron':
 		case 'electron-main':
@@ -112,7 +112,7 @@ if(browserslist) {
 						'package.json'), {encoding:'utf8'}));
 				const label = (electron.version + '').replace(/^(\d+\.\d+).*$/, '$1');
 				module.exports.browsers = versionMap[label] ? ['Electron ' + label] : lastFour;
-			} catch(e) {
+			} catch (e) {
 				// Fallback to last 4 releases of Electron.
 				module.exports.browsers = lastFour;
 			}

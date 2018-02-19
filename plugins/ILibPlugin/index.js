@@ -7,16 +7,16 @@ const
 function packageName(file) {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding:'utf8'})).name || '';
-	} catch(e) {
+	} catch (e) {
 		return '';
 	}
 }
 
 function packageSearch(dir, pkg) {
 	let pkgPath;
-	while(dir!=='/' && dir!=='\\' && dir!=='.' && dir!=='' && !pkgPath) {
+	while (dir!=='/' && dir!=='\\' && dir!=='.' && dir!=='' && !pkgPath) {
 		const full = path.join(dir, 'node_modules', pkg);
-		if(fs.existsSync(full)) {
+		if (fs.existsSync(full)) {
 			pkgPath = path.relative(process.cwd(), full);
 		} else {
 			dir = path.dirname(dir);
@@ -41,11 +41,11 @@ function transformPath(context, file) {
 
 function resolveBundle(dir, context) {
 	const bundle = {resolved:dir, path:dir, emit:true};
-	if(path.isAbsolute(bundle.path)) {
+	if (path.isAbsolute(bundle.path)) {
 		bundle.emit = false;
 		bundle.resolved = JSON.stringify(bundle.path);
 	} else {
-		if(fs.existsSync(bundle.path)) {
+		if (fs.existsSync(bundle.path)) {
 			bundle.path = fs.realpathSync(bundle.path);
 		}
 		bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
@@ -58,11 +58,11 @@ function resolveBundle(dir, context) {
 function readManifest(compilation, manifest, opts) {
 	let data;
 	let files = [];
-	if(typeof manifest === 'string') {
-		if(fs.existsSync(manifest)) {
+	if (typeof manifest === 'string') {
+		if (fs.existsSync(manifest)) {
 			manifest = fs.realpathSync(manifest);
 			data = fs.readFileSync(manifest, {encoding:'utf8'});
-			if(data) {
+			if (data) {
 				files = JSON.parse(data).files || files;
 			}
 		}
@@ -77,13 +77,13 @@ function readManifest(compilation, manifest, opts) {
 
 // Read each manifest and process their contents.
 function handleBundles(compilation, manifests, opts, callback) {
-	if(manifests.length === 0) {
+	if (manifests.length === 0) {
 		callback();
 	} else {
 		const manifest = manifests.shift();
 		try {
 			const files = readManifest(compilation, manifest, opts);
-			if(fs.existsSync(manifest) || opts.create) {
+			if (fs.existsSync(manifest) || opts.create) {
 				const dir = fs.realpathSync(path.dirname(manifest));
 				handleManifestFiles(compilation, dir, files, opts, () => {
 					handleBundles(compilation, manifests, opts, callback);
@@ -91,7 +91,7 @@ function handleBundles(compilation, manifests, opts, callback) {
 			} else {
 				handleBundles(compilation, manifests, opts, callback);
 			}
-		} catch(e) {
+		} catch (e) {
 			compilation.errors.push(new Error('iLibPlugin: Unable to read localization manifest at '
 					+ manifest));
 			handleBundles(compilation, manifests, opts, callback);
@@ -101,16 +101,16 @@ function handleBundles(compilation, manifests, opts, callback) {
 
 // Read and emit all the assets in a particular manifest.
 function handleManifestFiles(compilation, dir, files, opts, callback) {
-	if(files.length === 0) {
+	if (files.length === 0) {
 		callback();
 	} else {
 		const outfile = path.join(dir, files.shift());
-		if(shouldEmit(compilation.compiler, outfile, opts.cache)) {
+		if (shouldEmit(compilation.compiler, outfile, opts.cache)) {
 			fs.readFile(outfile, (err, data) => {
-				if(err) {
+				if (err) {
 					compilation.errors.push(err);
 				} else {
-					emitAsset(compilation, transformPath(opts.context, outfile), data)
+					emitAsset(compilation, transformPath(opts.context, outfile), data);
 				}
 				handleManifestFiles(compilation, dir, files, opts, callback);
 			});
@@ -122,12 +122,12 @@ function handleManifestFiles(compilation, dir, files, opts, callback) {
 
 // Determine if the output file exists and if its newer to determine if it should be emitted.
 function shouldEmit(compiler, file, cache) {
-	if(isNodeOutputFS(compiler)) {
+	if (isNodeOutputFS(compiler)) {
 		try {
 			const src = fs.statSync(file);
 			const dest = fs.statSync(path.join(compiler.options.output.path, transformPath(compiler.options.context, file)));
 			return src.isDirectory() || src.mtime.getTime()>dest.mtime.getTime() || !cache;
-		} catch(e) {
+		} catch (e) {
 			return true;
 		}
 	} else {
@@ -149,29 +149,29 @@ function emitAsset(compilation, name, data) {
 function ILibPlugin(options) {
 	this.options = options || {};
 	this.options.ilib = this.options.ilib || process.env.ILIB_BASE_PATH;
-	if(typeof this.options.ilib === 'undefined') {
+	if (typeof this.options.ilib === 'undefined') {
 		try {
 			const pkgName = packageName('./package.json');
-			if(pkgName.indexOf('@enact') === 0) {
+			if (pkgName.indexOf('@enact') === 0) {
 				this.options.resources = false;
 			}
-			if(pkgName === '@enact/i18n') {
+			if (pkgName === '@enact/i18n') {
 				this.options.ilib = 'ilib';
 			} else {
 				this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
 			}
-		} catch(e) {
+		} catch (e) {
 			console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
 			process.exit(1);
 		}
 	}
-	if(typeof this.options.resources === 'undefined') {
+	if (typeof this.options.resources === 'undefined') {
 		this.options.resources = 'resources';
 	}
 	this.options.bundles = this.options.bundles || {};
-	if(typeof this.options.bundles.moonstone === 'undefined') {
+	if (typeof this.options.bundles.moonstone === 'undefined') {
 		const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
-		if(moonstone) {
+		if (moonstone) {
 			this.options.bundles.moonstone = path.join(moonstone, 'resources');
 		}
 	}
@@ -187,7 +187,7 @@ ILibPlugin.prototype.apply = function(compiler) {
 	let manifests = [];
 	opts.context = compiler.options.context;
 
-	if(opts.ilib) {
+	if (opts.ilib) {
 		// Resolve an accurate basepath for iLib.
 		const ilib = resolveBundle(opts.ilib, opts.context);
 		const definedConstants = {
@@ -195,11 +195,11 @@ ILibPlugin.prototype.apply = function(compiler) {
 			ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
 			ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
 		};
-		for(const name in opts.bundles) {
-			if(opts.bundles[name]) {
+		for (const name in opts.bundles) {
+			if (opts.bundles[name]) {
 				const bundle = resolveBundle(opts.bundles[name], opts.context);
 				definedConstants['ILIB_' + name.toUpperCase() + '_PATH'] = bundle.resolved;
-				if(opts.emit && bundle.emit) {
+				if (opts.emit && bundle.emit) {
 					manifests.push(path.join(bundle.path, 'ilibmanifest.json'));
 				}
 			}
@@ -220,24 +220,24 @@ ILibPlugin.prototype.apply = function(compiler) {
 
 		// Prepare manifest list for usage.
 		// Missing files will created if needed otherwise scanned.
-		if(opts.emit && ilib.emit) {
+		if (opts.emit && ilib.emit) {
 			manifests.unshift(path.join(ilib.path, 'locale', 'ilibmanifest.json'));
 		}
-		if(opts.emit && opts.resources) {
+		if (opts.emit && opts.resources) {
 			manifests.push(path.join(opts.resources, 'ilibmanifest.json'));
 		}
-		for(let i=0; i<manifests.length; i++) {
-			if(!fs.existsSync(manifests[i])) {
+		for (let i=0; i<manifests.length; i++) {
+			if (!fs.existsSync(manifests[i])) {
 				const dir = path.dirname(manifests[i]);
 				let files = [];
-				if(fs.existsSync(dir)) {
+				if (fs.existsSync(dir)) {
 					files = glob.sync('./**/!(appinfo).json', {nodir:true, cwd:dir});
-					for(let k=0; k<files.length; k++) {
+					for (let k=0; k<files.length; k++) {
 						files[k] = files[k].replace(/^\.\//, '');
 					}
 				}
-				if(opts.create) {
-					if(!fs.existsSync(dir)) {
+				if (opts.create) {
+					if (!fs.existsSync(dir)) {
 						fs.mkdirSync(dir);
 					}
 					fs.writeFileSync(manifests[i], JSON.stringify({files:files}, null, '\t'), {encoding:'utf8'});
@@ -250,7 +250,7 @@ ILibPlugin.prototype.apply = function(compiler) {
 
 		// Emit all bundles as applicable.
 		compiler.plugin('emit', (compilation, callback) => {
-			for(let j=0; j<created.length; j++) {
+			for (let j=0; j<created.length; j++) {
 				compilation.warnings.push(new Error('iLibPlugin: Localization resource manifest not found. Created '
 						+ created[j] + ' to prevent future errors.'));
 			}

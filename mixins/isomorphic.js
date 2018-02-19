@@ -10,11 +10,11 @@ module.exports = {
 		// Resolve ReactDOM and ReactDOMSever relative to the app.
 		const reactDOMServer = path.join(app.context, 'node_modules', 'react-dom', 'server.js');
 
-		if(!opts.externals) {
+		if (!opts.externals) {
 			// Expose iLib locale utility function module so we can update the locale on page load, if used.
-			if(opts.locales) {
+			if (opts.locales) {
 				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
-				if(fs.existsSync(locale)) {
+				if (fs.existsSync(locale)) {
 					const babel = helper.findLoader(config, 'babel');
 					config.module.rules.splice((babel>=0 ? babel : 0), 0, {
 						test: fs.realpathSync(locale),
@@ -26,7 +26,7 @@ module.exports = {
 		}
 
 		// If 'isomorphic' value is a string, use custom entrypoint.
-		if(typeof app.isomorphic === 'string') {
+		if (typeof app.isomorphic === 'string') {
 			helper.replaceMain(config, path.resolve(app.isomorphic));
 		}
 
@@ -48,7 +48,7 @@ module.exports = {
 		}));
 
 		// Apply snapshot specialization options if needed
-		if(opts.snapshot && !opts.externals) {
+		if (opts.snapshot && !opts.externals) {
 			const SnapshotPlugin = require('../plugins/SnapshotPlugin');
 
 			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set

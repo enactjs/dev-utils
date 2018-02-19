@@ -4,11 +4,11 @@ const
 
 function findPackageJSON(curr) {
 	const parent = path.dirname(curr);
-	if(parent === curr || curr.length === 0) {
+	if (parent === curr || curr.length === 0) {
 		return null;
 	} else {
 		const pkg = path.join(curr, 'package.json');
-		if(fs.existsSync(pkg)) {
+		if (fs.existsSync(pkg)) {
 			return {dir:curr, file:pkg};
 		} else {
 			return findPackageJSON(parent);
@@ -18,10 +18,10 @@ function findPackageJSON(curr) {
 
 function findRoot(curr) {
 	const pkg = findPackageJSON(curr);
-	if(pkg) {
+	if (pkg) {
 		try {
 			const meta = require(pkg.file);
-			if(meta.name) {
+			if (meta.name) {
 				return {path:pkg.dir, meta:meta};
 			} else {
 				return findRoot(path.resolve(pkg.dir, '..'));
@@ -37,4 +37,4 @@ function findRoot(curr) {
 
 module.exports = function(start) {
 	return findRoot(path.resolve(start || process.cwd()));
-}
+};

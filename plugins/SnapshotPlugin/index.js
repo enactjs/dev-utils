@@ -16,8 +16,8 @@ function isNodeOutputFS(compiler) {
 }
 
 function getBlobName(args) {
-	for(let i=0; i<args.length; i++) {
-		if(args[i].indexOf('--startup-blob=')===0) {
+	for (let i=0; i<args.length; i++) {
+		if (args[i].indexOf('--startup-blob=')===0) {
 			return args[i].replace('--startup-blob=', '');
 		}
 	}
@@ -32,7 +32,7 @@ function SnapshotPlugin(options) {
 		'--random-seed=314159265',
 		'--startup-blob=snapshot_blob.bin'
 	];
-	if(process.env.V8_SNAPSHOT_ARGS) {
+	if (process.env.V8_SNAPSHOT_ARGS) {
 		this.options.args = process.env.V8_SNAPSHOT_ARGS.split(/\s+/);
 	}
 	this.options.args.push(this.options.target || 'main.js');
@@ -47,7 +47,7 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 
 	// Ignore packages that don't exists so snapshot helper can skip them
 	['@enact/i18n', '@enact/moonstone'].forEach(lib => {
-		if(!fs.existsSync(path.join(app, 'node_modules', lib))) {
+		if (!fs.existsSync(path.join(app, 'node_modules', lib))) {
 			compiler.apply(new IgnorePlugin(new RegExp(lib)));
 		}
 	});
@@ -60,9 +60,9 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 	// Redirect external 'react-dom' import/require statements to the snapshot helper
 	compiler.plugin('normal-module-factory', (factory) => {
 		factory.plugin('before-resolve', (result, callback) => {
-			if(!result) return callback();
+			if (!result) return callback();
 
-			if(result.request === 'react-dom') {
+			if (result.request === 'react-dom') {
 				// When the request originates from the injected helper, point to real 'react-dom'
 				result.request = (result.contextInfo.issuer===snapshotJS) ? reactDOM : snapshotJS;
 			}
@@ -80,7 +80,7 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 	});
 
 	compiler.plugin('after-emit', (compilation, callback) => {
-		if(isNodeOutputFS(compiler) && opts.exec) {
+		if (isNodeOutputFS(compiler) && opts.exec) {
 			// Run mksnapshot utility
 			let err;
 			const child = cp.spawnSync(opts.exec, opts.args, {
@@ -88,11 +88,11 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 				encoding: 'utf8'
 			});
 
-			if(child.status === 0) {
+			if (child.status === 0) {
 				// Add snapshot to the compilation assets array for stats purposes
 				try {
 					const stat = fs.statSync(path.join(compiler.options.output.path, opts.blob));
-					if(stat.size>0) {
+					if (stat.size>0) {
 						compilation.assets[opts.blob] = {
 							size: function() { return stat.size; },
 							emitted: true
@@ -101,7 +101,7 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 						// Temporary fix: mksnapshot may create a 0-byte blob on error
 						err = new Error(child.stdout + '\n' + child.stderr);
 					}
-				} catch(e) {
+				} catch (e) {
 					// Temporary fix: mksnapshot may return exit code 0, even on error.
 					// Exception thrown when file not found
 					err = new Error(child.stdout + '\n' + child.stderr);
@@ -110,7 +110,7 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 				err = new Error(child.stdout + '\n' + child.stderr);
 			}
 
-			if(err) {
+			if (err) {
 				console.log(chalk.red('Snapshot blob generation failed.'));
 			}
 
