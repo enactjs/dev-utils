@@ -5,7 +5,7 @@ const {DefinePlugin} = require('webpack');
 
 function packageName(file) {
 	try {
-		return JSON.parse(fs.readFileSync(file, {encoding:'utf8'})).name || '';
+		return JSON.parse(fs.readFileSync(file, {encoding: 'utf8'})).name || '';
 	} catch (e) {
 		return '';
 	}
@@ -13,7 +13,7 @@ function packageName(file) {
 
 function packageSearch(dir, pkg) {
 	let pkgPath;
-	while (dir!=='/' && dir!=='\\' && dir!=='.' && dir!=='' && !pkgPath) {
+	while (dir !== '/' && dir !== '\\' && dir !== '.' && dir !== '' && !pkgPath) {
 		const full = path.join(dir, 'node_modules', pkg);
 		if (fs.existsSync(full)) {
 			pkgPath = path.relative(process.cwd(), full);
@@ -26,20 +26,25 @@ function packageSearch(dir, pkg) {
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 function isNodeOutputFS(compiler) {
-	return (compiler.outputFileSystem
-			&& compiler.outputFileSystem.constructor
-			&& compiler.outputFileSystem.constructor.name
-			&& compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem');
+	return (
+		compiler.outputFileSystem &&
+		compiler.outputFileSystem.constructor &&
+		compiler.outputFileSystem.constructor.name &&
+		compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem'
+	);
 }
 
 // Normalize a filepath to be relative to the webpack context, using forward-slashes, and
 // replace each '..' with '_', keeping in line with the file-loader and other webpack standards.
 function transformPath(context, file) {
-	return path.relative(context, file).replace(/\\/g, '/').replace(/\.\.(\/)?/g, '_$1');
+	return path
+		.relative(context, file)
+		.replace(/\\/g, '/')
+		.replace(/\.\.(\/)?/g, '_$1');
 }
 
 function resolveBundle(dir, context) {
-	const bundle = {resolved:dir, path:dir, emit:true};
+	const bundle = {resolved: dir, path: dir, emit: true};
 	if (path.isAbsolute(bundle.path)) {
 		bundle.emit = false;
 		bundle.resolved = JSON.stringify(bundle.path);
@@ -47,7 +52,8 @@ function resolveBundle(dir, context) {
 		if (fs.existsSync(bundle.path)) {
 			bundle.path = fs.realpathSync(bundle.path);
 		}
-		bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
+		bundle.resolved =
+			'__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
 	}
 	return bundle;
 }
@@ -60,7 +66,7 @@ function readManifest(compilation, manifest, opts) {
 	if (typeof manifest === 'string') {
 		if (fs.existsSync(manifest)) {
 			manifest = fs.realpathSync(manifest);
-			data = fs.readFileSync(manifest, {encoding:'utf8'});
+			data = fs.readFileSync(manifest, {encoding: 'utf8'});
 			if (data) {
 				files = JSON.parse(data).files || files;
 			}
@@ -68,7 +74,7 @@ function readManifest(compilation, manifest, opts) {
 		emitAsset(compilation, transformPath(opts.context, manifest), data);
 	} else {
 		files = manifest.value || files;
-		data = JSON.stringify({files:files}, null, '\t');
+		data = JSON.stringify({files: files}, null, '\t');
 		emitAsset(compilation, transformPath(opts.context, manifest.generate), data);
 	}
 	return files;
@@ -91,8 +97,9 @@ function handleBundles(compilation, manifests, opts, callback) {
 				handleBundles(compilation, manifests, opts, callback);
 			}
 		} catch (e) {
-			compilation.errors.push(new Error('iLibPlugin: Unable to read localization manifest at '
-					+ manifest));
+			compilation.errors.push(
+				new Error('iLibPlugin: Unable to read localization manifest at ' + manifest)
+			);
 			handleBundles(compilation, manifests, opts, callback);
 		}
 	}
@@ -124,8 +131,13 @@ function shouldEmit(compiler, file, cache) {
 	if (isNodeOutputFS(compiler)) {
 		try {
 			const src = fs.statSync(file);
-			const dest = fs.statSync(path.join(compiler.options.output.path, transformPath(compiler.options.context, file)));
-			return src.isDirectory() || src.mtime.getTime()>dest.mtime.getTime() || !cache;
+			const dest = fs.statSync(
+				path.join(
+					compiler.options.output.path,
+					transformPath(compiler.options.context, file)
+				)
+			);
+			return src.isDirectory() || src.mtime.getTime() > dest.mtime.getTime() || !cache;
 		} catch (e) {
 			return true;
 		}
@@ -137,13 +149,20 @@ function shouldEmit(compiler, file, cache) {
 // Add a given asset's data to the compilation array in a webpack-compatible source object.
 function emitAsset(compilation, name, data) {
 	compilation.assets[name] = {
-		size: function() { return data.length; },
-		source: function() { return data; },
-		updateHash: function(hash) { return hash.update(data); },
-		map: function() { return null; }
+		size: function() {
+			return data.length;
+		},
+		source: function() {
+			return data;
+		},
+		updateHash: function(hash) {
+			return hash.update(data);
+		},
+		map: function() {
+			return null;
+		}
 	};
 }
-
 
 function ILibPlugin(options) {
 	this.options = options || {};
@@ -160,7 +179,9 @@ function ILibPlugin(options) {
 				this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
 			}
 		} catch (e) {
-			console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
+			console.error(
+				'ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.'
+			);
 			process.exit(1);
 		}
 	}
@@ -175,9 +196,9 @@ function ILibPlugin(options) {
 		}
 	}
 
-	this.options.cache = (typeof this.options.cache !== 'boolean' || this.options.cache);
-	this.options.create = (typeof this.options.create !== 'boolean' || this.options.create);
-	this.options.emit = (typeof this.options.emit !== 'boolean' || this.options.emit);
+	this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
+	this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
+	this.options.emit = typeof this.options.emit !== 'boolean' || this.options.emit;
 }
 
 ILibPlugin.prototype.apply = function(compiler) {
@@ -191,7 +212,8 @@ ILibPlugin.prototype.apply = function(compiler) {
 		const ilib = resolveBundle(opts.ilib, opts.context);
 		const definedConstants = {
 			ILIB_BASE_PATH: ilib.resolved,
-			ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
+			ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context)
+				.resolved,
 			ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
 		};
 		for (const name in opts.bundles) {
@@ -212,7 +234,12 @@ ILibPlugin.prototype.apply = function(compiler) {
 			compilation.mainTemplate.plugin('require-extensions', function(source) {
 				const buf = [source];
 				buf.push('');
-				buf.push(this.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
+				buf.push(
+					this.requireFn +
+						'.ilib_cache_id = ' +
+						JSON.stringify('' + new Date().getTime()) +
+						';'
+				);
 				return this.asString(buf);
 			});
 		});
@@ -225,13 +252,13 @@ ILibPlugin.prototype.apply = function(compiler) {
 		if (opts.emit && opts.resources) {
 			manifests.push(path.join(opts.resources, 'ilibmanifest.json'));
 		}
-		for (let i=0; i<manifests.length; i++) {
+		for (let i = 0; i < manifests.length; i++) {
 			if (!fs.existsSync(manifests[i])) {
 				const dir = path.dirname(manifests[i]);
 				let files = [];
 				if (fs.existsSync(dir)) {
-					files = glob.sync('./**/!(appinfo).json', {nodir:true, cwd:dir});
-					for (let k=0; k<files.length; k++) {
+					files = glob.sync('./**/!(appinfo).json', {nodir: true, cwd: dir});
+					for (let k = 0; k < files.length; k++) {
 						files[k] = files[k].replace(/^\.\//, '');
 					}
 				}
@@ -239,19 +266,26 @@ ILibPlugin.prototype.apply = function(compiler) {
 					if (!fs.existsSync(dir)) {
 						fs.mkdirSync(dir);
 					}
-					fs.writeFileSync(manifests[i], JSON.stringify({files:files}, null, '\t'), {encoding:'utf8'});
+					fs.writeFileSync(manifests[i], JSON.stringify({files: files}, null, '\t'), {
+						encoding: 'utf8'
+					});
 					created.push(manifests[i]);
 				} else {
-					manifests[i] = {generate:manifests[i], value:files};
+					manifests[i] = {generate: manifests[i], value: files};
 				}
 			}
 		}
 
 		// Emit all bundles as applicable.
 		compiler.plugin('emit', (compilation, callback) => {
-			for (let j=0; j<created.length; j++) {
-				compilation.warnings.push(new Error('iLibPlugin: Localization resource manifest not found. Created '
-						+ created[j] + ' to prevent future errors.'));
+			for (let j = 0; j < created.length; j++) {
+				compilation.warnings.push(
+					new Error(
+						'iLibPlugin: Localization resource manifest not found. Created ' +
+							created[j] +
+							' to prevent future errors.'
+					)
+				);
 			}
 			manifests = compilation.applyPluginsWaterfall('ilib-manifest-list', manifests);
 			handleBundles(compilation, manifests, opts, callback);

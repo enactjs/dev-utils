@@ -11,17 +11,22 @@ EnzymeAdapterPlugin.prototype.apply = function(compiler) {
 	const proxyJS = require.resolve('./enzyme-proxy');
 
 	// Inject enzyme and adapter module filepath constants
-	compiler.apply(new DefinePlugin({
-		ENZYME_MODULE_REQUEST: JSON.stringify(opts.enzyme),
-		ENZYME_ADAPTER_REQUEST: JSON.stringify(opts.adapter)
-	}));
+	compiler.apply(
+		new DefinePlugin({
+			ENZYME_MODULE_REQUEST: JSON.stringify(opts.enzyme),
+			ENZYME_ADAPTER_REQUEST: JSON.stringify(opts.adapter)
+		})
+	);
 
 	// Redirect external 'enzyme' import/require statements to the enzyme proxy
-	compiler.plugin('normal-module-factory', (factory) => {
+	compiler.plugin('normal-module-factory', factory => {
 		factory.plugin('before-resolve', (result, callback) => {
 			if (!result) return callback();
-			if (result.request === 'enzyme' && result.contextInfo.issuer !== proxyJS
-					&& !result.contextInfo.issuer.includes('enzyme')) {
+			if (
+				result.request === 'enzyme' &&
+				result.contextInfo.issuer !== proxyJS &&
+				!result.contextInfo.issuer.includes('enzyme')
+			) {
 				result.request = proxyJS;
 			}
 			return callback(null, result);

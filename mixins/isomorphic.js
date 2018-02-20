@@ -12,10 +12,17 @@ module.exports = {
 		if (!opts.externals) {
 			// Expose iLib locale utility function module so we can update the locale on page load, if used.
 			if (opts.locales) {
-				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
+				const locale = path.join(
+					app.context,
+					'node_modules',
+					'@enact',
+					'i18n',
+					'locale',
+					'locale.js'
+				);
 				if (fs.existsSync(locale)) {
 					const babel = helper.findLoader(config, 'babel');
-					config.module.rules.splice((babel>=0 ? babel : 0), 0, {
+					config.module.rules.splice(babel >= 0 ? babel : 0, 0, {
 						test: fs.realpathSync(locale),
 						loader: 'expose-loader',
 						options: 'iLibLocale'
@@ -36,24 +43,28 @@ module.exports = {
 		config.output.libraryTarget = 'umd';
 
 		// Include plugin to prerender the html into the index.html
-		config.plugins.push(new PrerenderPlugin({
-			server: require(reactDOMServer),
-			locales: opts.locales,
-			deep: app.deep,
-			externals: opts.externals,
-			screenTypes: app.screenTypes,
-			fontGenerator: app.fontGenerator,
-			mapfile: false
-		}));
+		config.plugins.push(
+			new PrerenderPlugin({
+				server: require(reactDOMServer),
+				locales: opts.locales,
+				deep: app.deep,
+				externals: opts.externals,
+				screenTypes: app.screenTypes,
+				fontGenerator: app.fontGenerator,
+				mapfile: false
+			})
+		);
 
 		// Apply snapshot specialization options if needed
 		if (opts.snapshot && !opts.externals) {
 			const SnapshotPlugin = require('../plugins/SnapshotPlugin');
 
 			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
-			config.plugins.push(new SnapshotPlugin({
-				target: 'main.js'
-			}));
+			config.plugins.push(
+				new SnapshotPlugin({
+					target: 'main.js'
+				})
+			);
 		}
 	}
 };

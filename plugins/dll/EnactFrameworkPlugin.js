@@ -10,7 +10,7 @@ const checkPkgMain = function(dir) {
 		return pkgCache[dir].main;
 	} else {
 		try {
-			const text = fs.readFileSync(path.join(dir, 'package.json'), {encoding:'utf8'});
+			const text = fs.readFileSync(path.join(dir, 'package.json'), {encoding: 'utf8'});
 			pkgCache[dir] = JSON.parse(text);
 			return pkgCache[dir].main;
 		} catch (e) {
@@ -40,7 +40,7 @@ function normalizeModuleID(id) {
 	parentCache[dir] = findParent(dir);
 	if (parentCache[dir]) {
 		const main = checkPkgMain(parentCache[dir]);
-		if (main && path.resolve(id)===path.resolve(path.join(parentCache[dir], main))) {
+		if (main && path.resolve(id) === path.resolve(path.join(parentCache[dir], main))) {
 			id = parentCache[dir];
 		}
 	}
@@ -48,17 +48,17 @@ function normalizeModuleID(id) {
 
 	// Remove any leading ./node_modules prefix
 	const nodeModulesPrefix = './node_modules/';
-	if (id.indexOf(nodeModulesPrefix)===0) {
+	if (id.indexOf(nodeModulesPrefix) === 0) {
 		id = id.substring(nodeModulesPrefix.length);
 	}
-	if (id.indexOf('node_modules')===-1) {
+	if (id.indexOf('node_modules') === -1) {
 		// Remove any js file extension
-		if (id.indexOf('.js')===id.length-3) {
-			id = id.substring(0, id.length-3);
+		if (id.indexOf('.js') === id.length - 3) {
+			id = id.substring(0, id.length - 3);
 		}
 		// Remove any /index suffix as we want the user-accessible ID
-		if (id.indexOf('/index')===id.length-6 && id.length>6) {
-			id = id.substring(0, id.length-6);
+		if (id.indexOf('/index') === id.length - 6 && id.length > 6) {
+			id = id.substring(0, id.length - 6);
 		}
 	}
 	return id;
@@ -69,8 +69,8 @@ DllModule.prototype.source = function() {
 	if (DllModule.entries[this.name]) {
 		header += '__webpack_require__.load = function(loader) {\n';
 		header += '\tloader = loader || __webpack_require__;';
-		for (let i=0; i<DllModule.entries[this.name].length; i++) {
-			header += '\tloader(\'' + DllModule.entries[this.name][i] + '\');\n';
+		for (let i = 0; i < DllModule.entries[this.name].length; i++) {
+			header += "\tloader('" + DllModule.entries[this.name][i] + "');\n";
 		}
 		header += '};\n';
 	}
@@ -88,7 +88,7 @@ EnactFrameworkPlugin.prototype.apply = function(compiler) {
 		function itemToPlugin(item, name) {
 			if (Array.isArray(item)) {
 				DllModule.entries[name] = [];
-				for (let i=0; i<item.length; i++) {
+				for (let i = 0; i < item.length; i++) {
 					DllModule.entries[name].push(normalizeModuleID('./node_modules/' + item[i]));
 				}
 				return new DllEntryPlugin(context, item, name);
@@ -97,7 +97,7 @@ EnactFrameworkPlugin.prototype.apply = function(compiler) {
 			}
 		}
 		if (typeof entry === 'object') {
-			Object.keys(entry).forEach((name) => compiler.apply(itemToPlugin(entry[name], name)));
+			Object.keys(entry).forEach(name => compiler.apply(itemToPlugin(entry[name], name)));
 		} else {
 			compiler.apply(itemToPlugin(entry, 'main'));
 		}
@@ -105,9 +105,9 @@ EnactFrameworkPlugin.prototype.apply = function(compiler) {
 	});
 
 	// Format the internal module ID to a usable named descriptor
-	compiler.plugin('compilation', (compilation) => {
-		compilation.plugin('before-module-ids', (modules) => {
-			modules.forEach((m) => {
+	compiler.plugin('compilation', compilation => {
+		compilation.plugin('before-module-ids', modules => {
+			modules.forEach(m => {
 				if (m.id === null && m.libIdent) {
 					m.id = m.libIdent({
 						context: this.options.context || compiler.options.context
