@@ -12,9 +12,16 @@
   "scripts": {
     "lint": "eslint ."
   },
+  "prettier": {
+    "printWidth": 100,
+    "useTabs": true,
+    "tabWidth": 4,
+    "singleQuote": true,
+    "bracketSpacing": false
+  },
   "eslintIgnore": [
     "plugins/EnzymeAdapterPlugin/enzyme-proxy.js",
-  	"plugins/SnapshotPlugin/snapshot-helper.js",
+    "plugins/SnapshotPlugin/snapshot-helper.js",
     "plugins/SnapshotPlugin/mock-window.js"
   ],
   "dependencies": {
@@ -30,9 +37,12 @@
     "webpack-sources": "^1.0.0"
   },
   "devDependencies": {
-    "eslint": "~4.15.0",
-    "eslint-plugin-import": "~2.8.0",
-    "webpack": "~3.10.0"
+    "eslint": "^4.15.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-prettier": "^2.6.0",
+    "prettier": "^1.10.2",
+    "webpack": "^3.10.0"
   },
   "peerDependencies": {
     "webpack": "^2 || ^2.1.0-beta || ^2.2.0-rc || ^3"
