@@ -12,14 +12,7 @@ module.exports = {
 		if (!opts.externals) {
 			// Expose iLib locale utility function module so we can update the locale on page load, if used.
 			if (opts.locales) {
-				const locale = path.join(
-					app.context,
-					'node_modules',
-					'@enact',
-					'i18n',
-					'locale',
-					'locale.js'
-				);
+				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
 				if (fs.existsSync(locale)) {
 					const babel = helper.findLoader(config, 'babel');
 					config.module.rules.splice(babel >= 0 ? babel : 0, 0, {

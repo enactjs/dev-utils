@@ -49,9 +49,7 @@ module.exports = {
 				if (config.module.rules[i].loader) {
 					if (
 						config.module.rules[i].loader === name + '-loader' ||
-						new RegExp('node_modules[\\\\/]' + name + '-loader').test(
-							config.module.rules[i].loader
-						)
+						new RegExp('node_modules[\\\\/]' + name + '-loader').test(config.module.rules[i].loader)
 					) {
 						index = i;
 						break;

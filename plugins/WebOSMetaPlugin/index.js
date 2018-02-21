@@ -3,15 +3,7 @@ const path = require('path');
 const glob = require('glob');
 
 // List of asset-pointing appinfo properties.
-const props = [
-	'icon',
-	'largeIcon',
-	'miniicon',
-	'smallicon',
-	'splashicon',
-	'splashBackground',
-	'bgImage'
-];
+const props = ['icon', 'largeIcon', 'miniicon', 'smallicon', 'splashicon', 'splashBackground', 'bgImage'];
 // System assets starting with '$' are dynamic and will be within a variable
 // directory within sysAssetsPath to denote system spec ('HD720', 'HD1080', etc.).
 let sysAssetsPath = 'sys-assets';
@@ -117,9 +109,7 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 						emitAsset(assetPathCache[abs], compilation.assets, data);
 					} catch (e) {
 						compilation.warnings.push(
-							new Error(
-								'WebOSMetaPlugin: Unable to read/emit appinfo asset at ' + abs
-							)
+							new Error('WebOSMetaPlugin: Unable to read/emit appinfo asset at ' + abs)
 						);
 					}
 				}
@@ -164,11 +154,7 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 			});
 			handleSysAssetPath(context, meta.obj);
 			addMetaAssets(meta.path, '', meta.obj, compilation);
-			emitAsset(
-				'appinfo.json',
-				compilation.assets,
-				new Buffer(JSON.stringify(meta.obj, null, '\t'))
-			);
+			emitAsset('appinfo.json', compilation.assets, new Buffer(JSON.stringify(meta.obj, null, '\t')));
 		}
 
 		// Scan for all localized appinfo.json files in the "resources" directory.
@@ -190,21 +176,14 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 				locMeta = loc[i].value || {};
 			}
 			if (locMeta) {
-				locCode = path
-					.relative(path.join(context, 'resources'), path.dirname(locFile))
-					.replace(/[\\/]+/g, '-');
-				locMeta = compilation.applyPluginsWaterfall(
-					'webos-meta-localized-appinfo',
-					locMeta,
-					{path: locFile, locale: locCode}
-				);
+				locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile)).replace(/[\\/]+/g, '-');
+				locMeta = compilation.applyPluginsWaterfall('webos-meta-localized-appinfo', locMeta, {
+					path: locFile,
+					locale: locCode
+				});
 				handleSysAssetPath(context, locMeta);
 				addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
-				emitAsset(
-					locRel,
-					compilation.assets,
-					new Buffer(JSON.stringify(locMeta, null, '\t'))
-				);
+				emitAsset(locRel, compilation.assets, new Buffer(JSON.stringify(locMeta, null, '\t')));
 			}
 		}
 		callback();

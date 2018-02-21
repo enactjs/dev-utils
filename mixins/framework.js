@@ -38,9 +38,7 @@ module.exports = {
 		}
 
 		// Remove the HTML generation plugin and webOS-meta plugin
-		['HtmlWebpackPlugin', 'WebOSMetaPlugin'].forEach(plugin =>
-			helper.removePlugin(config, plugin)
-		);
+		['HtmlWebpackPlugin', 'WebOSMetaPlugin'].forEach(plugin => helper.removePlugin(config, plugin));
 
 		// Add the framework plugin to build in an externally accessible manner
 		config.plugins.push(new EnactFrameworkPlugin());

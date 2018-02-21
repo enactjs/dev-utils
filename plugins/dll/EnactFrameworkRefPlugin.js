@@ -27,10 +27,7 @@ function normalizePath(dir, file, compiler) {
 	if (path.isAbsolute(dir)) {
 		return path.join(dir, file);
 	} else {
-		return path.relative(
-			path.resolve(compiler.options.output.path),
-			path.join(process.cwd(), dir, file)
-		);
+		return path.relative(path.resolve(compiler.options.output.path), path.join(process.cwd(), dir, file));
 	}
 }
 
@@ -52,13 +49,7 @@ function EnactFrameworkRefPlugin(opts) {
 	this.options.external.inject = this.options.external.inject || this.options.external.path;
 
 	if (!process.env.ILIB_BASE_PATH) {
-		process.env.ILIB_BASE_PATH = path.join(
-			this.options.external.inject,
-			'node_module',
-			'@enact',
-			'i18n',
-			'ilib'
-		);
+		process.env.ILIB_BASE_PATH = path.join(this.options.external.inject, 'node_module', '@enact', 'i18n', 'ilib');
 	}
 }
 module.exports = EnactFrameworkRefPlugin;

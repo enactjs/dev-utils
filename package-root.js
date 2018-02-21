@@ -30,8 +30,7 @@ function findRoot(curr) {
 		}
 	} else {
 		throw new Error(
-			'Unable to locate project root directory. ' +
-				'Valid project-level package.json file not found.'
+			'Unable to locate project root directory. ' + 'Valid project-level package.json file not found.'
 		);
 	}
 }

@@ -52,8 +52,7 @@ function resolveBundle(dir, context) {
 		if (fs.existsSync(bundle.path)) {
 			bundle.path = fs.realpathSync(bundle.path);
 		}
-		bundle.resolved =
-			'__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
+		bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
 	}
 	return bundle;
 }
@@ -97,9 +96,7 @@ function handleBundles(compilation, manifests, opts, callback) {
 				handleBundles(compilation, manifests, opts, callback);
 			}
 		} catch (e) {
-			compilation.errors.push(
-				new Error('iLibPlugin: Unable to read localization manifest at ' + manifest)
-			);
+			compilation.errors.push(new Error('iLibPlugin: Unable to read localization manifest at ' + manifest));
 			handleBundles(compilation, manifests, opts, callback);
 		}
 	}
@@ -132,10 +129,7 @@ function shouldEmit(compiler, file, cache) {
 		try {
 			const src = fs.statSync(file);
 			const dest = fs.statSync(
-				path.join(
-					compiler.options.output.path,
-					transformPath(compiler.options.context, file)
-				)
+				path.join(compiler.options.output.path, transformPath(compiler.options.context, file))
 			);
 			return src.isDirectory() || src.mtime.getTime() > dest.mtime.getTime() || !cache;
 		} catch (e) {
@@ -179,9 +173,7 @@ function ILibPlugin(options) {
 				this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
 			}
 		} catch (e) {
-			console.error(
-				'ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.'
-			);
+			console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
 			process.exit(1);
 		}
 	}
@@ -212,8 +204,7 @@ ILibPlugin.prototype.apply = function(compiler) {
 		const ilib = resolveBundle(opts.ilib, opts.context);
 		const definedConstants = {
 			ILIB_BASE_PATH: ilib.resolved,
-			ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context)
-				.resolved,
+			ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
 			ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
 		};
 		for (const name in opts.bundles) {
@@ -234,12 +225,7 @@ ILibPlugin.prototype.apply = function(compiler) {
 			compilation.mainTemplate.plugin('require-extensions', function(source) {
 				const buf = [source];
 				buf.push('');
-				buf.push(
-					this.requireFn +
-						'.ilib_cache_id = ' +
-						JSON.stringify('' + new Date().getTime()) +
-						';'
-				);
+				buf.push(this.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
 				return this.asString(buf);
 			});
 		});

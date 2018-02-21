@@ -36,10 +36,7 @@ module.exports = {
 				externals		Filepath to external Enact framework to use with rendering
 	*/
 	stage: function(code, opts) {
-		code = code.replace(
-			'__webpack_require__.e =',
-			'__webpack_require__.e = function() {}; var origE ='
-		);
+		code = code.replace('__webpack_require__.e =', '__webpack_require__.e = function() {}; var origE =');
 		code = code.replace(
 			'function webpackAsyncContext(req) {',
 			'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});'
@@ -68,8 +65,7 @@ module.exports = {
 			HTML static rendered string of the app's initial state.
 	*/
 	render: function(opts) {
-		if (!chunkTarget)
-			throw new Error('Source code not staged, unable render vdom into HTML string.');
+		if (!chunkTarget) throw new Error('Source code not staged, unable render vdom into HTML string.');
 		let style, rendered;
 
 		if (opts.locale) {
@@ -113,11 +109,7 @@ module.exports = {
 
 			rendered = opts.server.renderToString(chunk['default'] || chunk);
 			if (style) {
-				rendered =
-					'<!-- head append start -->\n' +
-					style +
-					'\n<!-- head append end -->' +
-					rendered;
+				rendered = '<!-- head append start -->\n' + style + '\n<!-- head append end -->' + rendered;
 			}
 
 			// If --expose-gc is used in NodeJS, force garbage collect after prerender for minimal memory usage.

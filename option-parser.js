@@ -74,16 +74,14 @@ module.exports.screenTypes =
 	[];
 
 // Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
-module.exports.ri =
-	enact.ri || module.exports.screenTypes.reduce((r, s) => (s.base && s.pxPerRem) || r, null);
+module.exports.ri = enact.ri || module.exports.screenTypes.reduce((r, s) => (s.base && s.pxPerRem) || r, null);
 
 // Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
 module.exports.fontGenerator =
 	(typeof enact.screenTypes === 'string' &&
-		[
-			path.join(pkg.path, enact.fontGenerator),
-			path.join(pkg.path, 'node_modules', enact.fontGenerator)
-		].find(fs.existsSync)) ||
+		[path.join(pkg.path, enact.fontGenerator), path.join(pkg.path, 'node_modules', enact.fontGenerator)].find(
+			fs.existsSync
+		)) ||
 	fontGenerator(enact.theme || 'moonstone');
 
 // Handle dynamic resolving of targets for both browserlist format and webpack target string format.
@@ -118,10 +116,7 @@ if (browserslist) {
 			try {
 				// Attempt to detect current-used Electron version
 				const electron = JSON.parse(
-					fs.readFileSync(
-						path.join(pkg.path, 'node_modules', 'electron', 'package.json'),
-						{encoding: 'utf8'}
-					)
+					fs.readFileSync(path.join(pkg.path, 'node_modules', 'electron', 'package.json'), {encoding: 'utf8'})
 				);
 				const label = (electron.version + '').replace(/^(\d+\.\d+).*$/, '$1');
 				module.exports.browsers = versionMap[label] ? ['Electron ' + label] : lastFour;
