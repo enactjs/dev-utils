@@ -3,15 +3,7 @@ const path = require('path');
 const glob = require('glob');
 
 // List of asset-pointing appinfo properties.
-const props = [
-	'icon',
-	'largeIcon',
-	'miniicon',
-	'smallicon',
-	'splashicon',
-	'splashBackground',
-	'bgImage'
-];
+const props = ['icon', 'largeIcon', 'miniicon', 'smallicon', 'splashicon', 'splashBackground', 'bgImage'];
 // System assets starting with '$' are dynamic and will be within a variable
 // directory within sysAssetsPath to denote system spec ('HD720', 'HD1080', etc.).
 let sysAssetsPath = 'sys-assets';
@@ -35,7 +27,7 @@ function readAppInfo(file) {
 
 function handleSysAssetPath(context, appinfo) {
 	// If the sysAsset base is specified, override the default one
-	if (appinfo.sysAssetsBasePath && appinfo.sysAssetsBasePath!==sysAssetsPath) {
+	if (appinfo.sysAssetsBasePath && appinfo.sysAssetsBasePath !== sysAssetsPath) {
 		sysAssetsPath = appinfo.sysAssetsBasePath;
 		variableSysPaths = null;
 	}
@@ -43,7 +35,7 @@ function handleSysAssetPath(context, appinfo) {
 	const sys = path.join(context, sysAssetsPath);
 	if (!variableSysPaths && fs.existsSync(sys)) {
 		const list = fs.readdirSync(sys);
-		for (let i=0; i<list.length; i++) {
+		for (let i = 0; i < list.length; i++) {
 			list[i] = path.join(context, sysAssetsPath, list[i]);
 			const stat = fs.statSync(list[i]);
 			if (!stat.isDirectory()) {
@@ -59,7 +51,7 @@ function detectSysAssets(name) {
 	// find all assets with the name given in the available sysAsset paths
 	const result = [];
 	const trueName = name.substring(1);
-	for (let i=0; i<variableSysPaths.length; i++) {
+	for (let i = 0; i < variableSysPaths.length; i++) {
 		const abs = path.resolve(path.join(variableSysPaths[i], trueName));
 		if (fs.existsSync(abs)) {
 			result.push(abs);
@@ -71,10 +63,7 @@ function detectSysAssets(name) {
 function rootAppInfo(context, specific) {
 	// The accepted root locations to search for the appinfo.json and its relative
 	// assets are project root or ./webos-meta.
-	const rootDir = [
-		context,
-		path.join(context, './webos-meta')
-	];
+	const rootDir = [context, path.join(context, './webos-meta')];
 	// If a specific path is requested, prepend it to the search list
 	if (specific) {
 		if (path.isAbsolute(specific)) {
@@ -85,10 +74,10 @@ function rootAppInfo(context, specific) {
 	}
 	// Check each search location, and if found, return the data and path it was found at.
 	let meta;
-	for (let i=0; i<rootDir.length; i++) {
+	for (let i = 0; i < rootDir.length; i++) {
 		meta = readAppInfo(path.join(rootDir[i], 'appinfo.json'));
 		if (meta) {
-			return {path:rootDir[i], obj:meta};
+			return {path: rootDir[i], obj: meta};
 		}
 	}
 }
@@ -96,13 +85,16 @@ function rootAppInfo(context, specific) {
 function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 	// For each appinfo.json property that contains a webos meta asset, resolve that asset,
 	// and add its data to the compilation assets array.
-	for (let i=0; i<props.length; i++) {
+	for (let i = 0; i < props.length; i++) {
 		const p = props[i];
 		if (appinfo[p]) {
-			const assets = appinfo[p].charAt(0)==='$' ? detectSysAssets(appinfo[p]) : [path.resolve(path.join(metaDir, appinfo[p]))];
-			for (let j=0; j<assets.length; j++) {
+			const assets =
+				appinfo[p].charAt(0) === '$'
+					? detectSysAssets(appinfo[p])
+					: [path.resolve(path.join(metaDir, appinfo[p]))];
+			for (let j = 0; j < assets.length; j++) {
 				const abs = assets[j];
-				if (appinfo[p].charAt(0)==='$') {
+				if (appinfo[p].charAt(0) === '$') {
 					if (!assetPathCache[abs]) {
 						assetPathCache[abs] = path.relative(compilation.options.context, abs);
 					}
@@ -116,7 +108,9 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 						const data = fs.readFileSync(abs);
 						emitAsset(assetPathCache[abs], compilation.assets, data);
 					} catch (e) {
-						compilation.warnings.push(new Error('WebOSMetaPlugin: Unable to read/emit appinfo asset at ' + abs));
+						compilation.warnings.push(
+							new Error('WebOSMetaPlugin: Unable to read/emit appinfo asset at ' + abs)
+						);
 					}
 				}
 			}
@@ -127,10 +121,18 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 function emitAsset(name, assets, data) {
 	// Add a given asset's data to the compilation array in a webpack-compatible source object.
 	assets[name] = {
-		size: function() { return data.length; },
-		source: function() { return data; },
-		updateHash: function(hash) { return hash.update(data); },
-		map: function() { return null; }
+		size: function() {
+			return data.length;
+		},
+		source: function() {
+			return data;
+		},
+		updateHash: function(hash) {
+			return hash.update(data);
+		},
+		map: function() {
+			return null;
+		}
 	};
 }
 
@@ -147,7 +149,9 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 		// Add the root appinfo.json as well as its relative assets to the compilation.
 		const meta = rootAppInfo(context, scan);
 		if (meta && meta.obj) {
-			meta.obj = compilation.applyPluginsWaterfall('webos-meta-root-appinfo', meta.obj, {path:meta.path});
+			meta.obj = compilation.applyPluginsWaterfall('webos-meta-root-appinfo', meta.obj, {
+				path: meta.path
+			});
 			handleSysAssetPath(context, meta.obj);
 			addMetaAssets(meta.path, '', meta.obj, compilation);
 			emitAsset('appinfo.json', compilation.assets, new Buffer(JSON.stringify(meta.obj, null, '\t')));
@@ -161,7 +165,7 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 		loc = compilation.applyPluginsWaterfall('webos-meta-list-localized', loc);
 		// Add each locale-specific appinfo.json and its relative assets to the compilation.
 		let locFile, locRel, locMeta, locCode;
-		for (let i=0; i<loc.length; i++) {
+		for (let i = 0; i < loc.length; i++) {
 			if (typeof loc[i] === 'string') {
 				locFile = path.join(context, loc[i]);
 				locRel = loc[i];
@@ -173,7 +177,10 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 			}
 			if (locMeta) {
 				locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile)).replace(/[\\/]+/g, '-');
-				locMeta = compilation.applyPluginsWaterfall('webos-meta-localized-appinfo', locMeta, {path:locFile, locale:locCode});
+				locMeta = compilation.applyPluginsWaterfall('webos-meta-localized-appinfo', locMeta, {
+					path: locFile,
+					locale: locCode
+				});
 				handleSysAssetPath(context, locMeta);
 				addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
 				emitAsset(locRel, compilation.assets, new Buffer(JSON.stringify(locMeta, null, '\t')));
@@ -186,7 +193,10 @@ WebOSMetaPlugin.prototype.apply = function(compiler) {
 			const appinfo = rootAppInfo(context, scan);
 			if (appinfo) {
 				// When no explicit HTML document title is provided, automically use the root appinfo's title value.
-				if (appinfo.obj.title && (!params.plugin.options.title || params.plugin.options.title==='Webpack App')) {
+				if (
+					appinfo.obj.title &&
+					(!params.plugin.options.title || params.plugin.options.title === 'Webpack App')
+				) {
 					params.plugin.options.title = appinfo.obj.title;
 				}
 			}

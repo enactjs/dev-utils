@@ -13,10 +13,13 @@ const FileXHR = require('./FileXHR');
 
 require('console.mute');
 
-const prerenderCache = path.join(findCacheDir({
-	name: 'enact-dev',
-	create: true
-}), 'prerender');
+const prerenderCache = path.join(
+	findCacheDir({
+		name: 'enact-dev',
+		create: true
+	}),
+	'prerender'
+);
 let chunkTarget;
 
 if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
@@ -34,16 +37,20 @@ module.exports = {
 	*/
 	stage: function(code, opts) {
 		code = code.replace('__webpack_require__.e =', '__webpack_require__.e = function() {}; var origE =');
-		code = code.replace('function webpackAsyncContext(req) {',
-				'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});');
+		code = code.replace(
+			'function webpackAsyncContext(req) {',
+			'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});'
+		);
 
 		if (opts.externals) {
 			// Add external Enact framework filepath if it's used.
-			code = code.replace(/require\(["']enact_framework["']\)/g, 'require("'
-					+ path.resolve(path.join(opts.externals, 'enact.js')) +  '")');
+			code = code.replace(
+				/require\(["']enact_framework["']\)/g,
+				'require("' + path.resolve(path.join(opts.externals, 'enact.js')) + '")'
+			);
 		}
 		chunkTarget = path.join(prerenderCache, opts.chunk);
-		fs.writeFileSync(chunkTarget, code, {encoding:'utf8'});
+		fs.writeFileSync(chunkTarget, code, {encoding: 'utf8'});
 	},
 
 	/*

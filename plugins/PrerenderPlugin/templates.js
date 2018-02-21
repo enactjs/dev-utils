@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+
 const fn = (js) => js && `
 		(function() {
 			${js.replace(/\n/g, '\n\t\t')}
