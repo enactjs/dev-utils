@@ -13,7 +13,7 @@ function packageName(file) {
 
 function packageSearch(dir, pkg) {
 	let pkgPath;
-	while (dir !== '/' && dir !== '\\' && dir !== '.' && dir !== '' && !pkgPath) {
+	while (dir.length > 0 && dir !== path.dirname(dir) && !pkgPath) {
 		const full = path.join(dir, 'node_modules', pkg);
 		if (fs.existsSync(full)) {
 			pkgPath = path.relative(process.cwd(), full);
