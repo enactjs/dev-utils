@@ -161,9 +161,9 @@ function emitAsset(compilation, name, data) {
 function ILibPlugin(options) {
 	this.options = options || {};
 	this.options.ilib = this.options.ilib || process.env.ILIB_BASE_PATH;
+	const pkgName = packageName('./package.json');
 	if (typeof this.options.ilib === 'undefined') {
 		try {
-			const pkgName = packageName('./package.json');
 			if (pkgName.indexOf('@enact') === 0) {
 				this.options.resources = false;
 			}
@@ -182,9 +182,13 @@ function ILibPlugin(options) {
 	}
 	this.options.bundles = this.options.bundles || {};
 	if (typeof this.options.bundles.moonstone === 'undefined') {
-		const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
-		if (moonstone) {
-			this.options.bundles.moonstone = path.join(moonstone, 'resources');
+		if (pkgName === '@enact/moonstone') {
+			this.options.bundles.moonstone = 'resources';
+		} else {
+			const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
+			if (moonstone) {
+				this.options.bundles.moonstone = path.join(moonstone, 'resources');
+			}
 		}
 	}
 
