@@ -1,9 +1,8 @@
 module.exports = {
 	apply: function(config, opts = {}) {
-		opts.isomorphic |= opts.snapshot;
-		opts.production |= process.env.NODE_ENV === 'production';
+		opts.isomorphic = opts.isomorphic || opts.snapshot;
 
-		if (opts.production && !opts.minify) {
+		if (opts.minify === false) {
 			require('./unmangled').apply(config, opts);
 		}
 
