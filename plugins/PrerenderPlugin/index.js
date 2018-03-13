@@ -10,6 +10,8 @@ function PrerenderPlugin(options = {}) {
 	if (!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
 	if (this.options.locales === undefined) this.options.locales = 'en-US';
 	if (this.options.mapfile === undefined || this.options.mapfile === true) this.options.mapfile = 'locale-map.json';
+	// eslint-disable-next-line
+	if (!this.options.server) this.options.server = require('react-dom/server');
 }
 
 PrerenderPlugin.prototype.apply = function(compiler) {
@@ -179,7 +181,7 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 			callback(null, htmlPluginData);
 		});
 
-		// @TODO: comment
+		// Inject prerendered static HTML
 		compilation.plugin('html-webpack-plugin-after-html-processing', (htmlPluginData, callback) => {
 			const applyToRoot = rootInjection(htmlPluginData.html);
 			Promise.all(
@@ -196,12 +198,14 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 							.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
 							.replace(/(<div[^>]*data-react-checksum=")"/i, '$1' + status.attr[i].checksum + '"');
 					} else {
+						// Create a mapping of locales and classes
 						mapping = linked.reduce(
 							(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
 							{}
 						);
 					}
 
+					// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
 					const appHtml = parsePrerender(status.prerender[i]);
 					const updater = templates.update(mapping, opts.deep, appHtml.prerender);
 					if (opts.deep) appHtml.prerender = '';
@@ -216,13 +220,16 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 						});
 					}
 
+					// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
 					htmlPluginData.plugin.options.inject = true;
 					return htmlPluginData.plugin
 						.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head: appHtml.head, body: body})
 						.then(html => {
 							if (locales.length === 1) {
+								// Only 1 locale, so just output as the default root index.html
 								htmlPluginData.html = html;
 							} else {
+								// Multiple locales, so output as locale-specific html file.
 								emitAsset(compilation, 'index.' + loc + '.html', html);
 							}
 						});
