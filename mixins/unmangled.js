@@ -8,7 +8,7 @@ module.exports = {
 			uglifyPlugin.options.mangle = false;
 			uglifyPlugin.options.beautify = true;
 			uglifyPlugin.options.output.comments = true;
+			config.output.pathinfo = true;
 		}
-		config.output.pathinfo = true;
 	}
 };

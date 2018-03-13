@@ -46,10 +46,16 @@ function EnactFrameworkRefPlugin(opts) {
 	this.options.name = this.options.name || 'enact_framework';
 	this.options.libraries = this.options.libraries || ['@enact', 'react', 'react-dom'];
 	this.options.external = this.options.external || {};
-	this.options.external.inject = this.options.external.inject || this.options.external.path;
+	this.options.external.publicPath = this.options.external.publicPath || this.options.external.path;
 
 	if (!process.env.ILIB_BASE_PATH) {
-		process.env.ILIB_BASE_PATH = path.join(this.options.external.inject, 'node_module', '@enact', 'i18n', 'ilib');
+		process.env.ILIB_BASE_PATH = path.join(
+			this.options.external.publicPath,
+			'node_module',
+			'@enact',
+			'i18n',
+			'ilib'
+		);
 	}
 }
 module.exports = EnactFrameworkRefPlugin;
@@ -68,9 +74,9 @@ EnactFrameworkRefPlugin.prototype.apply = function(compiler) {
 		compilation.dependencyFactories.set(DelegatedSourceDependency, normalModuleFactory);
 
 		compilation.plugin('html-webpack-plugin-alter-chunks', chunks => {
-			const chunkFiles = [normalizePath(external.inject, 'enact.css', compiler)];
+			const chunkFiles = [normalizePath(external.publicPath, 'enact.css', compiler)];
 			if (!external.snapshot) {
-				chunkFiles.unshift(normalizePath(external.inject, 'enact.js', compiler));
+				chunkFiles.unshift(normalizePath(external.publicPath, 'enact.js', compiler));
 			}
 			// Add the framework files as a pseudo-chunk so they get injected into the HTML
 			chunks.unshift({
@@ -82,7 +88,7 @@ EnactFrameworkRefPlugin.prototype.apply = function(compiler) {
 
 		if (external.snapshot && isNodeOutputFS(compiler)) {
 			compilation.plugin('webos-meta-root-appinfo', meta => {
-				meta.v8SnapshotFile = normalizePath(external.inject, 'snapshot_blob.bin', compiler);
+				meta.v8SnapshotFile = normalizePath(external.publicPath, 'snapshot_blob.bin', compiler);
 				return meta;
 			});
 		}

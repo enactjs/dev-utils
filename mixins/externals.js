@@ -8,8 +8,7 @@ module.exports = {
 				name: 'enact_framework',
 				libraries: ['@enact', 'react', 'react-dom'],
 				external: {
-					path: opts.externals,
-					inject: opts['externals-inject'] || opts.inject,
+					publicPath: opts['externals-public'] || opts.externalsPublic || opts.externals,
 					snapshot: opts.snapshot
 				}
 			})
