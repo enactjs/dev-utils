@@ -52,14 +52,14 @@ mock.window = mock.self = mock;
 
 module.exports = {
 	activate: function() {
-		for(var x in mock) {
+		for (var x in mock) {
 			orig[x] = global[x];
 			global[x] = mock[x];
 		}
 	},
 	deactivate: function() {
-		for(var x in mock) {
-			if(orig[x]) {
+		for (var x in mock) {
+			if (orig[x]) {
 				global[x] = orig[x];
 			} else {
 				delete global[x];

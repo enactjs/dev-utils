@@ -1,44 +1,45 @@
-const
-	fs = require('fs'),
-	path = require('path'),
-	chalk = require('chalk'),
-	templates = require('./templates'),
-	vdomServer = require('./vdom-server-render');
+const fs = require('fs');
+const path = require('path');
+const chalk = require('chalk');
+const templates = require('./templates');
+const vdomServer = require('./vdom-server-render');
 
 function PrerenderPlugin(options = {}) {
 	this.options = options;
 	this.options.chunk = this.options.chunk || 'main.js';
-	if(!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
-	if(this.options.locales===undefined) this.options.locales = 'en-US';
-	if(this.options.mapfile===undefined || this.options.mapfile===true) this.options.mapfile = 'locale-map.json';
+	if (!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
+	if (this.options.locales === undefined) this.options.locales = 'en-US';
+	if (this.options.mapfile === undefined || this.options.mapfile === true) this.options.mapfile = 'locale-map.json';
+	// eslint-disable-next-line
+	if (!this.options.server) this.options.server = require('react-dom/server');
 }
 
 PrerenderPlugin.prototype.apply = function(compiler) {
 	const opts = this.options;
-	const status = {prerender:[], attr:[], alias:[]};
+	const status = {prerender: [], attr: [], alias: []};
 	let locales;
 
-	compiler.plugin('compilation', (compilation) => {
-		const appInfoOptimize = {groups:{}, coverage:[]};
+	compiler.plugin('compilation', compilation => {
+		const appInfoOptimize = {groups: {}, coverage: []};
 		let jsAssets = [];
 
 		// Do nothing when run in virtual or custom output FS
-		if(!isNodeOutputFS(compiler)) return;
+		if (!isNodeOutputFS(compiler)) return;
 
 		// Determine the target locales and load up the startup scripts.
 		locales = parseLocales(compiler.options.context, opts.locales);
 
 		// Ensure that any async chunk-loading jsonp functions are isomorphically compatible.
-		compilation.mainTemplate.plugin('bootstrap', (source) => {
+		compilation.mainTemplate.plugin('bootstrap', source => {
 			return source.replace(/window/g, '(function() { return this; }())');
 		});
 
 		// Prerender each locale desired and output an error on failure.
 		compilation.plugin('chunk-asset', (chunk, file) => {
-			if(file === opts.chunk) {
-				compilation.applyPlugins('prerender-chunk', {chunk:opts.chunk, locales:locales});
+			if (file === opts.chunk) {
+				compilation.applyPlugins('prerender-chunk', {chunk: opts.chunk, locales: locales});
 				vdomServer.stage(compilation.assets[opts.chunk].source(), opts);
-				for(let i=0; i<locales.length; i++) {
+				for (let i = 0; i < locales.length; i++) {
 					try {
 						// Prerender the locale.
 						const renderOpts = {
@@ -47,32 +48,40 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 							externals: opts.externals,
 							fontGenerator: opts.fontGenerator
 						};
-						compilation.applyPlugins('prerender-locale', {chunk:opts.chunk, opts:renderOpts});
+						compilation.applyPlugins('prerender-locale', {
+							chunk: opts.chunk,
+							opts: renderOpts
+						});
 						let appHtml = vdomServer.render(renderOpts);
 
 						// Extract the root CSS classes and react checksum from the prerendered html code.
 						status.attr[i] = {};
-						appHtml = appHtml.replace(/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i, (match, before, s, classAttr) => {
-							status.attr[i].classes = classAttr;
-							return before + '"';
-						}).replace(/(<div[^>]*data-react-checksum=")([^"]*)"/i, (match, before, checksum) => {
-							status.attr[i].checksum = checksum;
-							return before + '"';
-						});
+						appHtml = appHtml
+							.replace(
+								/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
+								(match, before, s, classAttr) => {
+									status.attr[i].classes = classAttr;
+									return before + '"';
+								}
+							)
+							.replace(/(<div[^>]*data-react-checksum=")([^"]*)"/i, (match, before, checksum) => {
+								status.attr[i].checksum = checksum;
+								return before + '"';
+							});
 
 						// Dedupe the sanitized html code and alias as needed
 						const index = status.prerender.indexOf(appHtml);
-						if(index===-1) {
+						if (index === -1) {
 							status.prerender[i] = appHtml;
 						} else {
 							status.alias[i] = locales[index];
 						}
-					} catch(e) {
-						status.err = {locale:locales[i], result:e};
+					} catch (e) {
+						status.err = {locale: locales[i], result: e};
 						break;
 					}
 				}
-				if(!status.err)  {
+				if (!status.err) {
 					vdomServer.unstage();
 					// Simplify out aliases and group together for minimal file output.
 					simplifyAliases(locales, status);
@@ -81,34 +90,37 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 		});
 
 		// For any target locales that don't already have appinfo files, dynamically generate new ones.
-		compilation.plugin('webos-meta-list-localized', (locList) => {
+		compilation.plugin('webos-meta-list-localized', locList => {
 			// No need to process localized appinfo files on error or a singular locale.
-			if(!status.err && locales.length>1) {
-				for(let i=0; i<locales.length; i++) {
-					if(locales[i].indexOf('multi')!==0 && !/\.\d+$/.test(locales[i])) {
+			if (!status.err && locales.length > 1) {
+				for (let i = 0; i < locales.length; i++) {
+					if (locales[i].indexOf('multi') !== 0 && !/\.\d+$/.test(locales[i])) {
 						// Handle each locale that isn't a multi-language group item
 						const lang = language(locales[i]);
 						let appInfo = path.join('resources', locales[i].replace(/-/g, path.sep), 'appinfo.json');
-						if(status.alias[i] && status.alias[i].indexOf('multi')===0) {
+						if (status.alias[i] && status.alias[i].indexOf('multi') === 0) {
 							// Locale is part of a multi-language grouping.
-							if(locales.indexOf(lang)>=0 || (appInfoOptimize.groups[lang] && appInfoOptimize.groups[lang]!==status.alias[i])) {
+							if (
+								locales.indexOf(lang) >= 0 ||
+								(appInfoOptimize.groups[lang] && appInfoOptimize.groups[lang] !== status.alias[i])
+							) {
 								// Parent language entry already exists, or the appinfo optimization group for this language points
 								// to a different alias, so we can't simplify any further.
-								if(locList.indexOf(appInfo)===-1) {
+								if (locList.indexOf(appInfo) === -1) {
 									// Add full locale appinfo entry if not already there.
 									locList.push({generate: appInfo});
 								}
-							} else if(!appInfoOptimize.groups[lang]) {
+							} else if (!appInfoOptimize.groups[lang]) {
 								// No parent language and no existing appinfo optimization group for this language, so let's
 								// create one and simplify the output for the locale.
 								appInfoOptimize.groups[lang] = status.alias[i];
 								appInfoOptimize.coverage.push(locales[i]);
 								appInfo = path.join('resources', lang, 'appinfo.json');
-								if(locList.indexOf(appInfo)===-1) {
+								if (locList.indexOf(appInfo) === -1) {
 									locList.push({generate: appInfo});
 								}
 							}
-						} else if(status.alias[i]!==lang && locList.indexOf(appInfo)===-1) {
+						} else if (status.alias[i] !== lang && locList.indexOf(appInfo) === -1) {
 							// Not aliased, or not aliased to parent language so create appinfo if it does not exist.
 							locList.push({generate: appInfo});
 						}
@@ -120,8 +132,8 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 
 		// Update any root appinfo to tag as using prerendering to avoid webOS splash screen.
 		// Temporary root value used until webOS parsing of localized appinfo.json boolean values is fixed.
-		compilation.plugin('webos-meta-root-appinfo', (meta) => {
-			if(typeof meta.usePrerendering === 'undefined' && locales.length>0) {
+		compilation.plugin('webos-meta-root-appinfo', meta => {
+			if (typeof meta.usePrerendering === 'undefined' && locales.length > 0) {
 				meta.usePrerendering = true;
 			}
 			return meta;
@@ -131,16 +143,16 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 		compilation.plugin('webos-meta-localized-appinfo', (meta, info) => {
 			let loc = info.locale;
 			// Exclude appinfo entries covered by appinfo optimization groups.
-			if(appInfoOptimize.coverage.indexOf(loc)===-1) {
+			if (appInfoOptimize.coverage.indexOf(loc) === -1) {
 				const index = locales.indexOf(loc);
-				if(index===-1) {
+				if (index === -1) {
 					// When not found in our target list, fallback to our appinfo optimization groups.
 					loc = appInfoOptimize.groups[loc];
-				} else if(index>=0 && status.alias[index]) {
+				} else if (index >= 0 && status.alias[index]) {
 					// Resolve any locale aliases.
 					loc = status.alias[index];
 				}
-				if(loc) {
+				if (loc) {
 					meta.main = 'index.' + loc + '.html';
 				}
 			}
@@ -169,75 +181,92 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 			callback(null, htmlPluginData);
 		});
 
-		// @TODO: comment
+		// Inject prerendered static HTML
 		compilation.plugin('html-webpack-plugin-after-html-processing', (htmlPluginData, callback) => {
 			const applyToRoot = rootInjection(htmlPluginData.html);
-			Promise.all(locales.map((loc, i) => {
-				const linked = Object.keys(status.alias).filter(key => status.alias[key]===loc);
-				const body = [];
-				let mapping;
+			Promise.all(
+				locales.map((loc, i) => {
+					const linked = Object.keys(status.alias).filter(key => status.alias[key] === loc);
+					const body = [];
+					let mapping;
 
-				if(status.err || !status.prerender[i] || status.alias[i]) return;
+					if (status.err || !status.prerender[i] || status.alias[i]) return;
 
-				if(linked.length===0) {
-					// Single locale, re-inject root classes and react checksum.
-					status.prerender[i] = status.prerender[i]
+					if (linked.length === 0) {
+						// Single locale, re-inject root classes and react checksum.
+						status.prerender[i] = status.prerender[i]
 							.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
 							.replace(/(<div[^>]*data-react-checksum=")"/i, '$1' + status.attr[i].checksum + '"');
-				} else {
-					mapping = linked.reduce((m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}), {});
-				}
-
-				const appHtml = parsePrerender(status.prerender[i]);
-				const updater = templates.update(mapping, opts.deep, appHtml.prerender);
-				if(opts.deep) appHtml.prerender = '';
-				if(updater) {
-					body.push({
-						tagName: 'script',
-						closeTag: true,
-						attributes: {
-							type: 'text/javascript'
-						},
-						innerHTML: updater
-					});
-				}
-
-				htmlPluginData.plugin.options.inject = true;
-				return htmlPluginData.plugin.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head:appHtml.head, body:body}).then(html => {
-					if(locales.length===1) {
-						htmlPluginData.html = html;
 					} else {
-						emitAsset(compilation, 'index.' + loc + '.html', html);
+						// Create a mapping of locales and classes
+						mapping = linked.reduce(
+							(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
+							{}
+						);
 					}
+
+					// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
+					const appHtml = parsePrerender(status.prerender[i]);
+					const updater = templates.update(mapping, opts.deep, appHtml.prerender);
+					if (opts.deep) appHtml.prerender = '';
+					if (updater) {
+						body.push({
+							tagName: 'script',
+							closeTag: true,
+							attributes: {
+								type: 'text/javascript'
+							},
+							innerHTML: updater
+						});
+					}
+
+					// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
+					htmlPluginData.plugin.options.inject = true;
+					return htmlPluginData.plugin
+						.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head: appHtml.head, body: body})
+						.then(html => {
+							if (locales.length === 1) {
+								// Only 1 locale, so just output as the default root index.html
+								htmlPluginData.html = html;
+							} else {
+								// Multiple locales, so output as locale-specific html file.
+								emitAsset(compilation, 'index.' + loc + '.html', html);
+							}
+						});
+				})
+			)
+				.then(() => {
+					callback(null, htmlPluginData);
+				})
+				.catch(err => {
+					// Avoid misattribution of error to html plugin compiler by assigning error directly.
+					compilation.errors.push(err);
+					callback(null, htmlPluginData);
 				});
-			})).then(() => {
-				callback(null, htmlPluginData);
-			}).catch(err => {
-				// Avoid misattribution of error to html plugin compiler by assigning error directly.
-				compilation.errors.push(err);
-				callback(null, htmlPluginData);
-			});
 		});
 	});
 
 	// Report any failed locale prerenders at the compiler level to fail the build,
 	// otherwise generate optional locale map asset.
 	compiler.plugin('after-compile', (compilation, callback) => {
-		if(status.err) {
+		if (status.err) {
 			// @TODO: pretty-print error details
-			let message = chalk.red(chalk.bold('Unable to generate prerender of app state HTML for ' + status.err.locale + ':')) + '\n';
+			let message =
+				chalk.red(chalk.bold('Unable to generate prerender of app state HTML for ' + status.err.locale + ':')) +
+				'\n';
 			message += status.err.result.stack || status.err.result.message || status.err.result;
 			callback(new Error(message));
 		} else {
 			// Generate a JSON file that maps the locales to their HTML files.
-			if(opts.mapfile && locales.length>1 && isNodeOutputFS(compiler)) {
-				const mapper = (m, c, i) => status.alias.includes(c) ? m : Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
-				const mapping = {fallback:'index.html', locales:locales.reduce(mapper, {})};
+			if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {
+				const mapper = (m, c, i) =>
+					status.alias.includes(c) ? m : Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
+				const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
 				let out = 'locale-map.json';
-				if(typeof opts.mapfile === 'string') {
+				if (typeof opts.mapfile === 'string') {
 					out = opts.mapfile;
 				}
-				emitAsset(compilation, out, JSON.stringify(mapping, null, '\t'))
+				emitAsset(compilation, out, JSON.stringify(mapping, null, '\t'));
 			}
 			callback();
 		}
@@ -246,29 +275,31 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 function isNodeOutputFS(compiler) {
-	return (compiler.outputFileSystem
-			&& compiler.outputFileSystem.constructor
-			&& compiler.outputFileSystem.constructor.name
-			&& compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem');
+	return (
+		compiler.outputFileSystem &&
+		compiler.outputFileSystem.constructor &&
+		compiler.outputFileSystem.constructor.name &&
+		compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem'
+	);
 }
 
 // Determine the desired target locales based of option content.
 // Can be a preset like 'tv' or 'signage', 'used' for all used app-level locales, 'all' for
 // all locales supported by ilib, a custom json file input, or a comma-separated lists
 function parseLocales(context, target) {
-	if(!target || target === 'none') {
+	if (!target || target === 'none') {
 		return [];
-	} else if(Array.isArray(target)) {
+	} else if (Array.isArray(target)) {
 		return target;
-	} else if(target === 'tv') {
+	} else if (target === 'tv') {
 		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-tv.json'), {encoding: 'utf8'})).locales;
-	} else if(target === 'signage') {
+	} else if (target === 'signage') {
 		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-signage.json'), {encoding: 'utf8'})).locales;
-	} else if(target === 'used') {
+	} else if (target === 'used') {
 		return detectLocales(path.join(context, 'resources', 'ilibmanifest.json'));
-	} else if(target === 'all') {
+	} else if (target === 'all') {
 		return detectLocales(path.join('node_modules', '@enact', 'i18n', 'ilib', 'locale', 'ilibmanifest.json'), true);
-	} else if(/\.json$/i.test(target)) {
+	} else if (/\.json$/i.test(target)) {
 		return JSON.parse(fs.readFileSync(target, {encoding: 'utf8'})).locales;
 	} else {
 		return target.split(/\s*[\n,]\s*/).filter(Boolean);
@@ -278,27 +309,27 @@ function parseLocales(context, target) {
 // Scan an ilib manifest and detect all locales that it uses.
 function detectLocales(manifest, deepestOnly) {
 	try {
-		const meta = JSON.parse(fs.readFileSync(manifest, {encoding:'utf8'}));
+		const meta = JSON.parse(fs.readFileSync(manifest, {encoding: 'utf8'}));
 		const locales = [];
 		let curr, currLocale;
-		for(let i=0; meta.files && i<meta.files.length; i++) {
+		for (let i = 0; meta.files && i < meta.files.length; i++) {
 			curr = path.dirname(meta.files[i]);
 			currLocale = curr.replace(/[\\/]+/, '-');
-			if(locales.indexOf(curr) === -1 && /^([a-z]{2})\b/.test(currLocale)) {
-				if(deepestOnly) {
+			if (locales.indexOf(curr) === -1 && /^([a-z]{2})\b/.test(currLocale)) {
+				if (deepestOnly) {
 					// Remove any matches of parent directories.
-					for(let x=curr; x.indexOf('/')!==-1 || x.indexOf('\\')!==-1; x=path.dirname(x)) {
+					for (let x = curr; x.indexOf('/') !== -1 || x.indexOf('\\') !== -1; x = path.dirname(x)) {
 						const index = locales.indexOf(x.replace(/[\\/]+/, '-'));
-						if(index>=0) {
+						if (index >= 0) {
 							locales.splice(index, 1);
 						}
 					}
 					// Only add the entry if children aren't already in the list.
 					let childFound = false;
-					for(let k=0; k<locales.length && !childFound; k++) {
-						childFound = (locales[k].indexOf(currLocale)===0);
+					for (let k = 0; k < locales.length && !childFound; k++) {
+						childFound = locales[k].indexOf(currLocale) === 0;
 					}
-					if(!childFound) {
+					if (!childFound) {
 						locales.push(currLocale);
 					}
 				} else {
@@ -308,7 +339,7 @@ function detectLocales(manifest, deepestOnly) {
 		}
 		locales.sort((a, b) => a.split('-').length > b.split('-').length);
 		return locales;
-	} catch(e) {
+	} catch (e) {
 		return [];
 	}
 }
@@ -318,26 +349,30 @@ function simplifyAliases(locales, status) {
 	const links = {};
 	const sharedCSS = {};
 	const common = (a, b) => a.filter(b.includes.bind(b));
-	const remove = (targets, classes) => classes.split(/\s+/).filter(c => !targets.includes(c)).join(' ');
+	const remove = (targets, classes) =>
+		classes
+			.split(/\s+/)
+			.filter(c => !targets.includes(c))
+			.join(' ');
 	let multiCount = 1;
 
 	// First pass: simplify alias names to language designations or 'multi' for multi-language groupings.
 	// Additionally determines all shared root CSS classes for the groupings.
-	for(let i=0; i<status.alias.length; i++) {
-		if(status.alias[i]) {
+	for (let i = 0; i < status.alias.length; i++) {
+		if (status.alias[i]) {
 			const lang = language(locales[i]);
-			if(!links[status.alias[i]]) {
+			if (!links[status.alias[i]]) {
 				const alias = language(status.alias[i]);
 				let regionCount = 0;
-				for(const x in links) {
-					if(links[x]===alias || links[x].indexOf(alias + '.') === 0) {
+				for (const x in links) {
+					if (links[x] === alias || links[x].indexOf(alias + '.') === 0) {
 						regionCount++;
 					}
 				}
-				links[status.alias[i]] = regionCount>0 ? alias + '.' + (regionCount+1) : alias;
+				links[status.alias[i]] = regionCount > 0 ? alias + '.' + (regionCount + 1) : alias;
 			}
-			if(links[status.alias[i]].indexOf(lang)!==0 && links[status.alias[i]].indexOf('multi')!==0) {
-				if(multiCount>1) {
+			if (links[status.alias[i]].indexOf(lang) !== 0 && links[status.alias[i]].indexOf('multi') !== 0) {
+				if (multiCount > 1) {
 					links[status.alias[i]] = 'multi.' + multiCount;
 				} else {
 					links[status.alias[i]] = 'multi';
@@ -346,26 +381,26 @@ function simplifyAliases(locales, status) {
 			}
 
 			status.attr[i].classes = status.attr[i].classes || '';
-			if(!sharedCSS[status.alias[i]]) {
-				sharedCSS[status.alias[i]] = common(status.attr[i].classes.split(/\s+/),
-						status.attr[locales.indexOf(status.alias[i])].classes.split(/\s+/));
+			if (!sharedCSS[status.alias[i]]) {
+				sharedCSS[status.alias[i]] = common(
+					status.attr[i].classes.split(/\s+/),
+					status.attr[locales.indexOf(status.alias[i])].classes.split(/\s+/)
+				);
 			} else {
-				sharedCSS[status.alias[i]] = common(sharedCSS[status.alias[i]],
-						status.attr[i].classes.split(/\s+/));
+				sharedCSS[status.alias[i]] = common(sharedCSS[status.alias[i]], status.attr[i].classes.split(/\s+/));
 			}
 		}
 	}
 
 	// Second pass: with the shared root CSS classes determined, remove from the individual class strings
 	// and update the alias names to the new simplified names.
-	for(let j=0; j<status.alias.length; j++) {
-		if(status.alias[j]) {
-			if(sharedCSS[status.alias[j]]) {
-				status.attr[j].classes = remove(sharedCSS[status.alias[j]],
-						status.attr[j].classes);
+	for (let j = 0; j < status.alias.length; j++) {
+		if (status.alias[j]) {
+			if (sharedCSS[status.alias[j]]) {
+				status.attr[j].classes = remove(sharedCSS[status.alias[j]], status.attr[j].classes);
 			}
 
-			if(links[status.alias[j]]) {
+			if (links[status.alias[j]]) {
 				status.alias[j] = links[status.alias[j]];
 			}
 		}
@@ -373,16 +408,18 @@ function simplifyAliases(locales, status) {
 
 	// For every grouping processed, create new faux-locale entries to generate html files for, and
 	// re-insert the common root CSS classes back into the shared prerendered html code.
-	for(const l in links) {
+	for (const l in links) {
 		const index = locales.indexOf(l);
 		status.alias[index] = links[l];
 		status.attr[index].classes = remove(sharedCSS[l], status.attr[index].classes);
 		locales.push(links[l]);
-		if(sharedCSS[l] && sharedCSS[l].length>0) {
-			status.prerender[locales.length-1] = status.prerender[index]
-					.replace(/(<div[^>]*class="[^"]*)"/i, '$1 ' + sharedCSS[l].join(' ') + '"');
+		if (sharedCSS[l] && sharedCSS[l].length > 0) {
+			status.prerender[locales.length - 1] = status.prerender[index].replace(
+				/(<div[^>]*class="[^"]*)"/i,
+				'$1 ' + sharedCSS[l].join(' ') + '"'
+			);
 		} else {
-			status.prerender[locales.length-1] = status.prerender[index];
+			status.prerender[locales.length - 1] = status.prerender[index];
 		}
 		status.prerender[index] = undefined;
 	}
@@ -397,24 +434,25 @@ function language(locale) {
 function rootInjection(html) {
 	const rootDiv = findRootDiv(html);
 	return function(prerender) {
-		if(rootDiv) {
+		if (rootDiv) {
 			return rootDiv.before + '<div id="root">' + prerender + '</div>' + rootDiv.after;
 		} else {
-			throw new Error('PrerenderPlugin: Unable find root div element. Please '
-				+ 'verify it exists within your HTML template.');
+			throw new Error(
+				'PrerenderPlugin: Unable find root div element. Please ' + 'verify it exists within your HTML template.'
+			);
 		}
-	}
+	};
 }
 
 // Find the location of the root div (can be empty or with contents) and return the
 // contents of the HTML before and after it.
 function findRootDiv(html, start, end) {
-	if(/^<div[^>]+id="root"/i.test(html.substring(start, end+7))) {
-		return {before:html.substring(0, start), after:html.substring(end+6)};
+	if (/^<div[^>]+id="root"/i.test(html.substring(start, end + 7))) {
+		return {before: html.substring(0, start), after: html.substring(end + 6)};
 	}
-	const a = html.indexOf('<div', start+4);
+	const a = html.indexOf('<div', start + 4);
 	const b = html.lastIndexOf('</div>', end);
-	if(a>=0 && b>=0 && a<b) {
+	if (a >= 0 && b >= 0 && a < b) {
 		return findRootDiv(html, a, b);
 	}
 }
@@ -425,16 +463,18 @@ function parsePrerender(html) {
 	const head = [];
 	const prerender = html.replace(/<!-- head append start -->([\s\S]*)<!-- head append end -->/, (m, content) => {
 		let match;
-		while((match = elementParse.exec(content))) {
+		while ((match = elementParse.exec(content))) {
 			const tokens = match[1].split(/\s+/);
 			head.push({
 				tagName: tokens.shift(),
 				closeTag: !match[1].endsWith('/'),
 				attributes: tokens.reduce((result, curr) => {
 					const [, key, value] = curr.replace(/[/]$/, '').match(/^([^=]*)(?:="(.*)")*/);
-					return Object.assign(result, {[key]: value!==undefined ? value : 'true'});
+					return Object.assign(result, {[key]: value !== undefined ? value : 'true'});
 				}, {}),
-				innerHTML: match[1].endsWith('/') ? '' : '\n\t\t' + match[2].replace(/^\s+|\s+$/g, '').replace(/\n/g, '\n\t\t') + '\n\t'
+				innerHTML: match[1].endsWith('/')
+					? ''
+					: '\n\t\t' + match[2].replace(/^\s+|\s+$/g, '').replace(/\n/g, '\n\t\t') + '\n\t'
 			});
 		}
 		return '';
@@ -445,12 +485,19 @@ function parsePrerender(html) {
 // Adds a file entry with data to be emitted as an asset.
 function emitAsset(compilation, file, data) {
 	compilation.assets[file] = {
-		size: function() { return data.length; },
-		source: function() { return data; },
-		updateHash: function(hash) { return hash.update(data); },
-		map: function() { return null; }
+		size: function() {
+			return data.length;
+		},
+		source: function() {
+			return data;
+		},
+		updateHash: function(hash) {
+			return hash.update(data);
+		},
+		map: function() {
+			return null;
+		}
 	};
 }
-
 
 module.exports = PrerenderPlugin;

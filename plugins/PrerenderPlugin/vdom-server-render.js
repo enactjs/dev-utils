@@ -5,21 +5,24 @@
  *  for a given javascript virtualdom Enact codebase.
  */
 
-const path = require('path'),
-	fs = require('fs'),
-	findCacheDir = require('find-cache-dir'),
-	requireUncached = require('import-fresh'),
-	FileXHR = require('./FileXHR');
+const fs = require('fs');
+const path = require('path');
+const findCacheDir = require('find-cache-dir');
+const requireUncached = require('import-fresh');
+const FileXHR = require('./FileXHR');
 
 require('console.mute');
 
-const prerenderCache = path.join(findCacheDir({
-	name: 'enact-dev',
-	create: true
-}), 'prerender');
+const prerenderCache = path.join(
+	findCacheDir({
+		name: 'enact-dev',
+		create: true
+	}),
+	'prerender'
+);
 let chunkTarget;
 
-if(!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
+if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
 
 require('core-js');
 
@@ -34,16 +37,20 @@ module.exports = {
 	*/
 	stage: function(code, opts) {
 		code = code.replace('__webpack_require__.e =', '__webpack_require__.e = function() {}; var origE =');
-		code = code.replace('function webpackAsyncContext(req) {',
-				'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});');
+		code = code.replace(
+			'function webpackAsyncContext(req) {',
+			'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});'
+		);
 
-		if(opts.externals) {
+		if (opts.externals) {
 			// Add external Enact framework filepath if it's used.
-			code = code.replace(/require\(["']enact_framework["']\)/g, 'require("'
-					+ path.resolve(path.join(opts.externals, 'enact.js')) +  '")');
+			code = code.replace(
+				/require\(["']enact_framework["']\)/g,
+				'require("' + path.resolve(path.join(opts.externals, 'enact.js')) + '")'
+			);
 		}
 		chunkTarget = path.join(prerenderCache, opts.chunk);
-		fs.writeFileSync(chunkTarget, code, {encoding:'utf8'})
+		fs.writeFileSync(chunkTarget, code, {encoding: 'utf8'});
 	},
 
 	/*
@@ -58,10 +65,10 @@ module.exports = {
 			HTML static rendered string of the app's initial state.
 	*/
 	render: function(opts) {
-		if(!chunkTarget) throw new Error('Source code not staged, unable render vdom into HTML string.');
+		if (!chunkTarget) throw new Error('Source code not staged, unable render vdom into HTML string.');
 		let style, rendered;
 
-		if(opts.locale) {
+		if (opts.locale) {
 			global.XMLHttpRequest = FileXHR;
 		} else {
 			delete global.XMLHttpRequest;
@@ -73,43 +80,43 @@ module.exports = {
 			try {
 				const generator = require(opts.fontGenerator);
 				style = generator(opts.locale || 'en-US');
-			} catch(e) {
+			} catch (e) {
 				// Temporary fallback to use deprecated global hook.
 				global.enactHooks = global.enactHooks || {};
 				global.enactHooks.prerender = function(hook) {
-					if(hook.appendToHead) {
+					if (hook.appendToHead) {
 						style = hook.appendToHead;
 					}
 				};
 			}
 
-			if(opts.externals) {
+			if (opts.externals) {
 				// Ensure locale switching  support is loaded globally with external framework usage.
 				const framework = require(path.resolve(path.join(opts.externals, 'enact.js')));
 				global.iLibLocale = framework('@enact/i18n/locale');
 			} else {
-				delete global.iLibLocale
+				delete global.iLibLocale;
 			}
 
 			const chunk = requireUncached(path.resolve(chunkTarget));
 
 			// Update locale if needed.
-			if(opts.locale && global.iLibLocale && global.iLibLocale.updateLocale) {
+			if (opts.locale && global.iLibLocale && global.iLibLocale.updateLocale) {
 				console.resume();
 				global.iLibLocale.updateLocale(opts.locale);
 				console.mute();
 			}
 
 			rendered = opts.server.renderToString(chunk['default'] || chunk);
-			if(style) {
+			if (style) {
 				rendered = '<!-- head append start -->\n' + style + '\n<!-- head append end -->' + rendered;
 			}
 
 			// If --expose-gc is used in NodeJS, force garbage collect after prerender for minimal memory usage.
-			if(global.gc) global.gc();
+			if (global.gc) global.gc();
 
 			console.resume();
-		} catch(e) {
+		} catch (e) {
 			console.resume();
 			throw e;
 		}
@@ -120,6 +127,6 @@ module.exports = {
 		Deletes any staged sourcecode cunks
 	*/
 	unstage: function() {
-		if(chunkTarget && fs.existsSync(chunkTarget)) fs.unlinkSync(chunkTarget);
+		if (chunkTarget && fs.existsSync(chunkTarget)) fs.unlinkSync(chunkTarget);
 	}
 };
