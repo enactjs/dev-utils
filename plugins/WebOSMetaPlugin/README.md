@@ -2,33 +2,51 @@
 
 > Webpack plugin that automatically detects and copies webOS meta assets.
 
-## Usage
-
-Simply include the plugin within your webpack configuration and both the `./appinfo.json` and `./webos-meta/appinfo.json` will be checked for existence.
-If an appinfo is found, it will be scanned for any related webOS meta assets (icons, etc.) and copy them over at build time as well.
+Autodetects `appinfo.json` files, and if found, will process any related webOS meta assets (icons, etc.), copying them over at build time.
 
 Additionally, if [html-webpack-plugin](https://github.com/ampedandwired/html-webpack-plugin) is in use, the appinfo title value will be used in the 
 generated HTML file.
 
 Full details on valid webOS appinfo.json properties are available at https://developer.lge.com/webOSTV/develop/web-app/app-developer-guide/app-metadata/
 
-## Copyright and License Information
+### Installation
 
-Unless otherwise specified, all content, including all source code files and
-documentation files in this repository are:
+```
+npm install --save-dev @enact/dev-utils
+```
 
-Copyright (c) 2016-2017 LG Electronics
+### Usage
 
-Unless otherwise specified or set forth in the NOTICE file, all content,
-including all source code files and documentation files in this repository are:
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this content except in compliance with the License.
-You may obtain a copy of the License at
+In your `webpack.config.js`:
 
-http://www.apache.org/licenses/LICENSE-2.0
+```js
+const {WebOSMetaPlugin} = require('@enact/dev-utils');
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+// ...
+
+    plugins: [
+      new WebOSMetaPlugin();
+    ],
+```
+
+### Configuration
+You can pass optional configuration settings to `WebOSMetaPlugin`.
+Allowed values are as follows:
+
+- `path`: Additional directory path to scan for appinfo.json files. By default will check for `./appinfo.json` or `meta-webos/appinfo.json` files.
+
+Here's an example webpack config illustrating how to use these options:
+```javascript
+{
+	entry: 'index.js',
+	output: {
+		path: 'dist',
+		filename: 'bundle.js'
+	},
+	plugins: [
+		new WebOSMetaPlugin({
+			path: './meta-assets'
+		})
+	]
+}
+```
