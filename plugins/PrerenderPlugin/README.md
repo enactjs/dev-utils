@@ -40,16 +40,16 @@ Allowed values are as follows:
   - Filepath to a json file containing the list of locales.
   - Comma-separated or newline-separated string of locales.
   - `'none'` string preset, disabling locale-specific rendering.
-  - `'tv'` string preset, mapped to all locales that webOS TVs support (see [`locales-tv.json`](https://github.com/enyojs/enact-dev-utils/blob/master/plugins/PrerenderPlugin/locales-tv.json)).
-  - `'signage'` string preset, mapped to all locales that webOS signage devices support (see [`locales-signage.json`](https://github.com/enyojs/enact-dev-utils/blob/master/plugins/PrerenderPlugin/locales-signage.json)).
+  - `'tv'` string preset, mapped to all locales that webOS TVs support (see [`locales-tv.json`](https://github.com/enactjs/dev-utils/blob/master/plugins/PrerenderPlugin/locales-tv.json)).
+  - `'signage'` string preset, mapped to all locales that webOS signage devices support (see [`locales-signage.json`](https://github.com/enactjs/dev-utils/blob/master/plugins/PrerenderPlugin/locales-signage.json)).
   - `'used'` string preset, mapped to all locales detected within the project's `./resources/ilibmanifest.json`.
   - `'all'` string preset, mapped to all locales that iLib supports. Might want to avoid this one.
 - `mapfile`:  When true, generates a `locale-map.json` which maps the locale list to the outputted HTML files. Can alternatively be a string custom filename to write the map JSON to. Defaults to `true`.
 - `server`: Virtual DOM server to use when rendering static HTML. Defaults to `require('react-dom/server')`.
 - `externals`: Local filepath to a directory containing an external enact library bundle js and css files. Only needed if using external Enact framework bundle.
 - `deep`: A string or array of string conditions, that when met at runtime, should not display the prerendered HTML.
-- `screenTypes`: Array of 1 or more screentype definitions to be used with prerender HTML initialization. See [here](https://github.com/enyojs/enact/blob/master/packages/moonstone/MoonstoneDecorator/screenTypes.json) for an example of the moonstone screenTypes.
-- `fontGenerator`: Module path to a font stylesheet generator for prerendering fontface definitions. See [here](https://github.com/enyojs/enact/blob/master/packages/moonstone/MoonstoneDecorator/fontGenerator.js) for an example of the moonstone font generator.
+- `screenTypes`: Array of 1 or more screentype definitions to be used with prerender HTML initialization. See [here](https://github.com/enactjs/enact/blob/master/packages/moonstone/MoonstoneDecorator/screenTypes.json) for an example of the moonstone screenTypes.
+- `fontGenerator`: Module path to a font stylesheet generator for prerendering fontface definitions. See [here](https://github.com/enactjs/enact/blob/master/packages/moonstone/MoonstoneDecorator/fontGenerator.js) for an example of the moonstone font generator.
 
 Here's an example webpack config illustrating how to use these options:
 ```javascript
