@@ -5,14 +5,19 @@
  *  A helper utility meant to simulate a basic window object for ReactDOM usage during snapshot execution.
  */
 
-var orig = {}, nop = function() {};
+var orig = {}, listeners = [], nop = function() {};
 var mock = {
 	CompositionEvent: nop,
 	TextEvent: nop,
+	addEventListener: function() {
+		listeners.push({args: Array.prototype.slice.call(arguments)});
+	},
 	document: {
-		addEventListener: nop,
+		addEventListener: function() {
+			listeners.push({doc: true, args: Array.prototype.slice.call(arguments)});
+		},
 		createElement: function() {
-			return {style:{}};
+			return {style: {}};
 		},
 		documentElement: {
 			textContent: '',
@@ -34,7 +39,7 @@ var mock = {
 		}
 	},
 	location: {
-		protocol:'http:'
+		protocol: 'http:'
 	},
 	navigator: {
 		userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
@@ -63,6 +68,17 @@ module.exports = {
 				global[x] = orig[x];
 			} else {
 				delete global[x];
+			}
+		}
+	},
+	attachListeners: function(realWindow) {
+		if (realWindow) {
+			for (var i = 0; i < listeners.length; i++) {
+				if (listeners[i].doc) {
+					realWindow.document.addEventListener.apply(null, listeners[i].args);
+				} else {
+					realWindow.addEventListener.apply(null, listeners[i].args);
+				}
 			}
 		}
 	}

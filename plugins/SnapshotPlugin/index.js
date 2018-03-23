@@ -30,6 +30,7 @@ function SnapshotPlugin(options) {
 	this.options.args = this.options.args || [
 		'--profile-deserialization',
 		'--random-seed=314159265',
+		'--abort_on_uncaught_exception',
 		'--startup-blob=snapshot_blob.bin'
 	];
 	if (process.env.V8_SNAPSHOT_ARGS) {

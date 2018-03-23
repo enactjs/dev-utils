@@ -25,6 +25,7 @@ global.updateEnvironment = function() {
 	ExecutionEnvironment.canUseEventListeners = canUseDOM && !!(window.addEventListener || window.attachEvent);
 	ExecutionEnvironment.canUseViewport = canUseDOM && !!window.screen;
 	ExecutionEnvironment.isInWorker = !canUseDOM; // For now, this is true - might change in the future.
+	mockWindow.attachListeners(ExecutionEnvironment.canUseEventListeners && window)
 
 	try {
 		// Mark the iLib localestorage cache as needing re-validation.
@@ -52,7 +53,7 @@ global.updateEnvironment = function() {
 };
 
 if(typeof window == 'undefined'
-		&& (typeof process === 'undefined' || !process.versions || !process.versions.node)) {
+		&& (!global.process || !global.process.versions || !global.process.versions.node)) {
 	mockWindow.activate();
 	ExecutionEnvironment.canUseDOM = true;
 	ExecutionEnvironment.canUseWorkers = false;
