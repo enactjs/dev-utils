@@ -1,3 +1,8 @@
+## 1.0.1 (March 26, 2018)
+
+* SnapshotPlugin's mock window updated to catch modular event listeners added to document/window and forwarded at launch-time. Fixes React 16 support.
+* SnapshotPlugin will now output a helpful stack trace on exception.
+
 ## 1.0.0 (March 13, 2018)
 
 * Added basic documentation.
