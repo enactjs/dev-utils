@@ -23,7 +23,7 @@ module.exports = {
 						'**/tests/*.js'
 					]
 				})
-				.concat(['react', 'react-dom', 'react-dom/lib/ReactPerf'])
+				.concat(['react', 'react-dom'])
 		};
 
 		// Use universal module definition to allow usage and name as 'enact_framework'
