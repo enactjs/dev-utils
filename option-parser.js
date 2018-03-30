@@ -74,7 +74,9 @@ module.exports.screenTypes =
 	[];
 
 // Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
-module.exports.ri = enact.ri || module.exports.screenTypes.reduce((r, s) => (s.base && s.pxPerRem) || r, null);
+module.exports.ri = enact.ri || {
+	baseSize: module.exports.screenTypes.reduce((r, s) => (s.base && s.pxPerRem) || r, null)
+};
 
 // Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
 module.exports.fontGenerator =
