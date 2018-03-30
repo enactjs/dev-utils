@@ -1,3 +1,8 @@
+## 1.0.2 (March 30, 2018)
+
+* Fixed automatic resolution independence detection and configuration.
+* Updated framework mixin to remove ReactPerf reference, which is no longer needed in React 16.
+
 ## 1.0.1 (March 26, 2018)
 
 * SnapshotPlugin's mock window updated to catch modular event listeners added to document/window and forwarded at launch-time. Fixes React 16 support.
