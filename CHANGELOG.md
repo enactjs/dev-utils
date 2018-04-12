@@ -1,3 +1,7 @@
+## 1.0.3 (April 12, 2018)
+
+* PrerenderPlugin now disables usage of any bundled polyfills (via setting `global.skipPolyfills`), as a local `core-js` is already used on the active Node process.
+
 ## 1.0.2 (March 30, 2018)
 
 * Fixed automatic resolution independence detection and configuration.
