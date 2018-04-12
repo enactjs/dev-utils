@@ -24,6 +24,10 @@ let chunkTarget;
 
 if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
 
+// Skip using the polyfills embedded within the bundle and instead use a local core-js,
+// since the bundle's target may differ in compatibility from the active Node process
+// (and repeated renders cause memory leaks when embedded polyfills are used).
+global.skipPolyfills = true;
 require('core-js');
 
 module.exports = {
