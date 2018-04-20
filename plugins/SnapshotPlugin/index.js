@@ -47,7 +47,7 @@ SnapshotPlugin.prototype.apply = function(compiler) {
 	opts.blob = getBlobName(opts.args);
 
 	// Ignore packages that don't exists so snapshot helper can skip them
-	['@enact/i18n', '@enact/moonstone'].forEach(lib => {
+	['@enact/i18n', '@enact/moonstone', '@enact/core/snapshot'].forEach(lib => {
 		if (!fs.existsSync(path.join(app, 'node_modules', lib))) {
 			compiler.apply(new IgnorePlugin(new RegExp(lib)));
 		}
