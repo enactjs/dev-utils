@@ -222,6 +222,10 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 
 					// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
 					htmlPluginData.plugin.options.inject = true;
+					if (htmlPluginData.plugin.options.minify) {
+						// Preserve any React15 HTML comment nodes
+						htmlPluginData.plugin.options.minify.removeComments = false;
+					}
 					return htmlPluginData.plugin
 						.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head: appHtml.head, body: body})
 						.then(html => {
