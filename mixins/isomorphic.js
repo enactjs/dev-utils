@@ -44,7 +44,7 @@ module.exports = {
 				externals: opts.externals,
 				screenTypes: app.screenTypes,
 				fontGenerator: app.fontGenerator,
-				inlineStartup: app.inlineStartup,
+				externalStartup: app.externalStartup,
 				mapfile: false
 			})
 		);

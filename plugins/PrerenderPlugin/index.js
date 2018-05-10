@@ -10,7 +10,6 @@ function PrerenderPlugin(options = {}) {
 	if (!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
 	if (this.options.locales === undefined) this.options.locales = 'en-US';
 	if (this.options.mapfile === undefined || this.options.mapfile === true) this.options.mapfile = 'locale-map.json';
-	this.options.inlineStartup = this.options.inlineStartup !== false;
 	// eslint-disable-next-line
 	if (!this.options.server) this.options.server = require('react-dom/server');
 }
@@ -180,7 +179,7 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 				innerHTML: templates.startup(opts.screenTypes, jsAssets)
 			};
 			const startupPath = 'startup/startup.js';
-			if (!opts.inlineStartup && !compilation.assets[startupPath]) {
+			if (opts.externalStartup && !compilation.assets[startupPath]) {
 				startupScriptTag.attributes.src = startupPath;
 				emitAsset(compilation, startupPath, startupScriptTag.innerHTML);
 				delete startupScriptTag.innerHTML;
@@ -225,7 +224,7 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 								type: 'text/javascript'
 							}
 						};
-						if (opts.inlineStartup) {
+						if (!opts.externalStartup) {
 							updaterScriptTag.innerHTML = updater;
 						} else {
 							updaterScriptTag.attributes.src = 'startup/' + loc + '.js';
