@@ -51,6 +51,8 @@ module.exports = {
 	template: enact.template,
 	// Optional <title></title> value for HTML
 	title: enact.title,
+	// Optional flag whether to externalize the prerender startup js
+	externalStartup: enact.externalStartup,
 	// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 	nodeBuiltins: enact.nodeBuiltins,
 	// Optional property to specify a version of NodeJS to target required polyfills.
