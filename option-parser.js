@@ -88,6 +88,14 @@ module.exports.fontGenerator =
 		)) ||
 	fontGenerator(enact.theme || 'moonstone');
 
+//  Customize @moon-accent LESS variable value
+module.exports.accent =
+	enact.accent &&
+	Object.assign(
+		{'moon-accent': enact.accent},
+		enact.theme && enact.theme !== 'moonstone' && {[enact.theme + '-accent']: enact.accent}
+	);
+
 // Handle dynamic resolving of targets for both browserlist format and webpack target string format.
 // Temporary support for parsing BROWSERSLIST env var. Will be supported out-of-the-box in Babel 7 in all forms.
 const browserslist =
