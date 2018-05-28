@@ -88,7 +88,9 @@ module.exports.fontGenerator =
 		)) ||
 	fontGenerator(enact.theme || 'moonstone');
 
-//  Customize @moon-accent LESS variable value
+// Override theme's accent LESS variable value if desired. Private option; may be removed in future.
+// When used, creates a LESS variable override map, overriding '@moon-accent' and/or '@<theme>-accent'
+// values with the specified override. This allows a simple way to alter Enact spotlight color.
 module.exports.accent =
 	enact.accent &&
 	Object.assign(
