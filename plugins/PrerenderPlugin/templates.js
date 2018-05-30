@@ -16,7 +16,9 @@ const startup = (screenTypes, jsAssets) => `
 	var height = window.innerHeight,
 		width = window.innerWidth;
 	var scrObj = screenTypes[screenTypes.length - 1];
+	var orientation = 'landscape';
 	if(height > width) {
+		orientation = 'portrait';
 		height = window.innerWidth;
 		width = window.innerHeight;
 	}
@@ -26,6 +28,14 @@ const startup = (screenTypes, jsAssets) => `
 		}
 	}
 	document.documentElement.style.fontSize = scrObj.pxPerRem + 'px';
+
+	// Function to apply root resolution classes
+	window.resolutionClasses = function(className) {
+		return className
+				.replace(/enact-orientation-\\S*/, 'enact-orientation-' + orientation)
+				.replace(/enact-res-\\S*/, 'enact-res-' + scrObj.name.toLowerCase())
+				.replace(/enact-aspect-ratio-\\S*/, 'enact-aspect-ratio-' + scrObj.aspectRatioName.toLowerCase());
+	};
 
 	window.onload = function() { setTimeout(function() {
 		if(typeof App === 'undefined') {
@@ -57,6 +67,16 @@ const startup = (screenTypes, jsAssets) => `
 	}, 0); };
 `;
 
+const update = (wrapped) => `
+	// Update resolution classes
+	var reactRoot = document.getElementById("root").children[0];
+	if(window.resolutionClasses && reactRoot) {
+		reactRoot.className = window.resolutionClasses(reactRoot.className);
+		delete window.resolutionClasses;
+	}
+	${wrapped ? wrapped.replace(/\n/g, '\n\t') : ''}
+`;
+
 const deepLink = (conditions, prerender, wrapped) => conditions ? `
 	// Handle any deep link conditions.
 	if(!(${(Array.isArray(conditions) ? conditions.join(' && ') : conditions)})) {
@@ -70,7 +90,6 @@ const multiLocale = (mapping) => mapping && `
 	var details = ${JSON.stringify(mapping, null, '\t').replace(/\n/g, '\n\t')};
 	var lang = navigator.language.toLowerCase();
 	var conf = details[lang] || details[lang.substring(0, 2)];
-	var reactRoot = document.getElementById("root").children[0];
 	if(conf && reactRoot) {
 		reactRoot.className += conf.classes;
 		reactRoot.setAttribute("data-react-checksum", conf.checksum);
@@ -82,5 +101,5 @@ module.exports = {
 	startup: (screenTypes, jsAssets) => fn(startup(screenTypes, jsAssets)),
 	// Update inline script, which updates the template/prerender content prior to app render.
 	// Used for locale and deeplinking customizations.
-	update: (mapping, deep, prerender) => fn(deepLink(deep, prerender, multiLocale(mapping)))
+	update: (mapping, deep, prerender) => fn(update(deepLink(deep, prerender, multiLocale(mapping))))
 };
