@@ -34,10 +34,10 @@ VerboseLogPlugin.prototype.apply = function(compiler) {
 	};
 
 	const sanitizeName = file => {
-		file = file.replace(/\\/g, '/');
 		let i = file.lastIndexOf('!');
 		if (i >= 0) file = file.substring(i + 1);
 		if (compiler.context) file = path.relative(compiler.context, file);
+		file = file.replace(/\\/g, '/');
 		i = file.lastIndexOf('node_modules/');
 		if (i >= 0) file = file.substring(i + 13);
 		return file;
