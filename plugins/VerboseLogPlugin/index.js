@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const chalk = require('chalk');
+const {constructor: Chalk} = require('chalk');
 const {ProgressPlugin} = require('webpack');
 
 function VerboseLogPlugin(options) {
@@ -11,6 +11,7 @@ function VerboseLogPlugin(options) {
 
 VerboseLogPlugin.prototype.apply = function(compiler) {
 	const columns = this.options.stream.isTTY && this.options.stream.columns;
+	const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
 	let active;
 	const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
 
