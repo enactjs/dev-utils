@@ -17,6 +17,10 @@ module.exports = {
 			}
 		}
 
+		if (opts.verbose) {
+			require('./verbose').apply(config, opts);
+		}
+
 		if (opts.stats) {
 			require('./stats').apply(config, opts);
 		}
