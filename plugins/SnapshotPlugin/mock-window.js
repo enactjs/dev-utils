@@ -12,12 +12,11 @@ var defer = function() {
 		var ctx = global;
 		var key = objPath[objPath.length - 1];
 		for(var i = 0; i < objPath.length - 1; i++) {
-			ctx = ctx[objPath[i]]
+			ctx = ctx[objPath[i]];
+			if (!ctx) return;
 		}
-		if (ctx[key] !== deferred) {
+		if (ctx[key] && ctx[key] !== deferred) {
 			return ctx[key].apply(ctx, arguments);
-		} else {
-			return nop;
 		}
 	};
 	return deferred;
