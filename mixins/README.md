@@ -34,3 +34,4 @@ Allowed optional properties are as follows:
 - `externalsPublic`: Public path for an external framework bundle at runtime, if different from `externals`.
 - `minify`: When explicitly set as `false`, any production uglified code will be unmangled.
 - `stats`: Whether or not to generate a bundle analysis of the output dependency tree.
+- `verbose`: Whether or not to output progressive verbose log details as the build executes.
