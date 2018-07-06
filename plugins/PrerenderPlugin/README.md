@@ -50,6 +50,7 @@ Allowed values are as follows:
 - `deep`: A string or array of string conditions, that when met at runtime, should not display the prerendered HTML.
 - `screenTypes`: Array of 1 or more screentype definitions to be used with prerender HTML initialization. See [here](https://github.com/enactjs/enact/blob/master/packages/moonstone/MoonstoneDecorator/screenTypes.json) for an example of the moonstone screenTypes.
 - `fontGenerator`: Module path to a font stylesheet generator for prerendering fontface definitions. See [here](https://github.com/enactjs/enact/blob/master/packages/moonstone/MoonstoneDecorator/fontGenerator.js) for an example of the moonstone font generator.
+- `externalStartup`:  A flag whether to externalize the startup javascript normally inlined with prerendered HTML output.
 
 Here's an example webpack config illustrating how to use these options:
 ```javascript

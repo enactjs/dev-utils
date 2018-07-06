@@ -25,5 +25,6 @@ exportOnDemand({
 	ILibPlugin: () => require('./plugins/ILibPlugin'),
 	PrerenderPlugin: () => require('./plugins/PrerenderPlugin'),
 	SnapshotPlugin: () => require('./plugins/SnapshotPlugin'),
+	VerboseLogPlugin: () => require('./plugins/VerboseLogPlugin'),
 	WebOSMetaPlugin: () => require('./plugins/WebOSMetaPlugin')
 });

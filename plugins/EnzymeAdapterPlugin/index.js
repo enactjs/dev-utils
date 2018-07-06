@@ -3,7 +3,7 @@ const {DefinePlugin} = require('webpack');
 function EnzymeAdapterPlugin(options) {
 	this.options = options || {};
 	this.options.enzyme = this.options.enzyme || 'enzyme';
-	this.options.adapter = this.options.adapter || 'enzyme-adapter-react-16';
+	this.options.adapter = this.options.adapter || require.resolve('./enzyme-adapter-react-16');
 }
 
 EnzymeAdapterPlugin.prototype.apply = function(compiler) {

@@ -170,14 +170,21 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 		// Use the prerendered-startup.js to asynchronously add the js assets at load time and embed that
 		// script inline in the HTML head.
 		compilation.plugin('html-webpack-plugin-alter-asset-tags', (htmlPluginData, callback) => {
-			htmlPluginData.head.unshift({
+			const startupScriptTag = {
 				tagName: 'script',
 				closeTag: true,
 				attributes: {
 					type: 'text/javascript'
 				},
 				innerHTML: templates.startup(opts.screenTypes, jsAssets)
-			});
+			};
+			const startupPath = 'startup/startup.js';
+			if (opts.externalStartup && !compilation.assets[startupPath]) {
+				startupScriptTag.attributes.src = startupPath;
+				emitAsset(compilation, startupPath, startupScriptTag.innerHTML);
+				delete startupScriptTag.innerHTML;
+			}
+			htmlPluginData.head.unshift(startupScriptTag);
 			callback(null, htmlPluginData);
 		});
 
@@ -210,14 +217,20 @@ PrerenderPlugin.prototype.apply = function(compiler) {
 					const updater = templates.update(mapping, opts.deep, appHtml.prerender);
 					if (opts.deep) appHtml.prerender = '';
 					if (updater) {
-						body.push({
+						const updaterScriptTag = {
 							tagName: 'script',
 							closeTag: true,
 							attributes: {
 								type: 'text/javascript'
-							},
-							innerHTML: updater
-						});
+							}
+						};
+						if (!opts.externalStartup) {
+							updaterScriptTag.innerHTML = updater;
+						} else {
+							updaterScriptTag.attributes.src = 'startup/' + loc + '.js';
+							emitAsset(compilation, updaterScriptTag.attributes.src, updater);
+						}
+						body.push(updaterScriptTag);
 					}
 
 					// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.

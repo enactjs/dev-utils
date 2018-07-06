@@ -51,6 +51,8 @@ module.exports = {
 	template: enact.template,
 	// Optional <title></title> value for HTML
 	title: enact.title,
+	// Optional flag whether to externalize the prerender startup js
+	externalStartup: enact.externalStartup,
 	// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 	nodeBuiltins: enact.nodeBuiltins,
 	// Optional property to specify a version of NodeJS to target required polyfills.
@@ -85,6 +87,16 @@ module.exports.fontGenerator =
 			fs.existsSync
 		)) ||
 	fontGenerator(enact.theme || 'moonstone');
+
+// Override theme's accent LESS variable value if desired. Private option; may be removed in future.
+// When used, creates a LESS variable override map, overriding '@moon-accent' and/or '@<theme>-accent'
+// values with the specified override. This allows a simple way to alter Enact spotlight color.
+module.exports.accent =
+	enact.accent &&
+	Object.assign(
+		{'moon-accent': enact.accent},
+		enact.theme && enact.theme !== 'moonstone' && {[enact.theme + '-accent']: enact.accent}
+	);
 
 // Handle dynamic resolving of targets for both browserlist format and webpack target string format.
 // Temporary support for parsing BROWSERSLIST env var. Will be supported out-of-the-box in Babel 7 in all forms.

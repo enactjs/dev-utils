@@ -20,6 +20,7 @@ npm install --save-dev @enact/dev-utils
 - [ILibPlugin](./plugins/ILibPlugin/README.md)
 - [PrerenderPlugin](./plugins/PrerenderPlugin/README.md)
 - [SnapshotPlugin](./plugins/SnapshotPlugin/README.md)
+- [VerboseLogPlugin](./plugins/VerboseLogPlugin/README.md)
 - [WebOSMetaPlugin](./plugins/WebOSMetaPlugin/README.md)
 
 #### `config-helper`
