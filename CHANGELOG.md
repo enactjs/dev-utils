@@ -1,3 +1,9 @@
+## 1.1.0 (July 6, 2018)
+
+* Added new plugin `VerboseLogPlugin` and a corresponding `verbose` mixin. Progressively outputs detailed log informations as a build executes.
+* Added support for boolean flag option `externalStartup` in the enact options in a project's `package.json`. When true, any prerender startup scripts will be external file assets rather than embedded inline javascript.
+* Fixed `SnapshotPlugin` build failure with React 16.4.1.
+
 ## 1.0.4 (April 26, 2018)
 
 * Support `@enact/core/snapshot` window hook for SnapshotPlugin's environment update helper.
