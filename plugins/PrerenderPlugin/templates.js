@@ -91,7 +91,7 @@ const multiLocale = (mapping) => mapping && `
 	var lang = navigator.language.toLowerCase();
 	var conf = details[lang] || details[lang.substring(0, 2)];
 	if(conf && reactRoot) {
-		reactRoot.className += conf.classes;
+		reactRoot.className += ' ' + conf.classes;
 		reactRoot.setAttribute("data-react-checksum", conf.checksum);
 	}
 `;
