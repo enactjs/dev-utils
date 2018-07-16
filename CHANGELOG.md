@@ -1,3 +1,7 @@
+## 1.1.1 (July 16, 2018)
+
+* Fixed `PrerenderPlugin` not correctly spacing root classnames in multilocale prerendered HTML files.
+
 ## 1.1.0 (July 6, 2018)
 
 * Added new plugin `VerboseLogPlugin` and a corresponding `verbose` mixin. Progressively outputs detailed log informations as a build executes.
