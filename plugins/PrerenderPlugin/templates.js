@@ -67,14 +67,14 @@ const startup = (screenTypes, jsAssets) => `
 	}, 0); };
 `;
 
-const update = (wrapped) => `
+const resolution = (after) => `
 	// Update resolution classes
 	var reactRoot = document.getElementById("root").children[0];
 	if(window.resolutionClasses && reactRoot) {
 		reactRoot.className = window.resolutionClasses(reactRoot.className);
 		delete window.resolutionClasses;
 	}
-	${wrapped ? wrapped.replace(/\n/g, '\n\t') : ''}
+	${after ? after.replace(/\n/g, '\n\t') : ''}
 `;
 
 const deepLink = (conditions, prerender, wrapped) => conditions ? `
@@ -101,5 +101,5 @@ module.exports = {
 	startup: (screenTypes, jsAssets) => fn(startup(screenTypes, jsAssets)),
 	// Update inline script, which updates the template/prerender content prior to app render.
 	// Used for locale and deeplinking customizations.
-	update: (mapping, deep, prerender) => fn(update(deepLink(deep, prerender, multiLocale(mapping))))
+	update: (mapping, deep, prerender) => fn(deepLink(deep, prerender, resolution(multiLocale(mapping))))
 };
