@@ -84,7 +84,8 @@ module.exports = {
 			try {
 				const generator = require(path.resolve(opts.fontGenerator));
 				const locale = opts.locale || 'en-US';
-				style = generator(locale) + generator.fontOverrideGenerator(locale);
+				style = generator(locale);
+				if (generator.fontOverrideGenerator) style += generator.fontOverrideGenerator(locale);
 			} catch (e) {
 				// Temporary fallback to use deprecated global hook.
 				global.enactHooks = global.enactHooks || {};
