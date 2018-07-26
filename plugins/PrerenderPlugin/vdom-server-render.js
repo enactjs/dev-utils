@@ -82,7 +82,7 @@ module.exports = {
 			console.mute();
 
 			try {
-				const generator = require(opts.fontGenerator);
+				const generator = require(path.resolve(opts.fontGenerator));
 				style = generator(opts.locale || 'en-US');
 			} catch (e) {
 				// Temporary fallback to use deprecated global hook.
