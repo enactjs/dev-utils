@@ -1,3 +1,8 @@
+## 1.1.2 (July 26, 2018)
+
+* Fixed locale classes failing to be applied on a multi-locale prerender when deep-linking is used.
+* Fixed font style prerendering, with added support for font overrides.
+
 ## 1.1.1 (July 16, 2018)
 
 * Fixed `PrerenderPlugin` not correctly spacing root classnames in multilocale prerendered HTML files.
