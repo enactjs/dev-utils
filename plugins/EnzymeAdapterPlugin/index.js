@@ -1,37 +1,34 @@
 const {DefinePlugin} = require('webpack');
 
-function EnzymeAdapterPlugin(options) {
-	this.options = options || {};
-	this.options.enzyme = this.options.enzyme || 'enzyme';
-	this.options.adapter = this.options.adapter || require.resolve('./enzyme-adapter-react-16');
-}
+class EnzymeAdapterPlugin {
+	constructor(options = {}) {
+		this.options = options;
+		this.options.enzyme = this.options.enzyme || 'enzyme';
+		this.options.adapter = this.options.adapter || require.resolve('./enzyme-adapter-react-16');
+	}
 
-EnzymeAdapterPlugin.prototype.apply = function(compiler) {
-	const opts = this.options;
-	const proxyJS = require.resolve('./enzyme-proxy');
+	apply(compiler) {
+		const proxyJS = require.resolve('./enzyme-proxy');
 
-	// Inject enzyme and adapter module filepath constants
-	compiler.apply(
+		// Inject enzyme and adapter module filepath constants
 		new DefinePlugin({
-			ENZYME_MODULE_REQUEST: JSON.stringify(opts.enzyme),
-			ENZYME_ADAPTER_REQUEST: JSON.stringify(opts.adapter)
-		})
-	);
-
-	// Redirect external 'enzyme' import/require statements to the enzyme proxy
-	compiler.plugin('normal-module-factory', factory => {
-		factory.plugin('before-resolve', (result, callback) => {
-			if (!result) return callback();
-			if (
-				result.request === 'enzyme' &&
-				result.contextInfo.issuer !== proxyJS &&
-				!result.contextInfo.issuer.includes('enzyme')
-			) {
-				result.request = proxyJS;
-			}
-			return callback(null, result);
+			ENZYME_MODULE_REQUEST: JSON.stringify(this.options.enzyme),
+			ENZYME_ADAPTER_REQUEST: JSON.stringify(this.options.adapter)
+		}).apply(compiler);
+		compiler.hooks.normalModuleFactory.tap('EnzymeAdapterPlugin', factory => {
+			factory.hooks.beforeResolve.tap('EnzymeAdapterPlugin', result => {
+				if (!result) return;
+				if (
+					result.request === 'enzyme' &&
+					result.contextInfo.issuer !== proxyJS &&
+					!result.contextInfo.issuer.includes('enzyme')
+				) {
+					result.request = proxyJS;
+				}
+				return result;
+			});
 		});
-	});
-};
+	}
+}
 
 module.exports = EnzymeAdapterPlugin;

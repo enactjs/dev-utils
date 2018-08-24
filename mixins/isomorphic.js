@@ -35,6 +35,9 @@ module.exports = {
 		// Use universal module definition to allow usage in Node and browser environments.
 		config.output.libraryTarget = 'umd';
 
+		// Use 'this' as the global object to attach the app object to.
+		config.output.globalObject = 'this';
+
 		// Include plugin to prerender the html into the index.html
 		config.plugins.push(
 			new PrerenderPlugin({
@@ -45,13 +48,16 @@ module.exports = {
 				screenTypes: app.screenTypes,
 				fontGenerator: app.fontGenerator,
 				externalStartup: app.externalStartup,
-				mapfile: false
+				mapfile: opts.mapfile
 			})
 		);
 
 		// Apply snapshot specialization options if needed
 		if (opts.snapshot && !opts.externals) {
 			const SnapshotPlugin = require('../plugins/SnapshotPlugin');
+
+			// Inject snapshot helper for the transition from v8 snapshot into the window
+			helper.injectEntry(config, SnapshotPlugin.helperJS);
 
 			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
 			config.plugins.push(
