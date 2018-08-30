@@ -32,8 +32,8 @@
     "chalk": "^2.4.1",
     "console.mute": "^0.3.0",
     "core-js": "^2.5.7",
-    "electron-to-chromium": "^1.3.61",
-    "enzyme-adapter-utils": "^1.6.0",
+    "electron-to-chromium": "^1.3.62",
+    "enzyme-adapter-utils": "^1.6.1",
     "find-cache-dir": "^2.0.0",
     "glob": "^7.1.3",
     "graceful-fs": "^4.1.11",
@@ -45,7 +45,7 @@
     "react-test-renderer": "^16.4.2",
     "tappable": "^1.1.0",
     "webpack-bundle-analyzer": "^2.13.1",
-    "webpack-sources": "^1.1.0"
+    "webpack-sources": "^1.2.0"
   },
   "devDependencies": {
     "eslint": "^5.4.0",
