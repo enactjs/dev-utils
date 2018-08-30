@@ -166,8 +166,10 @@ class ILibPlugin {
 		const pkgName = packageName('./package.json');
 		if (typeof this.options.ilib === 'undefined') {
 			try {
+				// TODO: better enact lib detection
 				if (pkgName.indexOf('@enact') === 0) {
-					this.options.resources = false;
+					this.options.resources = '_resources_';
+					this.options.create = false;
 				}
 				if (pkgName === '@enact/i18n') {
 					this.options.ilib = 'ilib';
