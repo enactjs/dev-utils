@@ -166,9 +166,7 @@ class ILibPlugin {
 		const pkgName = packageName('./package.json');
 		if (typeof this.options.ilib === 'undefined') {
 			try {
-				// TODO: better enact lib detection
 				if (pkgName.indexOf('@enact') === 0) {
-					this.options.resources = '_resources_';
 					this.options.create = false;
 				}
 				if (pkgName === '@enact/i18n') {
@@ -188,6 +186,7 @@ class ILibPlugin {
 		if (typeof this.options.bundles.moonstone === 'undefined') {
 			if (pkgName === '@enact/moonstone') {
 				this.options.bundles.moonstone = 'resources';
+				this.options.resources = '_resources_';
 			} else {
 				const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
 				if (moonstone) {
