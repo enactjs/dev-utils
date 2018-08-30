@@ -1,3 +1,7 @@
+## unrelease
+
+* Added new WebOSMetaPlugin `imageForRecents`.
+
 ## 1.1.2 (July 26, 2018)
 
 * Fixed locale classes failing to be applied on a multi-locale prerender when deep-linking is used.

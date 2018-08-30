@@ -3,7 +3,16 @@ const path = require('path');
 const glob = require('glob');
 
 // List of asset-pointing appinfo properties.
-const props = ['icon', 'largeIcon', 'miniicon', 'smallicon', 'splashicon', 'splashBackground', 'bgImage'];
+const props = [
+	'icon',
+	'largeIcon',
+	'miniicon',
+	'smallicon',
+	'splashicon',
+	'splashBackground',
+	'bgImage',
+	'imageForRecents'
+];
 // System assets starting with '$' are dynamic and will be within a variable
 // directory within sysAssetsPath to denote system spec ('HD720', 'HD1080', etc.).
 let sysAssetsPath = 'sys-assets';
