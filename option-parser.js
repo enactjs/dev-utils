@@ -15,17 +15,6 @@ function gentlyParse(file) {
 	}
 }
 
-function parseBL(file) {
-	try {
-		return fs
-			.readFileSync(file, {encoding: 'utf8'})
-			.split(/[\r\n]+/)
-			.filter(t => t.trim() && t.charAt(0) !== '#');
-	} catch (e) {
-		return undefined;
-	}
-}
-
 function screenTypes(theme) {
 	const decorator = theme.charAt(0).toUpperCase() + theme.slice(1) + 'Decorator';
 	const scoped = path.join('node_modules', '@enact', theme, decorator, 'screenTypes.json');
@@ -149,7 +138,7 @@ Object.defineProperty(module.exports, 'environment', {
 	get: function() {
 		if (enact.environment) return enact.environment;
 
-		let config = browserslist.loadConfig({path:pkg.path}) || target;
+		let config = browserslist.loadConfig({path: pkg.path}) || target;
 		if (config) {
 			if (typeof config === 'string') config = config.split(/,\s*/);
 			config = config.map(b => b.toLowerCase());
