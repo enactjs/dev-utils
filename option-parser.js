@@ -63,7 +63,7 @@ module.exports = {
 	theme: enact.theme,
 	// Sets the browserslist default fallback set of browsers to the Enact default browser support list
 	setEnactTargetsAsDefault: function() {
-		if (!browserslist.loadConfig({})) process.env.BROWSERSLIST = defaultTargets.join(',');
+		if (!browserslist.loadConfig({path: pkg.path})) process.env.BROWSERSLIST = defaultTargets.join(',');
 	}
 };
 
@@ -149,7 +149,7 @@ Object.defineProperty(module.exports, 'environment', {
 	get: function() {
 		if (enact.environment) return enact.environment;
 
-		let config = browserslist.loadConfig({}) || target;
+		let config = browserslist.loadConfig({path:pkg.path}) || target;
 		if (config) {
 			if (typeof config === 'string') config = config.split(/,\s*/);
 			config = config.map(b => b.toLowerCase());
