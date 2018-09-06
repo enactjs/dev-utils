@@ -29,6 +29,7 @@
     "plugins/SnapshotPlugin/mock-window.js"
   ],
   "dependencies": {
+    "browserslist": "^4.1.0",
     "chalk": "^2.4.1",
     "console.mute": "^0.3.0",
     "core-js": "^2.5.7",

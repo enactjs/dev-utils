@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
+const browserslist = require('browserslist');
 const pkgRoot = require('./package-root');
 
 const pkg = pkgRoot();
 const enact = pkg.meta.enact || {};
-const defaultEnv = 'web';
-const defaultBrowsers = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12', 'not ie_mob < 12'];
+const defaultTargets = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12', 'not ie_mob < 12', 'not dead'];
 
 function gentlyParse(file) {
 	try {
@@ -55,15 +55,16 @@ module.exports = {
 	externalStartup: enact.externalStartup,
 	// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 	nodeBuiltins: enact.nodeBuiltins,
-	// Optional property to specify a version of NodeJS to target required polyfills.
-	// True or 'current' will use active version of Node, otherwise will use a specified version number.
-	node: typeof enact.node !== 'object' && enact.node,
 	// Optional window condition(s) that indicate deeplinking and invalidate HTML prerender.
 	deep: enact.deep,
 	// Proxy target to use within the http-proxy-middleware during serving.
 	proxy: enact.proxy || pkg.meta.proxy,
 	// Optional theme preset for theme-specific settings (see below).
-	theme: enact.theme
+	theme: enact.theme,
+	// Sets the browserslist default fallback set of browsers to the Enact default browser support list
+	setEnactTargetsAsDefault: function() {
+		if (!browserslist.loadConfig({})) process.env.BROWSERSLIST = defaultTargets.join(',');
+	}
 };
 
 // Resolve array of screenType configurations. When not found, falls back to any theme preset or moonstone.
@@ -98,57 +99,69 @@ module.exports.accent =
 		enact.theme && enact.theme !== 'moonstone' && {[enact.theme + '-accent']: enact.accent}
 	);
 
-// Handle dynamic resolving of targets for both browserlist format and webpack target string format.
-// Temporary support for parsing BROWSERSLIST env var. Will be supported out-of-the-box in Babel 7 in all forms.
-const browserslist =
-	(process.env['BROWSERSLIST'] && process.env['BROWSERSLIST'].split(/\s*,\s*/)) ||
-	pkg.meta.browserlist ||
-	parseBL(path.join(pkg.path, '.browserslistrc')) ||
-	parseBL(path.join(pkg.path, 'browserslist')) ||
-	(Array.isArray(enact.target) && enact.target);
-if (browserslist) {
-	// Standard browserslist format (https://github.com/ai/browserslist)
-	if (browserslist.find(b => !b.startsWith('not') && b.indexOf('Electron') > -1)) {
-		module.exports.environment = enact.environment || 'electron-main';
-	} else {
-		module.exports.environment = enact.environment || defaultEnv;
-	}
-	module.exports.browsers = browserslist;
-} else if (typeof enact.target === 'string' || enact.environment) {
-	// Optional webpack target value (see https://webpack.js.org/configuration/target/).
-	module.exports.environment = enact.environment || enact.target || defaultEnv;
-	switch (module.exports.environment) {
-		case 'atom':
-		case 'electron':
-		case 'electron-main':
-		case 'electron-renderer': {
-			const versionMap = require('electron-to-chromium/versions');
-			const lastFour = Object.keys(versionMap)
-				.sort((a, b) => parseInt(versionMap[a]) - parseInt(versionMap[b]))
-				.slice(-4)
-				.map(v => 'Electron ' + v);
-			try {
-				// Attempt to detect current-used Electron version
-				const electron = JSON.parse(
-					fs.readFileSync(path.join(pkg.path, 'node_modules', 'electron', 'package.json'), {encoding: 'utf8'})
-				);
-				const label = (electron.version + '').replace(/^(\d+\.\d+).*$/, '$1');
-				module.exports.browsers = versionMap[label] ? ['Electron ' + label] : lastFour;
-			} catch (e) {
-				// Fallback to last 4 releases of Electron.
-				module.exports.browsers = lastFour;
+// Temporary backward support for declaring browserslist config from enact.target
+let target;
+if (enact.target) {
+	if (typeof enact.target === 'string') {
+		switch (enact.target) {
+			case 'atom':
+			case 'electron':
+			case 'electron-main':
+			case 'electron-renderer': {
+				const versionMap = require('electron-to-chromium/versions');
+				const lastFour = Object.keys(versionMap)
+					.sort((a, b) => parseInt(versionMap[a]) - parseInt(versionMap[b]))
+					.slice(-4)
+					.map(v => 'electron ' + v);
+				try {
+					// Attempt to detect current-used Electron version
+					const electron = JSON.parse(
+						fs.readFileSync(path.join(pkg.path, 'node_modules', 'electron', 'package.json'), {
+							encoding: 'utf8'
+						})
+					);
+					const label = (electron.version + '').replace(/^(\d+\.\d+).*$/, '$1');
+					target = versionMap[label] ? ['electron ' + label] : lastFour;
+				} catch (e) {
+					// Fallback to last 4 releases of Electron.
+					target = lastFour;
+				}
+				break;
 			}
-			break;
+			case 'node':
+				target = [];
+				break;
+			default:
+				target = defaultTargets;
 		}
-		case 'node':
-			module.exports.node = module.exports.node || true;
-			delete module.exports.browsers;
-			delete module.exports.nodeBuiltins;
-			break;
-		default:
-			module.exports.browsers = defaultBrowsers;
+	} else {
+		target = enact.target || defaultTargets;
 	}
-} else {
-	module.exports.environment = defaultEnv;
-	module.exports.browsers = defaultBrowsers;
+	if (typeof enact.node !== 'object' && enact.node && !target.some(b => !b.startsWith('not') && b.includes('node'))) {
+		target.push(typeof enact.node === 'number' ? 'node ' + enact.node : 'current node');
+	}
+	process.env.BROWSERSLIST = target.join(',');
 }
+
+Object.defineProperty(module.exports, 'environment', {
+	configurable: false,
+	enumerable: true,
+	get: function() {
+		if (enact.environment) return enact.environment;
+
+		let config = browserslist.loadConfig({}) || target;
+		if (config) {
+			if (typeof config === 'string') config = config.split(/,\s*/);
+			config = config.map(b => b.toLowerCase());
+			if (config.some(b => !b.startsWith('not') && b.includes('electron'))) {
+				return 'electron-renderer';
+			} else if (config.every(b => !b.startsWith('not') && b.includes('node'))) {
+				return 'node';
+			} else {
+				return 'web';
+			}
+		} else {
+			return 'web';
+		}
+	}
+});
