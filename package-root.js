@@ -45,9 +45,7 @@ function getRoot(start) {
 }
 
 module.exports = getRoot;
-module.exports.overrideMeta = function(meta) {
+module.exports.overrideEnactMetadata = function(meta) {
 	const pkg = getRoot();
-	Object.keys(meta).forEach(key => {
-		pkg.meta[key] = Object.assign({}, pkg.meta[key], meta[key]);
-	});
+	pkg.meta.enact = Object.assign({}, pkg.meta.enact, meta);
 };
