@@ -35,6 +35,19 @@ function findRoot(curr) {
 	}
 }
 
-module.exports = function(start) {
-	return findRoot(path.resolve(start || process.cwd()));
+let packageRoot = null;
+function getRoot(start) {
+	if (packageRoot === null) {
+		packageRoot = findRoot(path.resolve(start || process.cwd()));
+	}
+
+	return packageRoot;
+}
+
+module.exports = getRoot;
+module.exports.overrideMeta = function(meta) {
+	const pkg = getRoot();
+	Object.keys(meta).forEach(key => {
+		pkg.meta[key] = Object.assign({}, pkg.meta[key], meta[key]);
+	});
 };

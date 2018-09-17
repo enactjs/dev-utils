@@ -13,7 +13,8 @@ exportOnDemand({
 	mixins: () => require('./mixins'),
 	configHelper: () => require('./config-helper'),
 	packageRoot: () => require('./package-root'),
-	optionParser: () => require('./option-parser')
+	optionParser: () => require('./option-parser'),
+	meta: () => require('./meta')
 });
 
 // Export the Webpack plugins.
