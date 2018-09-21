@@ -35,6 +35,17 @@ function findRoot(curr) {
 	}
 }
 
-module.exports = function(start) {
-	return findRoot(path.resolve(start || process.cwd()));
+let packageRoot = null;
+function getRoot(start) {
+	if (packageRoot === null) {
+		packageRoot = findRoot(path.resolve(start || process.cwd()));
+	}
+
+	return packageRoot;
+}
+
+module.exports = getRoot;
+module.exports.overrideEnactMetadata = function(meta) {
+	const pkg = getRoot();
+	pkg.meta.enact = Object.assign({}, pkg.meta.enact, meta);
 };
