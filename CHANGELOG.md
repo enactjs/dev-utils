@@ -1,6 +1,8 @@
-## unrelease
+## 1.2.0 (September 24, 2018)
 
-* Added new WebOSMetaPlugin `imageForRecents`.
+* Added support for `applyEnactMeta` function in `option-parser.js` to apply Enact metadata overrides.
+* Added support for `imageForRecents` asset field in `WebOSMetaPlugin`.
+* Fixed uglify unmangling mixin usage with latest UglifyPlugin option format.
 
 ## 1.1.2 (July 26, 2018)
 
