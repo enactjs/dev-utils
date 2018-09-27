@@ -30,10 +30,11 @@ function fontGenerator(theme) {
 }
 
 const config = {
-	// Project base directory
+	// Project base directory.
 	context: pkg.path,
-	// Project name
+	// Project name.
 	name: pkg.meta.name,
+	// Parse Enact metadata and apply options onto the config.
 	applyEnactMeta: function(meta) {
 		enact = Object.assign(enact, meta);
 
@@ -90,7 +91,7 @@ const config = {
 				enact.theme && enact.theme !== 'moonstone' && {[enact.theme + '-accent']: enact.accent}
 			);
 	},
-	// Sets the browserslist default fallback set of browsers to the Enact default browser support list
+	// Sets the browserslist default fallback set of browsers to the Enact default browser support list.
 	setEnactTargetsAsDefault: function() {
 		if (!browserslist.loadConfig({path: pkg.path})) process.env.BROWSERSLIST = defaultTargets.join(',');
 	}
@@ -102,13 +103,13 @@ Object.defineProperty(config, 'environment', {
 	get: function() {
 		if (enact.environment) return enact.environment;
 
-		let config = browserslist.loadConfig({path: pkg.path}) || target;
-		if (config) {
-			if (typeof config === 'string') config = config.split(/,\s*/);
-			config = config.map(b => b.toLowerCase());
-			if (config.some(b => !b.startsWith('not') && b.includes('electron'))) {
+		let targets = browserslist.loadConfig({path: pkg.path});
+		if (targets) {
+			if (typeof targets === 'string') targets = targets.split(/,\s*/);
+			targets = targets.map(b => b.toLowerCase());
+			if (targets.some(b => !b.startsWith('not') && b.includes('electron'))) {
 				return 'electron-renderer';
-			} else if (config.every(b => !b.startsWith('not') && b.includes('node'))) {
+			} else if (targets.every(b => !b.startsWith('not') && b.includes('node'))) {
 				return 'node';
 			} else {
 				return 'web';
