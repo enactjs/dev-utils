@@ -2,6 +2,10 @@ const pkgRoot = require('./package-root');
 
 let rootCache;
 
+function isNamed(name) {
+	return fn => name && fn && fn.constructor && fn.constructor.name && fn.constructor.name === name;
+}
+
 module.exports = {
 	appRoot: function() {
 		return rootCache ? rootCache : (rootCache = pkgRoot().path);
@@ -64,32 +68,24 @@ module.exports = {
 			return config.module.rules[this.findLoader(config, name)];
 		}
 	},
-	findPlugin: function(config, name) {
-		let index = -1;
-		if (config && config.plugins && name) {
-			for (let i = 0; i < config.plugins.length; i++) {
-				if (
-					config.plugins[i] &&
-					config.plugins[i].constructor &&
-					config.plugins[i].constructor.name &&
-					config.plugins[i].constructor.name === name
-				) {
-					index = i;
-					break;
-				}
-			}
-		}
-		return index;
+	findPlugin: function({plugins = []} = {}, name) {
+		return plugins.findIndex(isNamed(name));
 	},
-	getPluginByName: function(config, name) {
-		if (config && config.plugins && name) {
-			return config.plugins[this.findPlugin(config, name)];
-		}
+	getPluginByName: function({plugins = []} = {}, name) {
+		return plugins[this.findPlugin({plugins}, name)];
 	},
-	removePlugin: function(config, name) {
-		const i = this.findPlugin(config, name);
-		if (i >= 0) {
-			config.plugins.splice(i, 1);
-		}
+	removePlugin: function({plugins = []} = {}, name) {
+		const i = this.findPlugin({plugins}, name);
+		if (i >= 0) plugins.splice(i, 1);
+	},
+	findMinimizer: function({optimization = []} = {}, name) {
+		return (optimization.minimizer || []).findIndex(isNamed(name));
+	},
+	getMinimizerByName: function({optimization = []} = {}, name) {
+		return (optimization.minimizer || [])[this.findMinimizer({optimization}, name)];
+	},
+	removeMinimizer: function({optimization = {}} = {}, name) {
+		const i = this.findMinimizer({optimization}, name);
+		if (i >= 0) optimization.minimizer.splice(i, 1);
 	}
 };
