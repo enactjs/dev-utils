@@ -14,8 +14,7 @@ module.exports = {
 			if (opts.locales) {
 				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
 				if (fs.existsSync(locale)) {
-					const babel = helper.findLoader(config, 'babel');
-					config.module.rules.splice(babel >= 0 ? babel : 0, 0, {
+					config.module.rules.unshift({
 						test: fs.realpathSync(locale),
 						loader: 'expose-loader',
 						options: 'iLibLocale'
