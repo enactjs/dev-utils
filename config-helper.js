@@ -46,28 +46,6 @@ module.exports = {
 			this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
 		}
 	},
-	findLoader: function(config, name) {
-		let index = -1;
-		if (config && config.module && config.module.rules && name) {
-			for (let i = 0; i < config.module.rules.length; i++) {
-				if (config.module.rules[i].loader) {
-					if (
-						config.module.rules[i].loader === name + '-loader' ||
-						new RegExp('node_modules[\\\\/]' + name + '-loader').test(config.module.rules[i].loader)
-					) {
-						index = i;
-						break;
-					}
-				}
-			}
-		}
-		return index;
-	},
-	getLoaderByName: function(config, name) {
-		if (config && config.module && config.module.rules && name) {
-			return config.module.rules[this.findLoader(config, name)];
-		}
-	},
 	findPlugin: function({plugins = []} = {}, name) {
 		return plugins.findIndex(isNamed(name));
 	},
