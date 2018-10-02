@@ -171,7 +171,7 @@ class PrerenderPlugin {
 				'PrerenderPlugin',
 				(htmlPluginData, callback) => {
 					htmlPluginData.plugin.options.inject = 'body';
-					jsAssets = htmlPluginData.assets.js;
+					jsAssets = htmlPluginData.assets.js.map(file => file.path);
 					htmlPluginData.assets.js = [];
 					callback(null, htmlPluginData);
 				}
