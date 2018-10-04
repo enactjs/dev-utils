@@ -1,3 +1,36 @@
+## 2.0.0 (October 4, 2018)
+
+* Update all dependencies, with webpack peer dependency restricted to >=4.0.0
+* Refactor all webpack plugins into ES6 classes
+* Update all webpack plugins to use new `tappable` hook system
+* For webpack plugins, use `compiler.outputPath` and `compiler.context` instead of parsed values from `compiler.options`
+* Explicitly invoke `apply`on embedded plugins on the compiler
+* Support `browserslist` as the primary method of browser/node targeting with webpack `target` extrapolated as determined
+* Add `setEnactTargetsAsDefault`function to option-parser which can set the Enact supported browsers as the `browserslist` values to use when not user-set.
+* Update config-helper to remove loader functions and add support for finding/modifying minimizer plugins.
+* `isomorphic` mixin:
+  * Enable mapfile output by default when building more than 1 locale
+  * Inject snapshot helper file as a webpack entry
+  * Set webpack config  `output.globalObject` to `this` for proper umd support
+* `framework` mixin:
+  * Filter out ilib localedata directory
+  * Fix support for symlinks
+  * Set webpack config  `output.globalObject` to `this` for proper umd support
+* `unmangle` mixin:
+  * Switch from UglifyJsPlugin to TerserPlugin support
+  * Look for TerserPlugin as a minifier plugin rather than a regular plugin
+  * Fixed beautify option support
+* `EnzymeAdapterPlugin`:
+  * Remove workaround Enzyme React 16 adapter since the context support has made it upstream
+* `ILibPlugin`:
+  * Fix to correctly copy ilib resource assets for apps under `@enact` scope (though don't create when missing).
+  * Fix to route moonstone 'app' assets to a `_resources_` pseudo directory to prevent extra XHR calls during test execution.
+* `PrerenderPlugin`:
+  * Fixed compatibility for supporting latest `html-webpack-plugin`
+* `SnapshotPlugin`:
+  * Remove dynamic helper javascript entry injection (since access to config was removed in webpack 4), with it relocated to the `isomorphic` mixin
+  * Add `SnapshotPlugin.helperJS` property which returns the resolve path to the helper file.
+
 ## 1.2.0 (September 24, 2018)
 
 * Added support for `applyEnactMeta` function in `option-parser.js` to apply Enact metadata overrides.
