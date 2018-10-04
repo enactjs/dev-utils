@@ -13,15 +13,17 @@ module.exports = {
 					cwd: path.resolve(path.join(app, 'node_modules')),
 					nodir: true,
 					ignore: [
-						'./webpack.config.js',
-						'./.eslintrc.js',
+						'**/webpack.config.js',
+						'**/.eslintrc.js',
 						'./karma.conf.js',
-						'./build/**/*.*',
-						'./dist/**/*.*',
+						'**/build/**/*.*',
+						'**/dist/**/*.*',
+						'**/ilib/localedata/**/*.*',
 						path.join(config.output.path, '*'),
-						'./node_modules/**/*.*',
+						'**/node_modules/**/*.*',
 						'**/tests/*.js'
-					]
+					],
+					follow: true
 				})
 				.concat(['react', 'react-dom'])
 		};
@@ -29,6 +31,7 @@ module.exports = {
 		// Use universal module definition to allow usage and name as 'enact_framework'
 		config.output.library = 'enact_framework';
 		config.output.libraryTarget = 'umd';
+		config.output.globalObject = 'this';
 
 		// Modify the iLib plugin options to skip './resources' detection/generation
 		const ilibPlugin = helper.getPluginByName(config, 'ILibPlugin');

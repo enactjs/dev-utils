@@ -1,7 +1,8 @@
 const path = require('path');
 const glob = require('glob');
 const fs = require('graceful-fs');
-const {DefinePlugin} = require('webpack');
+const {SyncWaterfallHook} = require('tapable');
+const {DefinePlugin, Template} = require('webpack');
 
 function packageName(file) {
 	try {
@@ -158,129 +159,137 @@ function emitAsset(compilation, name, data) {
 	};
 }
 
-function ILibPlugin(options) {
-	this.options = options || {};
-	this.options.ilib = this.options.ilib || process.env.ILIB_BASE_PATH;
-	const pkgName = packageName('./package.json');
-	if (typeof this.options.ilib === 'undefined') {
-		try {
-			if (pkgName.indexOf('@enact') === 0) {
-				this.options.resources = false;
-			}
-			if (pkgName === '@enact/i18n') {
-				this.options.ilib = 'ilib';
-			} else {
-				this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
-			}
-		} catch (e) {
-			console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
-			process.exit(1);
-		}
-	}
-	if (typeof this.options.resources === 'undefined') {
-		this.options.resources = 'resources';
-	}
-	this.options.bundles = this.options.bundles || {};
-	if (typeof this.options.bundles.moonstone === 'undefined') {
-		if (pkgName === '@enact/moonstone') {
-			this.options.bundles.moonstone = 'resources';
-		} else {
-			const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
-			if (moonstone) {
-				this.options.bundles.moonstone = path.join(moonstone, 'resources');
-			}
-		}
-	}
-
-	this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
-	this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
-	this.options.emit = typeof this.options.emit !== 'boolean' || this.options.emit;
-}
-
-ILibPlugin.prototype.apply = function(compiler) {
-	const opts = this.options;
-	const created = [];
-	let manifests = [];
-	opts.context = compiler.options.context;
-
-	if (opts.ilib) {
-		// Resolve an accurate basepath for iLib.
-		const ilib = resolveBundle(opts.ilib, opts.context);
-		const definedConstants = {
-			ILIB_BASE_PATH: ilib.resolved,
-			ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
-			ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
-		};
-		for (const name in opts.bundles) {
-			if (opts.bundles[name]) {
-				const bundle = resolveBundle(opts.bundles[name], opts.context);
-				definedConstants['ILIB_' + name.toUpperCase() + '_PATH'] = bundle.resolved;
-				if (opts.emit && bundle.emit) {
-					manifests.push(path.join(bundle.path, 'ilibmanifest.json'));
+class ILibPlugin {
+	constructor(options = {}) {
+		this.options = options;
+		this.options.ilib = this.options.ilib || process.env.ILIB_BASE_PATH;
+		const pkgName = packageName('./package.json');
+		if (typeof this.options.ilib === 'undefined') {
+			try {
+				if (pkgName.indexOf('@enact') === 0) {
+					this.options.create = false;
 				}
-			}
-		}
-
-		// Rewrite the iLib global constants to specific values corresponding to the build.
-		compiler.apply(new DefinePlugin(definedConstants));
-		// Add a unique ID value to the webpack require-function, so that the value is correctly updated,
-		// even when hot-reloading and serving.
-		compiler.plugin('compilation', compilation => {
-			compilation.mainTemplate.plugin('require-extensions', function(source) {
-				const buf = [source];
-				buf.push('');
-				buf.push(this.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
-				return this.asString(buf);
-			});
-		});
-
-		// Prepare manifest list for usage.
-		// Missing files will created if needed otherwise scanned.
-		if (opts.emit && ilib.emit) {
-			manifests.unshift(path.join(ilib.path, 'locale', 'ilibmanifest.json'));
-		}
-		if (opts.emit && opts.resources) {
-			manifests.push(path.join(opts.resources, 'ilibmanifest.json'));
-		}
-		for (let i = 0; i < manifests.length; i++) {
-			if (!fs.existsSync(manifests[i])) {
-				const dir = path.dirname(manifests[i]);
-				let files = [];
-				if (fs.existsSync(dir)) {
-					files = glob.sync('./**/!(appinfo).json', {nodir: true, cwd: dir});
-					for (let k = 0; k < files.length; k++) {
-						files[k] = files[k].replace(/^\.\//, '');
-					}
-				}
-				if (opts.create) {
-					if (!fs.existsSync(dir)) {
-						fs.mkdirSync(dir);
-					}
-					fs.writeFileSync(manifests[i], JSON.stringify({files: files}, null, '\t'), {
-						encoding: 'utf8'
-					});
-					created.push(manifests[i]);
+				if (pkgName === '@enact/i18n') {
+					this.options.ilib = 'ilib';
 				} else {
-					manifests[i] = {generate: manifests[i], value: files};
+					this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
+				}
+			} catch (e) {
+				console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
+				process.exit(1);
+			}
+		}
+		if (typeof this.options.resources === 'undefined') {
+			this.options.resources = 'resources';
+		}
+		this.options.bundles = this.options.bundles || {};
+		if (typeof this.options.bundles.moonstone === 'undefined') {
+			if (pkgName === '@enact/moonstone') {
+				this.options.bundles.moonstone = 'resources';
+				this.options.resources = '_resources_';
+			} else {
+				const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
+				if (moonstone) {
+					this.options.bundles.moonstone = path.join(moonstone, 'resources');
 				}
 			}
 		}
 
-		// Emit all bundles as applicable.
-		compiler.plugin('emit', (compilation, callback) => {
-			for (let j = 0; j < created.length; j++) {
-				compilation.warnings.push(
-					new Error(
-						'iLibPlugin: Localization resource manifest not found. Created ' +
-							created[j] +
-							' to prevent future errors.'
-					)
-				);
-			}
-			manifests = compilation.applyPluginsWaterfall('ilib-manifest-list', manifests);
-			handleBundles(compilation, manifests, opts, callback);
-		});
+		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
+		this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
+		this.options.emit = typeof this.options.emit !== 'boolean' || this.options.emit;
 	}
-};
+
+	apply(compiler) {
+		const opts = this.options;
+		const created = [];
+		let manifests = [];
+		if (opts.ilib) {
+			opts.context = compiler.context;
+
+			// Resolve an accurate basepath for iLib.
+			const ilib = resolveBundle(opts.ilib, opts.context);
+			const definedConstants = {
+				ILIB_BASE_PATH: ilib.resolved,
+				ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
+				ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
+			};
+			for (const name in opts.bundles) {
+				if (opts.bundles[name]) {
+					const bundle = resolveBundle(opts.bundles[name], opts.context);
+					definedConstants['ILIB_' + name.toUpperCase() + '_PATH'] = bundle.resolved;
+					if (opts.emit && bundle.emit) {
+						manifests.push(path.join(bundle.path, 'ilibmanifest.json'));
+					}
+				}
+			}
+
+			// Rewrite the iLib global constants to specific values corresponding to the build.
+			new DefinePlugin(definedConstants).apply(compiler);
+
+			compiler.hooks.compilation.tap('ILibPlugin', compilation => {
+				// Define compilation hooks
+				compilation.hooks.ilibManifestList = new SyncWaterfallHook(['manifests']);
+
+				// Add a unique ID value to the webpack require-function, so that the value is correctly updated,
+				// even when hot-reloading and serving.
+				const main = compilation.mainTemplate;
+				main.hooks.requireExtensions.tap('ILibPlugin', source => {
+					const buf = [source];
+					buf.push('');
+					buf.push(main.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
+					return Template.asString(buf);
+				});
+			});
+
+			// Prepare manifest list for usage.
+			// Missing files will created if needed otherwise scanned.
+			if (opts.emit && ilib.emit) {
+				manifests.unshift(path.join(ilib.path, 'locale', 'ilibmanifest.json'));
+			}
+			if (opts.emit && opts.resources) {
+				manifests.push(path.join(opts.resources, 'ilibmanifest.json'));
+			}
+			for (let i = 0; i < manifests.length; i++) {
+				if (!fs.existsSync(manifests[i])) {
+					const dir = path.dirname(manifests[i]);
+					let files = [];
+					if (fs.existsSync(dir)) {
+						files = glob.sync('./**/!(appinfo).json', {nodir: true, cwd: dir});
+						for (let k = 0; k < files.length; k++) {
+							files[k] = files[k].replace(/^\.\//, '');
+						}
+					}
+					if (opts.create) {
+						if (!fs.existsSync(dir)) {
+							fs.mkdirSync(dir);
+						}
+						fs.writeFileSync(manifests[i], JSON.stringify({files: files}, null, '\t'), {
+							encoding: 'utf8'
+						});
+						created.push(manifests[i]);
+					} else {
+						manifests[i] = {generate: manifests[i], value: files};
+					}
+				}
+			}
+
+			// Emit all bundles as applicable.
+			compiler.hooks.emit.tapAsync('ILibPlugin', (compilation, callback) => {
+				for (let j = 0; j < created.length; j++) {
+					compilation.warnings.push(
+						new Error(
+							'iLibPlugin: Localization resource manifest not found. Created ' +
+								created[j] +
+								' to prevent future errors.'
+						)
+					);
+				}
+				manifests = compilation.hooks.ilibManifestList.call(manifests);
+				handleBundles(compilation, manifests, opts, callback);
+			});
+		}
+	}
+}
 
 module.exports = ILibPlugin;

@@ -77,44 +77,48 @@ DllModule.prototype.source = function() {
 	return new RawSource(header + 'module.exports = __webpack_require__;');
 };
 
-function EnactFrameworkPlugin(options) {
-	this.options = options || {};
-}
-module.exports = EnactFrameworkPlugin;
-EnactFrameworkPlugin.prototype.apply = function(compiler) {
-	// Map entries to the DLLEntryPlugin
-	DllModule.entries = {};
-	compiler.plugin('entry-option', (context, entry) => {
-		function itemToPlugin(item, name) {
-			if (Array.isArray(item)) {
-				DllModule.entries[name] = [];
-				for (let i = 0; i < item.length; i++) {
-					DllModule.entries[name].push(normalizeModuleID('./node_modules/' + item[i]));
-				}
-				return new DllEntryPlugin(context, item, name);
-			} else {
-				throw new Error('EnactFrameworkPlugin: supply an Array as entry');
-			}
-		}
-		if (typeof entry === 'object') {
-			Object.keys(entry).forEach(name => compiler.apply(itemToPlugin(entry[name], name)));
-		} else {
-			compiler.apply(itemToPlugin(entry, 'main'));
-		}
-		return true;
-	});
+class EnactFrameworkPlugin {
+	constructor(options = {}) {
+		this.options = options;
+	}
 
-	// Format the internal module ID to a usable named descriptor
-	compiler.plugin('compilation', compilation => {
-		compilation.plugin('before-module-ids', modules => {
-			modules.forEach(m => {
-				if (m.id === null && m.libIdent) {
-					m.id = m.libIdent({
-						context: this.options.context || compiler.options.context
-					});
-					m.id = normalizeModuleID(m.id);
+	apply(compiler) {
+		// Map entries to the DLLEntryPlugin
+		DllModule.entries = {};
+		compiler.hooks.entryOption.tap('EnactFrameworkPlugin', (context, entry) => {
+			function itemToPlugin(item, name) {
+				if (Array.isArray(item)) {
+					DllModule.entries[name] = [];
+					for (let i = 0; i < item.length; i++) {
+						DllModule.entries[name].push(normalizeModuleID('./node_modules/' + item[i]));
+					}
+					return new DllEntryPlugin(context, item, name);
+				} else {
+					throw new Error('EnactFrameworkPlugin: supply an Array as entry');
 				}
-			}, this);
+			}
+			if (typeof entry === 'object') {
+				Object.keys(entry).forEach(name => itemToPlugin(entry[name], name).apply(compiler));
+			} else {
+				itemToPlugin(entry, 'main').apply(compiler);
+			}
+			return true;
 		});
-	});
-};
+
+		// Format the internal module ID to a usable named descriptor
+		compiler.hooks.compilation.tap('EnactFrameworkPlugin', compilation => {
+			compilation.hooks.beforeModuleIds.tap('EnactFrameworkPlugin', modules => {
+				modules.forEach(m => {
+					if (m.id === null && m.libIdent) {
+						m.id = m.libIdent({
+							context: this.options.context || compiler.options.context
+						});
+						m.id = normalizeModuleID(m.id);
+					}
+				}, this);
+			});
+		});
+	}
+}
+
+module.exports = EnactFrameworkPlugin;

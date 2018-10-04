@@ -1,6 +1,6 @@
 {
   "name": "@enact/dev-utils",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "A collection of development utilities for Enact apps.",
   "main": "index.js",
   "author": "Jason Robitaille <jason.robitaille@lge.com>",
@@ -29,32 +29,34 @@
     "plugins/SnapshotPlugin/mock-window.js"
   ],
   "dependencies": {
-    "chalk": "^2.1.0",
+    "browserslist": "^4.1.0",
+    "chalk": "^2.4.1",
     "console.mute": "^0.3.0",
-    "core-js": "^2.5.0",
-    "electron-to-chromium": "^1.3.37",
-    "enzyme-adapter-utils": "^1.3.0",
-    "find-cache-dir": "^1.0.0",
-    "glob": "^7.1.0",
-    "graceful-fs": "^4.1.0",
+    "core-js": "^2.5.7",
+    "electron-to-chromium": "^1.3.62",
+    "enzyme-adapter-utils": "^1.6.1",
+    "find-cache-dir": "^2.0.0",
+    "glob": "^7.1.3",
+    "graceful-fs": "^4.1.11",
     "import-fresh": "^2.0.0",
-    "react": "^16.4.1",
-    "react-dom": "^16.4.1",
-    "react-is": "^16.4.1",
-    "react-reconciler": "^0.12.0",
-    "react-test-renderer": "^16.4.1",
-    "webpack-bundle-analyzer": "^2.9.0",
-    "webpack-sources": "^1.0.0"
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-is": "^16.4.2",
+    "react-reconciler": "^0.15.0",
+    "react-test-renderer": "^16.4.2",
+    "tapable": "^1.1.0",
+    "webpack-bundle-analyzer": "^3.0.2",
+    "webpack-sources": "^1.2.0"
   },
   "devDependencies": {
-    "eslint": "^4.15.0",
-    "eslint-config-prettier": "^2.9.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-prettier": "^2.6.0",
-    "prettier": "^1.10.2",
-    "webpack": "^3.10.0"
+    "eslint": "^5.4.0",
+    "eslint-config-prettier": "^3.0.1",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "prettier": "^1.14.2",
+    "webpack": "^4.17.1"
   },
   "peerDependencies": {
-    "webpack": "^2 || ^2.1.0-beta || ^2.2.0-rc || ^3"
+    "webpack": ">=4.0.0"
   }
 }
