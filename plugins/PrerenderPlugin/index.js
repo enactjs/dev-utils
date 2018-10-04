@@ -1,294 +1,315 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
+const {SyncHook} = require('tapable');
 const templates = require('./templates');
 const vdomServer = require('./vdom-server-render');
 
-function PrerenderPlugin(options = {}) {
-	this.options = options;
-	this.options.chunk = this.options.chunk || 'main.js';
-	if (!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
-	if (this.options.locales === undefined) this.options.locales = 'en-US';
-	if (this.options.mapfile === undefined || this.options.mapfile === true) this.options.mapfile = 'locale-map.json';
-	// eslint-disable-next-line
-	if (!this.options.server) this.options.server = require('react-dom/server');
-}
+class PrerenderPlugin {
+	constructor(options = {}) {
+		this.options = options;
+		this.options.chunk = this.options.chunk || 'main.js';
+		if (!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
+		if (this.options.locales === undefined) this.options.locales = 'en-US';
+		if (this.options.mapfile === undefined || this.options.mapfile === true)
+			this.options.mapfile = 'locale-map.json';
+		// eslint-disable-next-line
+		if (!this.options.server) this.options.server = require('react-dom/server');
+	}
 
-PrerenderPlugin.prototype.apply = function(compiler) {
-	const opts = this.options;
-	const status = {prerender: [], attr: [], alias: []};
-	let locales;
+	apply(compiler) {
+		const opts = this.options;
+		const status = {prerender: [], attr: [], alias: []};
+		let locales;
 
-	compiler.plugin('compilation', compilation => {
-		const appInfoOptimize = {groups: {}, coverage: []};
-		let jsAssets = [];
+		compiler.hooks.compilation.tap('PrerenderPlugin', compilation => {
+			const appInfoOptimize = {groups: {}, coverage: []};
+			let jsAssets = [];
 
-		// Do nothing when run in virtual or custom output FS
-		if (!isNodeOutputFS(compiler)) return;
+			// Do nothing when run in virtual or custom output FS
+			if (!isNodeOutputFS(compiler)) return;
 
-		// Determine the target locales and load up the startup scripts.
-		locales = parseLocales(compiler.options.context, opts.locales);
+			// Define compilation hooks
+			compilation.hooks.prerenderChunk = new SyncHook(['details']);
+			compilation.hooks.prerenderLocale = new SyncHook(['details']);
 
-		// Ensure that any async chunk-loading jsonp functions are isomorphically compatible.
-		compilation.mainTemplate.plugin('bootstrap', source => {
-			return source.replace(/window/g, '(function() { return this; }())');
-		});
+			// Determine the target locales and load up the startup scripts.
+			locales = parseLocales(compiler.context, opts.locales);
 
-		// Prerender each locale desired and output an error on failure.
-		compilation.plugin('chunk-asset', (chunk, file) => {
-			if (file === opts.chunk) {
-				compilation.applyPlugins('prerender-chunk', {chunk: opts.chunk, locales: locales});
-				vdomServer.stage(compilation.assets[opts.chunk].source(), opts);
-				for (let i = 0; i < locales.length; i++) {
-					try {
-						// Prerender the locale.
-						const renderOpts = {
-							server: opts.server,
-							locale: locales[i],
-							externals: opts.externals,
-							fontGenerator: opts.fontGenerator
-						};
-						compilation.applyPlugins('prerender-locale', {
-							chunk: opts.chunk,
-							opts: renderOpts
-						});
-						let appHtml = vdomServer.render(renderOpts);
+			// Ensure that any async chunk-loading jsonp functions are isomorphically compatible.
+			compilation.mainTemplate.hooks.bootstrap.tap('PrerenderPlugin', source => {
+				return source.replace(/window/g, '(function() { return this; }())');
+			});
 
-						// Extract the root CSS classes and react checksum from the prerendered html code.
-						status.attr[i] = {};
-						appHtml = appHtml
-							.replace(
-								/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
-								(match, before, s, classAttr) => {
-									status.attr[i].classes = classAttr;
-									return before + '"';
-								}
-							)
-							.replace(/(<div[^>]*data-react-checksum=")([^"]*)"/i, (match, before, checksum) => {
-								status.attr[i].checksum = checksum;
-								return before + '"';
+			// Prerender each locale desired and output an error on failure.
+			compilation.hooks.chunkAsset.tap('PrerenderPlugin', (chunk, file) => {
+				if (file === opts.chunk) {
+					compilation.hooks.prerenderChunk.call({chunk: opts.chunk, locales: locales});
+					vdomServer.stage(compilation.assets[opts.chunk].source(), opts);
+					for (let i = 0; i < locales.length; i++) {
+						try {
+							// Prerender the locale.
+							const renderOpts = {
+								server: opts.server,
+								locale: locales[i],
+								externals: opts.externals,
+								fontGenerator: opts.fontGenerator
+							};
+							compilation.hooks.prerenderLocale.call({
+								chunk: opts.chunk,
+								opts: renderOpts
 							});
+							let appHtml = vdomServer.render(renderOpts);
 
-						// Dedupe the sanitized html code and alias as needed
-						const index = status.prerender.indexOf(appHtml);
-						if (index === -1) {
-							status.prerender[i] = appHtml;
-						} else {
-							status.alias[i] = locales[index];
-						}
-					} catch (e) {
-						status.err = {locale: locales[i], result: e};
-						break;
-					}
-				}
-				if (!status.err) {
-					vdomServer.unstage();
-					// Simplify out aliases and group together for minimal file output.
-					simplifyAliases(locales, status);
-				}
-			}
-		});
+							// Extract the root CSS classes and react checksum from the prerendered html code.
+							status.attr[i] = {};
+							appHtml = appHtml
+								.replace(
+									/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
+									(match, before, s, classAttr) => {
+										status.attr[i].classes = classAttr;
+										return before + '"';
+									}
+								)
+								.replace(/(<div[^>]*data-react-checksum=")([^"]*)"/i, (match, before, checksum) => {
+									status.attr[i].checksum = checksum;
+									return before + '"';
+								});
 
-		// For any target locales that don't already have appinfo files, dynamically generate new ones.
-		compilation.plugin('webos-meta-list-localized', locList => {
-			// No need to process localized appinfo files on error or a singular locale.
-			if (!status.err && locales.length > 1) {
-				for (let i = 0; i < locales.length; i++) {
-					if (locales[i].indexOf('multi') !== 0 && !/\.\d+$/.test(locales[i])) {
-						// Handle each locale that isn't a multi-language group item
-						const lang = language(locales[i]);
-						let appInfo = path.join('resources', locales[i].replace(/-/g, path.sep), 'appinfo.json');
-						if (status.alias[i] && status.alias[i].indexOf('multi') === 0) {
-							// Locale is part of a multi-language grouping.
-							if (
-								locales.indexOf(lang) >= 0 ||
-								(appInfoOptimize.groups[lang] && appInfoOptimize.groups[lang] !== status.alias[i])
-							) {
-								// Parent language entry already exists, or the appinfo optimization group for this language points
-								// to a different alias, so we can't simplify any further.
-								if (locList.indexOf(appInfo) === -1) {
-									// Add full locale appinfo entry if not already there.
-									locList.push({generate: appInfo});
-								}
-							} else if (!appInfoOptimize.groups[lang]) {
-								// No parent language and no existing appinfo optimization group for this language, so let's
-								// create one and simplify the output for the locale.
-								appInfoOptimize.groups[lang] = status.alias[i];
-								appInfoOptimize.coverage.push(locales[i]);
-								appInfo = path.join('resources', lang, 'appinfo.json');
-								if (locList.indexOf(appInfo) === -1) {
-									locList.push({generate: appInfo});
-								}
-							}
-						} else if (status.alias[i] !== lang && locList.indexOf(appInfo) === -1) {
-							// Not aliased, or not aliased to parent language so create appinfo if it does not exist.
-							locList.push({generate: appInfo});
-						}
-					}
-				}
-			}
-			return locList;
-		});
-
-		// Update any root appinfo to tag as using prerendering to avoid webOS splash screen.
-		// Temporary root value used until webOS parsing of localized appinfo.json boolean values is fixed.
-		compilation.plugin('webos-meta-root-appinfo', meta => {
-			if (typeof meta.usePrerendering === 'undefined' && locales.length > 0) {
-				meta.usePrerendering = true;
-			}
-			return meta;
-		});
-
-		// For each prerendered target locale's appinfo, update the 'main' value.
-		compilation.plugin('webos-meta-localized-appinfo', (meta, info) => {
-			let loc = info.locale;
-			// Exclude appinfo entries covered by appinfo optimization groups.
-			if (appInfoOptimize.coverage.indexOf(loc) === -1) {
-				const index = locales.indexOf(loc);
-				if (index === -1) {
-					// When not found in our target list, fallback to our appinfo optimization groups.
-					loc = appInfoOptimize.groups[loc];
-				} else if (index >= 0 && status.alias[index]) {
-					// Resolve any locale aliases.
-					loc = status.alias[index];
-				}
-				if (loc) {
-					meta.main = 'index.' + loc + '.html';
-				}
-			}
-			return meta;
-		});
-
-		// Force HtmlWebpackPlugin to use body inject format and set aside the js assets.
-		compilation.plugin('html-webpack-plugin-before-html-processing', (htmlPluginData, callback) => {
-			htmlPluginData.plugin.options.inject = 'body';
-			jsAssets = htmlPluginData.assets.js;
-			htmlPluginData.assets.js = [];
-			callback(null, htmlPluginData);
-		});
-
-		// Use the prerendered-startup.js to asynchronously add the js assets at load time and embed that
-		// script inline in the HTML head.
-		compilation.plugin('html-webpack-plugin-alter-asset-tags', (htmlPluginData, callback) => {
-			const startupScriptTag = {
-				tagName: 'script',
-				closeTag: true,
-				attributes: {
-					type: 'text/javascript'
-				},
-				innerHTML: templates.startup(opts.screenTypes, jsAssets)
-			};
-			const startupPath = 'startup/startup.js';
-			if (opts.externalStartup && !compilation.assets[startupPath]) {
-				startupScriptTag.attributes.src = startupPath;
-				emitAsset(compilation, startupPath, startupScriptTag.innerHTML);
-				delete startupScriptTag.innerHTML;
-			}
-			htmlPluginData.head.unshift(startupScriptTag);
-			callback(null, htmlPluginData);
-		});
-
-		// Inject prerendered static HTML
-		compilation.plugin('html-webpack-plugin-after-html-processing', (htmlPluginData, callback) => {
-			const applyToRoot = rootInjection(htmlPluginData.html);
-			Promise.all(
-				locales.map((loc, i) => {
-					const linked = Object.keys(status.alias).filter(key => status.alias[key] === loc);
-					const body = [];
-					let mapping;
-
-					if (status.err || !status.prerender[i] || status.alias[i]) return;
-
-					if (linked.length === 0) {
-						// Single locale, re-inject root classes and react checksum.
-						status.prerender[i] = status.prerender[i]
-							.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
-							.replace(/(<div[^>]*data-react-checksum=")"/i, '$1' + status.attr[i].checksum + '"');
-					} else {
-						// Create a mapping of locales and classes
-						mapping = linked.reduce(
-							(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
-							{}
-						);
-					}
-
-					// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
-					const appHtml = parsePrerender(status.prerender[i]);
-					const updater = templates.update(mapping, opts.deep, appHtml.prerender);
-					if (opts.deep) appHtml.prerender = '';
-					if (updater) {
-						const updaterScriptTag = {
-							tagName: 'script',
-							closeTag: true,
-							attributes: {
-								type: 'text/javascript'
-							}
-						};
-						if (!opts.externalStartup) {
-							updaterScriptTag.innerHTML = updater;
-						} else {
-							updaterScriptTag.attributes.src = 'startup/' + loc + '.js';
-							emitAsset(compilation, updaterScriptTag.attributes.src, updater);
-						}
-						body.push(updaterScriptTag);
-					}
-
-					// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
-					htmlPluginData.plugin.options.inject = true;
-					if (htmlPluginData.plugin.options.minify) {
-						// Preserve any React15 HTML comment nodes
-						htmlPluginData.plugin.options.minify.removeComments = false;
-					}
-					return htmlPluginData.plugin
-						.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head: appHtml.head, body: body})
-						.then(html => {
-							if (locales.length === 1) {
-								// Only 1 locale, so just output as the default root index.html
-								htmlPluginData.html = html;
+							// Dedupe the sanitized html code and alias as needed
+							const index = status.prerender.indexOf(appHtml);
+							if (index === -1) {
+								status.prerender[i] = appHtml;
 							} else {
-								// Multiple locales, so output as locale-specific html file.
-								emitAsset(compilation, 'index.' + loc + '.html', html);
+								status.alias[i] = locales[index];
 							}
-						});
-				})
-			)
-				.then(() => {
-					callback(null, htmlPluginData);
-				})
-				.catch(err => {
-					// Avoid misattribution of error to html plugin compiler by assigning error directly.
-					compilation.errors.push(err);
-					callback(null, htmlPluginData);
-				});
-		});
-	});
-
-	// Report any failed locale prerenders at the compiler level to fail the build,
-	// otherwise generate optional locale map asset.
-	compiler.plugin('after-compile', (compilation, callback) => {
-		if (status.err) {
-			// @TODO: pretty-print error details
-			let message =
-				chalk.red(chalk.bold('Unable to generate prerender of app state HTML for ' + status.err.locale + ':')) +
-				'\n';
-			message += status.err.result.stack || status.err.result.message || status.err.result;
-			callback(new Error(message));
-		} else {
-			// Generate a JSON file that maps the locales to their HTML files.
-			if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {
-				const mapper = (m, c, i) =>
-					status.alias.includes(c) ? m : Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
-				const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
-				let out = 'locale-map.json';
-				if (typeof opts.mapfile === 'string') {
-					out = opts.mapfile;
+						} catch (e) {
+							status.err = {locale: locales[i], result: e};
+							break;
+						}
+					}
+					if (!status.err) {
+						vdomServer.unstage();
+						// Simplify out aliases and group together for minimal file output.
+						simplifyAliases(locales, status);
+					}
 				}
-				emitAsset(compilation, out, JSON.stringify(mapping, null, '\t'));
+			});
+
+			// For any target locales that don't already have appinfo files, dynamically generate new ones.
+			compilation.hooks.webosMetaListLocalized.tap('PrerenderPlugin', locList => {
+				// No need to process localized appinfo files on error or a singular locale.
+				if (!status.err && locales.length > 1) {
+					for (let i = 0; i < locales.length; i++) {
+						if (locales[i].indexOf('multi') !== 0 && !/\.\d+$/.test(locales[i])) {
+							// Handle each locale that isn't a multi-language group item
+							const lang = language(locales[i]);
+							let appInfo = path.join('resources', locales[i].replace(/-/g, path.sep), 'appinfo.json');
+							if (status.alias[i] && status.alias[i].indexOf('multi') === 0) {
+								// Locale is part of a multi-language grouping.
+								if (
+									locales.indexOf(lang) >= 0 ||
+									(appInfoOptimize.groups[lang] && appInfoOptimize.groups[lang] !== status.alias[i])
+								) {
+									// Parent language entry already exists, or the appinfo optimization group for this
+									// language points to a different alias, so we can't simplify any further.
+									if (locList.indexOf(appInfo) === -1) {
+										// Add full locale appinfo entry if not already there.
+										locList.push({generate: appInfo});
+									}
+								} else if (!appInfoOptimize.groups[lang]) {
+									// No parent language and no existing appinfo optimization group for this language,
+									// so let's create one and simplify the output for the locale.
+									appInfoOptimize.groups[lang] = status.alias[i];
+									appInfoOptimize.coverage.push(locales[i]);
+									appInfo = path.join('resources', lang, 'appinfo.json');
+									if (locList.indexOf(appInfo) === -1) {
+										locList.push({generate: appInfo});
+									}
+								}
+							} else if (status.alias[i] !== lang && locList.indexOf(appInfo) === -1) {
+								// Not aliased, or not aliased to parent language so create appinfo if it does not exist.
+								locList.push({generate: appInfo});
+							}
+						}
+					}
+				}
+				return locList;
+			});
+
+			// Update any root appinfo to tag as using prerendering to avoid webOS splash screen.
+			// Temporary root value used until webOS parsing of localized appinfo.json boolean values is fixed.
+			compilation.hooks.webosMetaRootAppinfo.tap('PrerenderPlugin', meta => {
+				if (typeof meta.usePrerendering === 'undefined' && locales.length > 0) {
+					meta.usePrerendering = true;
+				}
+				return meta;
+			});
+
+			// For each prerendered target locale's appinfo, update the 'main' value.
+			compilation.hooks.webosMetaLocalizedAppinfo.tap('PrerenderPlugin', (meta, info) => {
+				let loc = info.locale;
+				// Exclude appinfo entries covered by appinfo optimization groups.
+				if (appInfoOptimize.coverage.indexOf(loc) === -1) {
+					const index = locales.indexOf(loc);
+					if (index === -1) {
+						// When not found in our target list, fallback to our appinfo optimization groups.
+						loc = appInfoOptimize.groups[loc];
+					} else if (index >= 0 && status.alias[index]) {
+						// Resolve any locale aliases.
+						loc = status.alias[index];
+					}
+					if (loc) {
+						meta.main = 'index.' + loc + '.html';
+					}
+				}
+				return meta;
+			});
+
+			// Force HtmlWebpackPlugin to use body inject format and set aside the js assets.
+			compilation.hooks.htmlWebpackPluginBeforeHtmlProcessing.tapAsync(
+				'PrerenderPlugin',
+				(htmlPluginData, callback) => {
+					htmlPluginData.plugin.options.inject = 'body';
+					jsAssets = htmlPluginData.assets.js.map(file => file.path);
+					htmlPluginData.assets.js = [];
+					callback(null, htmlPluginData);
+				}
+			);
+
+			// Use the prerendered-startup.js to asynchronously add the js assets at load time and embed that
+			// script inline in the HTML head.
+			compilation.hooks.htmlWebpackPluginAlterAssetTags.tapAsync(
+				'PrerenderPlugin',
+				(htmlPluginData, callback) => {
+					const startupScriptTag = {
+						tagName: 'script',
+						closeTag: true,
+						attributes: {
+							type: 'text/javascript'
+						},
+						innerHTML: templates.startup(opts.screenTypes, jsAssets)
+					};
+					const startupPath = 'startup/startup.js';
+					if (opts.externalStartup && !compilation.assets[startupPath]) {
+						startupScriptTag.attributes.src = startupPath;
+						emitAsset(compilation, startupPath, startupScriptTag.innerHTML);
+						delete startupScriptTag.innerHTML;
+					}
+					htmlPluginData.head.unshift(startupScriptTag);
+					callback(null, htmlPluginData);
+				}
+			);
+
+			// Inject prerendered static HTML
+			compilation.hooks.htmlWebpackPluginAfterHtmlProcessing.tapAsync(
+				'PrerenderPlugin',
+				(htmlPluginData, callback) => {
+					const applyToRoot = rootInjection(htmlPluginData.html);
+					Promise.all(
+						locales.map((loc, i) => {
+							const linked = Object.keys(status.alias).filter(key => status.alias[key] === loc);
+							const body = [];
+							let mapping;
+
+							if (status.err || !status.prerender[i] || status.alias[i]) return;
+
+							if (linked.length === 0) {
+								// Single locale, re-inject root classes and react checksum.
+								status.prerender[i] = status.prerender[i]
+									.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
+									.replace(
+										/(<div[^>]*data-react-checksum=")"/i,
+										'$1' + status.attr[i].checksum + '"'
+									);
+							} else {
+								// Create a mapping of locales and classes
+								mapping = linked.reduce(
+									(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
+									{}
+								);
+							}
+
+							// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
+							const appHtml = parsePrerender(status.prerender[i]);
+							const updater = templates.update(mapping, opts.deep, appHtml.prerender);
+							if (opts.deep) appHtml.prerender = '';
+							if (updater) {
+								const updaterScriptTag = {
+									tagName: 'script',
+									closeTag: true,
+									attributes: {
+										type: 'text/javascript'
+									}
+								};
+								if (!opts.externalStartup) {
+									updaterScriptTag.innerHTML = updater;
+								} else {
+									updaterScriptTag.attributes.src = 'startup/' + loc + '.js';
+									emitAsset(compilation, updaterScriptTag.attributes.src, updater);
+								}
+								body.push(updaterScriptTag);
+							}
+
+							// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
+							htmlPluginData.plugin.options.inject = true;
+							if (htmlPluginData.plugin.options.minify) {
+								// Preserve any React15 HTML comment nodes
+								htmlPluginData.plugin.options.minify.removeComments = false;
+							}
+							return htmlPluginData.plugin
+								.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head: appHtml.head, body: body})
+								.then(html => {
+									if (locales.length === 1) {
+										// Only 1 locale, so just output as the default root index.html
+										htmlPluginData.html = html;
+									} else {
+										// Multiple locales, so output as locale-specific html file.
+										emitAsset(compilation, 'index.' + loc + '.html', html);
+									}
+								});
+						})
+					)
+						.then(() => {
+							callback(null, htmlPluginData);
+						})
+						.catch(err => {
+							// Avoid misattribution of error to html plugin compiler by assigning error directly.
+							compilation.errors.push(err);
+							callback(null, htmlPluginData);
+						});
+				}
+			);
+		});
+
+		// Report any failed locale prerenders at the compiler level to fail the build,
+		// otherwise generate optional locale map asset.
+		compiler.hooks.afterCompile.tapAsync('PrerenderPlugin', (compilation, callback) => {
+			if (status.err) {
+				// @TODO: pretty-print error details
+				let message =
+					chalk.red(
+						chalk.bold('Unable to generate prerender of app state HTML for ' + status.err.locale + ':')
+					) + '\n';
+				message += status.err.result.stack || status.err.result.message || status.err.result;
+				callback(new Error(message));
+			} else {
+				// Generate a JSON file that maps the locales to their HTML files.
+				if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {
+					const mapper = (m, c, i) =>
+						status.alias.includes(c) ? m : Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
+					const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
+					let out = 'locale-map.json';
+					if (typeof opts.mapfile === 'string') {
+						out = opts.mapfile;
+					}
+					emitAsset(compilation, out, JSON.stringify(mapping, null, '\t'));
+				}
+				callback();
 			}
-			callback();
-		}
-	});
-};
+		});
+	}
+}
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 function isNodeOutputFS(compiler) {

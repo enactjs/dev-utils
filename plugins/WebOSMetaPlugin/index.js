@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
+const {SyncWaterfallHook} = require('tapable');
 
 // List of asset-pointing appinfo properties.
 const props = [
@@ -40,7 +41,7 @@ function handleSysAssetPath(context, appinfo) {
 		sysAssetsPath = appinfo.sysAssetsBasePath;
 		variableSysPaths = null;
 	}
-	// As needed, read all the variable irectories for sysAssets
+	// As needed, read all the variable directories for sysAssets
 	const sys = path.join(context, sysAssetsPath);
 	if (!variableSysPaths && fs.existsSync(sys)) {
 		const list = fs.readdirSync(sys);
@@ -145,71 +146,82 @@ function emitAsset(name, assets, data) {
 	};
 }
 
-function WebOSMetaPlugin(options) {
-	this.options = options || {};
-}
+class WebOSMetaPlugin {
+	constructor(options = {}) {
+		this.options = options;
+	}
 
-module.exports = WebOSMetaPlugin;
-WebOSMetaPlugin.prototype.apply = function(compiler) {
-	const scan = this.options.path;
-	const context = this.options.context || compiler.options.context;
+	apply(compiler) {
+		const scan = this.options.path;
+		const context = this.options.context || compiler.context;
 
-	compiler.plugin('emit', (compilation, callback) => {
-		// Add the root appinfo.json as well as its relative assets to the compilation.
-		const meta = rootAppInfo(context, scan);
-		if (meta && meta.obj) {
-			meta.obj = compilation.applyPluginsWaterfall('webos-meta-root-appinfo', meta.obj, {
-				path: meta.path
+		compiler.hooks.compilation.tap('WebOSMetaPlugin', compilation => {
+			// Define compilation hooks
+			compilation.hooks.webosMetaRootAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
+			compilation.hooks.webosMetaListLocalized = new SyncWaterfallHook(['list']);
+			compilation.hooks.webosMetaLocalizedAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
+
+			// Hook into html-webpack-plugin to dynamically set page title
+			compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync('WebOSMetaPlugin', (params, callback) => {
+				const appinfo = rootAppInfo(context, scan);
+				if (appinfo) {
+					// When no explicit HTML document title is provided, automically use the root appinfo's title value.
+					if (
+						appinfo.obj.title &&
+						(!params.plugin.options.title || params.plugin.options.title === 'Webpack App')
+					) {
+						params.plugin.options.title = appinfo.obj.title;
+					}
+				}
+				callback();
 			});
-			handleSysAssetPath(context, meta.obj);
-			addMetaAssets(meta.path, '', meta.obj, compilation);
-			emitAsset('appinfo.json', compilation.assets, new Buffer(JSON.stringify(meta.obj, null, '\t')));
-		}
-
-		// Scan for all localized appinfo.json files in the "resources" directory.
-		let loc = glob.sync('resources/**/appinfo.json', {
-			cwd: context,
-			nodir: true
 		});
-		loc = compilation.applyPluginsWaterfall('webos-meta-list-localized', loc);
-		// Add each locale-specific appinfo.json and its relative assets to the compilation.
-		let locFile, locRel, locMeta, locCode;
-		for (let i = 0; i < loc.length; i++) {
-			if (typeof loc[i] === 'string') {
-				locFile = path.join(context, loc[i]);
-				locRel = loc[i];
-				locMeta = readAppInfo(locFile);
-			} else {
-				locFile = path.join(context, loc[i].generate);
-				locRel = loc[i].generate;
-				locMeta = loc[i].value || {};
-			}
-			if (locMeta) {
-				locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile)).replace(/[\\/]+/g, '-');
-				locMeta = compilation.applyPluginsWaterfall('webos-meta-localized-appinfo', locMeta, {
-					path: locFile,
-					locale: locCode
+
+		compiler.hooks.emit.tapAsync('WebOSMetaPlugin', (compilation, callback) => {
+			// Add the root appinfo.json as well as its relative assets to the compilation.
+			const meta = rootAppInfo(context, scan);
+			if (meta && meta.obj) {
+				meta.obj = compilation.hooks.webosMetaRootAppinfo.call(meta.obj, {
+					path: meta.path
 				});
-				handleSysAssetPath(context, locMeta);
-				addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
-				emitAsset(locRel, compilation.assets, new Buffer(JSON.stringify(locMeta, null, '\t')));
+				handleSysAssetPath(context, meta.obj);
+				addMetaAssets(meta.path, '', meta.obj, compilation);
+				emitAsset('appinfo.json', compilation.assets, new Buffer(JSON.stringify(meta.obj, null, '\t')));
 			}
-		}
-		callback();
-	});
-	compiler.plugin('compilation', compilation => {
-		compilation.plugin('html-webpack-plugin-before-html-generation', (params, callback) => {
-			const appinfo = rootAppInfo(context, scan);
-			if (appinfo) {
-				// When no explicit HTML document title is provided, automically use the root appinfo's title value.
-				if (
-					appinfo.obj.title &&
-					(!params.plugin.options.title || params.plugin.options.title === 'Webpack App')
-				) {
-					params.plugin.options.title = appinfo.obj.title;
+
+			// Scan for all localized appinfo.json files in the "resources" directory.
+			let loc = glob.sync('resources/**/appinfo.json', {
+				cwd: context,
+				nodir: true
+			});
+			loc = compilation.hooks.webosMetaListLocalized.call(loc);
+			// Add each locale-specific appinfo.json and its relative assets to the compilation.
+			let locFile, locRel, locMeta, locCode;
+			for (let i = 0; i < loc.length; i++) {
+				if (typeof loc[i] === 'string') {
+					locFile = path.join(context, loc[i]);
+					locRel = loc[i];
+					locMeta = readAppInfo(locFile);
+				} else {
+					locFile = path.join(context, loc[i].generate);
+					locRel = loc[i].generate;
+					locMeta = loc[i].value || {};
+				}
+				if (locMeta) {
+					locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile));
+					locCode = locCode.replace(/[\\/]+/g, '-');
+					locMeta = compilation.hooks.webosMetaLocalizedAppinfo.call(locMeta, {
+						path: locFile,
+						locale: locCode
+					});
+					handleSysAssetPath(context, locMeta);
+					addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
+					emitAsset(locRel, compilation.assets, new Buffer(JSON.stringify(locMeta, null, '\t')));
 				}
 			}
 			callback();
 		});
-	});
-};
+	}
+}
+
+module.exports = WebOSMetaPlugin;
