@@ -15,9 +15,10 @@ class DelegatedEnactFactoryPlugin {
 		const libReg = new RegExp('^(' + this.options.libraries.join('|') + ')(?=[\\\\\\/]|$)');
 		normalModuleFactory.hooks.factory.tap('DelegatedEnactFactoryPlugin', factory => {
 			return function(data, callback) {
-				const request = data.request;
+				const dependency = data.dependencies[0];
+				const request = dependency.request;
 				if (request && libReg.test(request)) {
-					return callback(null, new DelegatedModule(name, {id: request}, 'require', request));
+					return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
 				}
 				return factory(data, callback);
 			};
@@ -50,12 +51,13 @@ class EnactFrameworkRefPlugin {
 		this.options.name = this.options.name || 'enact_framework';
 		this.options.libraries = this.options.libraries || ['@enact', 'react', 'react-dom'];
 		this.options.external = this.options.external || {};
-		this.options.external.publicPath = this.options.external.publicPath || this.options.external.path;
+		this.options.external.publicPath =
+			this.options.publicPath || this.options.external.publicPath || this.options.external.path;
 
 		if (!process.env.ILIB_BASE_PATH) {
 			process.env.ILIB_BASE_PATH = path.join(
 				this.options.external.publicPath,
-				'node_module',
+				'node_modules',
 				'@enact',
 				'i18n',
 				'ilib'
@@ -74,20 +76,19 @@ class EnactFrameworkRefPlugin {
 		compiler.hooks.compilation.tap('EnactFrameworkRefPlugin', (compilation, {normalModuleFactory}) => {
 			compilation.dependencyFactories.set(DelegatedSourceDependency, normalModuleFactory);
 
-			compilation.hooks.htmlWebpackPluginAlterChunks.tap('EnactFrameworkRefPlugin', chunks => {
-				const chunkFiles = [normalizePath(external.publicPath, 'enact.css', compiler)];
-				if (!external.snapshot) {
-					chunkFiles.unshift(normalizePath(external.publicPath, 'enact.js', compiler));
-				}
-				// Add the framework files as a pseudo-chunk so they get injected into the HTML
-				chunks.unshift({
-					names: ['enact_framework'],
-					files: chunkFiles
+			compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tap('EnactFrameworkRefPlugin', chunks => {
+				chunks.assets.js.unshift({
+					entryName: 'enact',
+					path: normalizePath(external.publicPath, 'enact.js', compiler)
+				});
+				chunks.assets.css.unshift({
+					entryName: 'enact',
+					path: normalizePath(external.publicPath, 'enact.css', compiler)
 				});
 				return chunks;
 			});
 
-			if (external.snapshot && isNodeOutputFS(compiler)) {
+			if (external.snapshot && isNodeOutputFS(compiler) && compilation.hooks.webosMetaRootAppinfo) {
 				compilation.hooks.webosMetaRootAppinfo.tap('EnactFrameworkRefPlugin', meta => {
 					meta.v8SnapshotFile = normalizePath(external.publicPath, 'snapshot_blob.bin', compiler);
 					return meta;
