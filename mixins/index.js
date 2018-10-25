@@ -24,5 +24,7 @@ module.exports = {
 		if (opts.stats) {
 			require('./stats').apply(config, opts);
 		}
+
+		return config;
 	}
 };
