@@ -79,18 +79,19 @@ class EnactFrameworkRefPlugin {
 			compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tap('EnactFrameworkRefPlugin', chunks => {
 				chunks.assets.js.unshift({
 					entryName: 'enact',
-					path: normalizePath(external.publicPath, 'enact.js', compiler)
+					path: normalizePath(external.publicPath, 'enact.js', compiler).replace(/\\+/g, '/')
 				});
 				chunks.assets.css.unshift({
 					entryName: 'enact',
-					path: normalizePath(external.publicPath, 'enact.css', compiler)
+					path: normalizePath(external.publicPath, 'enact.css', compiler).replace(/\\+/g, '/')
 				});
 				return chunks;
 			});
 
 			if (external.snapshot && isNodeOutputFS(compiler) && compilation.hooks.webosMetaRootAppinfo) {
 				compilation.hooks.webosMetaRootAppinfo.tap('EnactFrameworkRefPlugin', meta => {
-					meta.v8SnapshotFile = normalizePath(external.publicPath, 'snapshot_blob.bin', compiler);
+					const relSnap = normalizePath(external.publicPath, 'snapshot_blob.bin', compiler);
+					meta.v8SnapshotFile = relSnap.replace(/\\+/g, '/');
 					return meta;
 				});
 			}
