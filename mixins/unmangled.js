@@ -10,5 +10,6 @@ module.exports = {
 			terserPlugin.options.terserOptions.output.comments = true;
 			config.output.pathinfo = true;
 		}
+		return config;
 	}
 };
