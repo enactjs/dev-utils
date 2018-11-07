@@ -15,9 +15,10 @@ module.exports = {
 					ignore: [
 						'**/webpack.config.js',
 						'**/.eslintrc.js',
-						'./karma.conf.js',
+						'**/karma.conf.js',
 						'**/build/**/*.*',
 						'**/dist/**/*.*',
+						'**/@enact/dev-utils/**/*.*',
 						'**/ilib/localedata/**/*.*',
 						path.join(config.output.path, '*'),
 						'**/node_modules/**/*.*',
@@ -56,5 +57,7 @@ module.exports = {
 				})
 			);
 		}
+
+		return config;
 	}
 };

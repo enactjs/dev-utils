@@ -65,5 +65,7 @@ module.exports = {
 				})
 			);
 		}
+
+		return config;
 	}
 };
