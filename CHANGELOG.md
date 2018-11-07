@@ -1,3 +1,10 @@
+## 2.0.1 (November 6, 2018)
+* Fixed `EnactFrameworkRefPlugin` for Webpack 4 dll format and the latest HtmlWebpackPlugin
+* Fixed dynamic setting `ILIB_BASE_PATH` for `EnactFrameworkRefPlugin`
+* Fixed `EnactFrameworkRefPlugin` to only hook in to webOS appinfo events when `WebOSMetaWebpackPlugin` is used
+* Removes @enact/dev-utils from the possible entrypoints that `framework` mixin builds can use
+* All mixins now return the configs themselves, to support chaining
+
 ## 2.0.0 (October 4, 2018)
 
 * Update all dependencies, with webpack peer dependency restricted to >=4.0.0
