@@ -1,3 +1,7 @@
+## 1.2.1 (December 6, 2018)
+
+* Update EnzymeAdapterPlugin to remove temporary fork of React 16 adapter and use the real adapter package by default.
+
 ## 1.2.0 (September 24, 2018)
 
 * Added support for `applyEnactMeta` function in `option-parser.js` to apply Enact metadata overrides.
