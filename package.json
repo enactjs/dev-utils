@@ -39,6 +39,7 @@
     "glob": "^7.1.3",
     "graceful-fs": "^4.1.11",
     "import-fresh": "^2.0.0",
+    "loader-utils": "^1.2.3",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-is": "^16.4.2",
