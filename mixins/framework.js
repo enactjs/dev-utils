@@ -34,6 +34,8 @@ module.exports = {
 		config.output.libraryTarget = 'umd';
 		config.output.globalObject = 'this';
 
+		config.resolve.symlinks = false;
+
 		// Modify the iLib plugin options to skip './resources' detection/generation
 		const ilibPlugin = helper.getPluginByName(config, 'ILibPlugin');
 		if (ilibPlugin) {
