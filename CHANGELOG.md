@@ -1,3 +1,7 @@
+# 2.1.0 (January 31, 2019)
+* Added support for parsing `forceCSSModules` Enact project option.
+* Fixed `framework` mixin generating correct module IDs when a symlinked Enact framework is used as the source.
+
 ## 2.0.1 (November 6, 2018)
 * Fixed `EnactFrameworkRefPlugin` for Webpack 4 dll format and the latest HtmlWebpackPlugin
 * Fixed dynamic setting `ILIB_BASE_PATH` for `EnactFrameworkRefPlugin`
