@@ -40,10 +40,10 @@
     "graceful-fs": "^4.1.11",
     "import-fresh": "^3.0.0",
     "react": "^16.7.0",
-    "react-dom": "^16.4.2",
-    "react-is": "^16.4.2",
+    "react-dom": "^16.7.0",
+    "react-is": "^16.7.0",
     "react-reconciler": "^0.18.0",
-    "react-test-renderer": "^16.4.2",
+    "react-test-renderer": "^16.7.0",
     "tapable": "^1.1.0",
     "webpack-bundle-analyzer": "^3.0.2",
     "webpack-sources": "^1.2.0"
