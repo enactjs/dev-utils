@@ -18,6 +18,7 @@ exportOnDemand({
 
 // Export the Webpack plugins.
 exportOnDemand({
+	CSSLessFallbackPlugin: () => require('./plugins/CSSLessFallbackPlugin'),
 	EnactFrameworkPlugin: () => require('./plugins/dll/EnactFrameworkPlugin'),
 	EnactFrameworkRefPlugin: () => require('./plugins/dll/EnactFrameworkRefPlugin'),
 	EnzymeAdapterPlugin: () => require('./plugins/EnzymeAdapterPlugin'),

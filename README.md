@@ -14,6 +14,7 @@ npm install --save-dev @enact/dev-utils
 
 #### Plugins
 
+- [CSSLessFallbackPlugin](./plugins/CSSLessFallbackPlugin/README.md)
 - [EnactFrameworkPlugin & EnactFrameworkRefPlugin](./plugins/dll/README.md)
 - [EnzymeAdapterPlugin](./plugins/EnzymeAdapterPlugin/README.md)
 - [GracefulFsPlugin](./plugins/GracefulFsPlugin/README.md)
