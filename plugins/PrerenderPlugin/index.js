@@ -62,7 +62,7 @@ class PrerenderPlugin {
 							let appHtml = vdomServer.render(renderOpts);
 
 							// Extract the root CSS classes and react checksum from the prerendered html code.
-							status.attr[i] = {};
+							status.attr[i] = {classes: ''};
 							appHtml = appHtml
 								.replace(
 									/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
