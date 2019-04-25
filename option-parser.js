@@ -7,6 +7,12 @@ const defaultTargets = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12', 
 const pkg = pkgRoot();
 let enact = pkg.meta.enact || {};
 
+function objToViewport(o) {
+	return Object.keys(o)
+		.reduce((text, key) => `${text} ${key}=${o[key]}`, '')
+		.trim();
+}
+
 function gentlyParse(file) {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding: 'utf8'}));
@@ -44,6 +50,13 @@ const config = {
 		config.template = enact.template;
 		// Optional <title></title> value for HTML
 		config.title = enact.title;
+		// Optional <meta name="viewport"/> value for HTML
+		config.viewport = enact.viewport;
+		if (typeof config.viewport === 'object') config.viewport = objToViewport(config.viewport);
+		if (typeof config.viewport === 'undefined') {
+			config.viewport = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+			if (enact.allowZoom === true) config.viewport = 'width=device-width, initial-scale=1';
+		}
 		// Optional flag whether to externalize the prerender startup js
 		config.externalStartup = enact.externalStartup;
 		// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
