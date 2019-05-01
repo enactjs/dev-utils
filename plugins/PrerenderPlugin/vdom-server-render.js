@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const findCacheDir = require('find-cache-dir');
 const requireUncached = require('import-fresh');
+const reroute = require('mock-require');
 const FileXHR = require('./FileXHR');
 
 require('console.mute');
@@ -101,6 +102,7 @@ module.exports = {
 				const framework = require(path.resolve(path.join(opts.externals, 'enact.js')));
 				global.iLibLocale = framework('@enact/i18n/locale');
 			} else {
+				delete global.React;
 				delete global.iLibLocale;
 			}
 
@@ -113,7 +115,12 @@ module.exports = {
 				console.mute();
 			}
 
-			rendered = opts.server.renderToString(chunk['default'] || chunk);
+			// Use the specified server, optionally with exposed React, and generate HTML string
+			if (global.React) reroute('react', global.React);
+			const server = require(opts.server);
+			rendered = server.renderToString(chunk['default'] || chunk);
+			if (global.React) reroute.stop('react');
+
 			if (style) {
 				rendered = '<!-- head append start -->\n' + style + '\n<!-- head append end -->' + rendered;
 			}
