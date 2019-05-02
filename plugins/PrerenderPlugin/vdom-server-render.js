@@ -101,6 +101,7 @@ module.exports = {
 				// Ensure locale switching  support is loaded globally with external framework usage.
 				const framework = require(path.resolve(path.join(opts.externals, 'enact.js')));
 				global.iLibLocale = framework('@enact/i18n/locale');
+				global.React = framework('react');
 			} else {
 				delete global.React;
 				delete global.iLibLocale;
@@ -115,9 +116,14 @@ module.exports = {
 				console.mute();
 			}
 
+			// Clear any server-related children modules from cache
+			Object.keys(require.cache)
+				.filter(c => c.startsWith(path.dirname(opts.server)))
+				.forEach(c => delete require.cache[c]);
+
 			// Use the specified server, optionally with exposed React, and generate HTML string
 			if (global.React) reroute('react', global.React);
-			const server = require(opts.server);
+			const server = requireUncached(opts.server);
 			rendered = server.renderToString(chunk['default'] || chunk);
 			if (global.React) reroute.stop('react');
 
