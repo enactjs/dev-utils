@@ -162,19 +162,24 @@ class WebOSMetaPlugin {
 			compilation.hooks.webosMetaLocalizedAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
 
 			// Hook into html-webpack-plugin to dynamically set page title
-			compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync('WebOSMetaPlugin', (params, callback) => {
-				const appinfo = rootAppInfo(context, scan);
-				if (appinfo) {
-					// When no explicit HTML document title is provided, automically use the root appinfo's title value.
-					if (
-						appinfo.obj.title &&
-						(!params.plugin.options.title || params.plugin.options.title === 'Webpack App')
-					) {
-						params.plugin.options.title = appinfo.obj.title;
+			if (compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration) {
+				compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync(
+					'WebOSMetaPlugin',
+					(params, callback) => {
+						const appinfo = rootAppInfo(context, scan);
+						if (appinfo) {
+							// When no explicit HTML document title is provided, automically use the root appinfo's title value.
+							if (
+								appinfo.obj.title &&
+								(!params.plugin.options.title || params.plugin.options.title === 'Webpack App')
+							) {
+								params.plugin.options.title = appinfo.obj.title;
+							}
+						}
+						callback();
 					}
-				}
-				callback();
-			});
+				);
+			}
 		});
 
 		compiler.hooks.emit.tapAsync('WebOSMetaPlugin', (compilation, callback) => {
