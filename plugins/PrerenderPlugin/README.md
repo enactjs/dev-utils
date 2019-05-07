@@ -45,7 +45,7 @@ Allowed values are as follows:
   - `'used'` string preset, mapped to all locales detected within the project's `./resources/ilibmanifest.json`.
   - `'all'` string preset, mapped to all locales that iLib supports. Might want to avoid this one.
 - `mapfile`:  When true, generates a `locale-map.json` which maps the locale list to the outputted HTML files. Can alternatively be a string custom filename to write the map JSON to. Defaults to `true`.
-- `server`: Virtual DOM server to use when rendering static HTML. Defaults to `require('react-dom/server')`.
+- `server`: Virtual DOM server module filepath to use when rendering static HTML. Defaults to `require.resolve('react-dom/server')`.
 - `externals`: Local filepath to a directory containing an external enact library bundle js and css files. Only needed if using external Enact framework bundle.
 - `deep`: A string or array of string conditions, that when met at runtime, should not display the prerendered HTML.
 - `screenTypes`: Array of 1 or more screentype definitions to be used with prerender HTML initialization. See [here](https://github.com/enactjs/enact/blob/master/packages/moonstone/MoonstoneDecorator/screenTypes.json) for an example of the moonstone screenTypes.

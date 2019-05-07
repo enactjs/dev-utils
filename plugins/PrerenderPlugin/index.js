@@ -14,7 +14,7 @@ class PrerenderPlugin {
 		if (this.options.mapfile === undefined || this.options.mapfile === true)
 			this.options.mapfile = 'locale-map.json';
 		// eslint-disable-next-line
-		if (!this.options.server) this.options.server = require('react-dom/server');
+		if (!this.options.server) this.options.server = require.resolve('react-dom/server');
 	}
 
 	apply(compiler) {
@@ -62,7 +62,7 @@ class PrerenderPlugin {
 							let appHtml = vdomServer.render(renderOpts);
 
 							// Extract the root CSS classes and react checksum from the prerendered html code.
-							status.attr[i] = {};
+							status.attr[i] = {classes: ''};
 							appHtml = appHtml
 								.replace(
 									/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,

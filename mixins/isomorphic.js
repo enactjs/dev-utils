@@ -10,6 +10,15 @@ module.exports = {
 		const reactDOMServer = path.join(app.context, 'node_modules', 'react-dom', 'server.js');
 
 		if (!opts.externals) {
+			// Expose React on global to avoid multiple copy usage
+			const react = path.join(app.context, 'node_modules', 'react', 'index.js');
+			if (fs.existsSync(react)) {
+				config.module.rules.unshift({
+					test: fs.realpathSync(react),
+					loader: 'expose-loader',
+					options: 'React'
+				});
+			}
 			// Expose iLib locale utility function module so we can update the locale on page load, if used.
 			if (opts.locales) {
 				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
@@ -40,7 +49,7 @@ module.exports = {
 		// Include plugin to prerender the html into the index.html
 		config.plugins.push(
 			new PrerenderPlugin({
-				server: require(reactDOMServer),
+				server: reactDOMServer,
 				locales: opts.locales,
 				deep: app.deep,
 				externals: opts.externals,

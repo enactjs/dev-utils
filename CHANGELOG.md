@@ -1,3 +1,11 @@
+# 2.2.0 (May 7, 2019)
+* Updated all dependencies to latest releases.
+* `PrerenderPlugin`:
+  * Fixed React hook-based rendering, ensuring only one copy of React is loaded.
+* `WebOSMetaPlugin`:
+  * No longer requires HtmlWebpackPlugin to function.
+  * Switch deprecated `new Buffer()` to `Buffer.from()` to avoid NodeJS deprecation notice.
+
 # 2.1.0 (January 31, 2019)
 * Added support for parsing `forceCSSModules` Enact project option.
 * Fixed `framework` mixin generating correct module IDs when a symlinked Enact framework is used as the source.
