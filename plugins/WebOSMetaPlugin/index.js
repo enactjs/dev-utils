@@ -186,7 +186,7 @@ class WebOSMetaPlugin {
 				});
 				handleSysAssetPath(context, meta.obj);
 				addMetaAssets(meta.path, '', meta.obj, compilation);
-				emitAsset('appinfo.json', compilation.assets, new Buffer(JSON.stringify(meta.obj, null, '\t')));
+				emitAsset('appinfo.json', compilation.assets, Buffer.from(JSON.stringify(meta.obj, null, '\t')));
 			}
 
 			// Scan for all localized appinfo.json files in the "resources" directory.
@@ -216,7 +216,7 @@ class WebOSMetaPlugin {
 					});
 					handleSysAssetPath(context, locMeta);
 					addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
-					emitAsset(locRel, compilation.assets, new Buffer(JSON.stringify(locMeta, null, '\t')));
+					emitAsset(locRel, compilation.assets, Buffer.from(JSON.stringify(locMeta, null, '\t')));
 				}
 			}
 			callback();
