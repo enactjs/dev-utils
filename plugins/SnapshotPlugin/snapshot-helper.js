@@ -9,6 +9,12 @@
 var mockWindow = require('./mock-window');
 var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
 
+// Temporarily remap [Array].toLocaleString to [Array].toString.
+// Fixes an issue with loading the polyfills within the v8 snapshot environment
+// where toLocaleString() within the TypedArray polyfills causes snapshot failure.
+var origToLocaleString = Array.prototype.toLocaleString;
+Array.prototype.toLocaleString = Array.prototype.toString;
+
 function handleException(e) {
 	// We allow 'Cannot find module' errors, which throw when the libraries are not used in the app.
 	// @enact/i18n and @enact/moonstone are considered optional dependencies.
@@ -18,6 +24,9 @@ function handleException(e) {
 }
 
 global.updateEnvironment = function() {
+	// Restore real [Array].toLocaleString for runtime usage.
+	Array.prototype.toLocaleString = origToLocaleString;
+
 	// Update fbjs to have the correct execution environment for the active window.
 	var canUseDOM = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
 	ExecutionEnvironment.canUseDOM = canUseDOM;
