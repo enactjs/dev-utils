@@ -3,7 +3,16 @@ const path = require('path');
 const browserslist = require('browserslist');
 const pkgRoot = require('./package-root');
 
-const defaultTargets = ['>1%', 'last 2 versions', 'Firefox ESR', 'not ie < 12', 'not ie_mob < 12', 'not dead'];
+const defaultTargets = [
+	'>1%',
+	'last 2 versions',
+	'last 5 Chrome versions',
+	'last 5 Firefox versions',
+	'Firefox ESR',
+	'not ie < 12',
+	'not ie_mob < 12',
+	'not dead'
+];
 const pkg = pkgRoot();
 let enact = pkg.meta.enact || {};
 
