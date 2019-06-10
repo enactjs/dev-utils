@@ -1,3 +1,7 @@
+# 2.2.1 (June 10, 2019)
+
+* Expand default browserslist config from `last 2` stable versions of Chrome and Firefox to `last 5`.
+
 # 2.2.0 (May 7, 2019)
 * Updated all dependencies to latest releases.
 * `PrerenderPlugin`:
