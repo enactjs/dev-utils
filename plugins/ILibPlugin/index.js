@@ -172,7 +172,7 @@ class ILibPlugin {
 				if (pkgName === '@enact/i18n') {
 					this.options.ilib = 'ilib';
 				} else {
-					this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
+					this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/node_modules/ilib-webos-tv');
 				}
 			} catch (e) {
 				console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');

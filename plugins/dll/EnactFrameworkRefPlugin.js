@@ -60,7 +60,8 @@ class EnactFrameworkRefPlugin {
 				'node_modules',
 				'@enact',
 				'i18n',
-				'ilib'
+				'node_modules',
+				'ilib-webos-tv'
 			);
 		}
 	}
