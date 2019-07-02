@@ -1,3 +1,7 @@
+# 2.2.2 (July 2, 2019)
+
+* Reduce `find-cache-dir` version to `^2.0.0` to retain NodeJS 6.x compatibility for one more release.
+
 # 2.2.1 (June 10, 2019)
 
 * Expand default browserslist config from `last 2` stable versions of Chrome and Firefox to `last 5`.
