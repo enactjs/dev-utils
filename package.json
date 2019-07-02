@@ -1,6 +1,6 @@
 {
   "name": "@enact/dev-utils",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "A collection of development utilities for Enact apps.",
   "main": "index.js",
   "author": "Jason Robitaille <jason.robitaille@lge.com>",
