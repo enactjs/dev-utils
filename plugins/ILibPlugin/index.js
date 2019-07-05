@@ -2,7 +2,7 @@ const path = require('path');
 const glob = require('glob');
 const fs = require('graceful-fs');
 const {SyncWaterfallHook} = require('tapable');
-const {DefinePlugin, Template} = require('webpack');
+const {ContextReplacementPlugin, DefinePlugin, Template} = require('webpack');
 
 function packageName(file) {
 	try {
@@ -230,6 +230,10 @@ class ILibPlugin {
 
 			// Rewrite the iLib global constants to specific values corresponding to the build.
 			new DefinePlugin(definedConstants).apply(compiler);
+
+			// Prevent webpack from attempting to create a dynamic context for certain iLib utilities
+			// which contain unused function-expression require statements.
+			new ContextReplacementPlugin(/ilib-webos-tv/, /^$/).apply(compiler);
 
 			compiler.hooks.compilation.tap('ILibPlugin', compilation => {
 				// Define compilation hooks
