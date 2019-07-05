@@ -169,10 +169,14 @@ class ILibPlugin {
 				if (pkgName.indexOf('@enact') === 0) {
 					this.options.create = false;
 				}
-				if (pkgName === '@enact/i18n') {
-					this.options.ilib = 'ilib';
-				} else {
-					this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/node_modules/ilib-webos-tv');
+				// look for ilib as a root-level node_module package location
+				this.options.ilib = packageSearch(process.cwd(), 'ilib-webos-tv');
+				if (!this.options.ilib) {
+					// if not found, look for a nested ilib dependency within @enact/i18n
+					this.options.ilib = packageSearch(
+						process.cwd(),
+						path.join('@enact', 'i18n', 'node_modules', 'ilib-webos-tv')
+					);
 				}
 			} catch (e) {
 				console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
@@ -188,7 +192,7 @@ class ILibPlugin {
 				this.options.bundles.moonstone = 'resources';
 				this.options.resources = '_resources_';
 			} else {
-				const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
+				const moonstone = packageSearch(process.cwd(), path.join('@enact', 'moonstone'));
 				if (moonstone) {
 					this.options.bundles.moonstone = path.join(moonstone, 'resources');
 				}
