@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
 const DelegatedModule = require('webpack/lib/DelegatedModule');
@@ -55,7 +56,19 @@ class EnactFrameworkRefPlugin {
 			this.options.publicPath || this.options.external.publicPath || this.options.external.path;
 
 		if (!process.env.ILIB_BASE_PATH) {
-			process.env.ILIB_BASE_PATH = path.join(this.options.external.publicPath, 'node_modules', 'ilib');
+			// Backwards support for Enact <3
+			const context = options.context || process.cwd();
+			if (fs.existsSync(path.join(context, 'node_modules', '@enact', 'i18n', 'ilib'))) {
+				process.env.ILIB_BASE_PATH = path.join(
+					this.options.external.publicPath,
+					'node_modules',
+					'@enact',
+					'i18n',
+					'ilib'
+				);
+			} else {
+				process.env.ILIB_BASE_PATH = path.join(this.options.external.publicPath, 'node_modules', 'ilib');
+			}
 		}
 	}
 

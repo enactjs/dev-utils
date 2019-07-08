@@ -170,14 +170,12 @@ class ILibPlugin {
 					this.options.create = false;
 				}
 				// look for ilib as a root-level node_module package location
-				this.options.ilib = packageSearch(process.cwd(), 'ilib');
-				if (!this.options.ilib) {
-					// if not found, look for a nested ilib dependency within @enact/i18n
-					this.options.ilib = packageSearch(
-						process.cwd(),
-						path.join('@enact', 'i18n', 'node_modules', 'ilib')
-					);
-				}
+				this.options.ilib =
+					packageSearch(process.cwd(), 'ilib') ||
+					packageSearch(process.cwd(), path.join('@enact', 'i18n', 'node_modules', 'ilib')) ||
+					// Backward compatability for old Enact libraries
+					packageSearch(process.cwd(), path.join('@enact', 'i18n', 'ilib')) ||
+					(pkgName === '@enact/i18n' && fs.existsSync(path.join(process.cwd(), 'ilib')) && 'ilib');
 			} catch (e) {
 				console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
 				process.exit(1);
