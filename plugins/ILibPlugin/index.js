@@ -172,7 +172,6 @@ class ILibPlugin {
 				// look for ilib as a root-level node_module package location
 				this.options.ilib =
 					packageSearch(process.cwd(), 'ilib') ||
-					packageSearch(process.cwd(), path.join('@enact', 'i18n', 'node_modules', 'ilib')) ||
 					// Backward compatability for old Enact libraries
 					packageSearch(process.cwd(), path.join('@enact', 'i18n', 'ilib')) ||
 					(pkgName === '@enact/i18n' && fs.existsSync(path.join(process.cwd(), 'ilib')) && 'ilib');
