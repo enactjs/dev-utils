@@ -15,7 +15,7 @@ FileXHR.prototype.addEventListener = function(evt, fn) {
 FileXHR.prototype.send = function() {
 	if (this.method.toUpperCase() === 'GET' && this.uri && this.sync) {
 		if (process.env.ILIB_BASE_PATH) {
-			this.uri = this.uri.replace(new RegExp('^' + process.env.ILIB_BASE_PATH), 'node_modules/ilib-webos-tv');
+			this.uri = this.uri.replace(new RegExp('^' + process.env.ILIB_BASE_PATH), 'node_modules/ilib');
 		}
 		const parsedURI = this.uri.replace(/\\/g, '/').replace(/^(_\/)+/g, match => match.replace(/_/g, '..'));
 		try {

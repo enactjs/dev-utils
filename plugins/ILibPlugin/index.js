@@ -170,12 +170,12 @@ class ILibPlugin {
 					this.options.create = false;
 				}
 				// look for ilib as a root-level node_module package location
-				this.options.ilib = packageSearch(process.cwd(), 'ilib-webos-tv');
+				this.options.ilib = packageSearch(process.cwd(), 'ilib');
 				if (!this.options.ilib) {
 					// if not found, look for a nested ilib dependency within @enact/i18n
 					this.options.ilib = packageSearch(
 						process.cwd(),
-						path.join('@enact', 'i18n', 'node_modules', 'ilib-webos-tv')
+						path.join('@enact', 'i18n', 'node_modules', 'ilib')
 					);
 				}
 			} catch (e) {
@@ -233,7 +233,7 @@ class ILibPlugin {
 
 			// Prevent webpack from attempting to create a dynamic context for certain iLib utilities
 			// which contain unused function-expression require statements.
-			new ContextReplacementPlugin(/ilib-webos-tv/, /^$/).apply(compiler);
+			new ContextReplacementPlugin(/ilib/, /^$/).apply(compiler);
 
 			compiler.hooks.compilation.tap('ILibPlugin', compilation => {
 				// Define compilation hooks

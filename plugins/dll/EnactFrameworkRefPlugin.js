@@ -49,13 +49,13 @@ class EnactFrameworkRefPlugin {
 	constructor(options = {}) {
 		this.options = options;
 		this.options.name = this.options.name || 'enact_framework';
-		this.options.libraries = this.options.libraries || ['@enact', 'react', 'react-dom', 'ilib-webos-tv'];
+		this.options.libraries = this.options.libraries || ['@enact', 'react', 'react-dom', 'ilib'];
 		this.options.external = this.options.external || {};
 		this.options.external.publicPath =
 			this.options.publicPath || this.options.external.publicPath || this.options.external.path;
 
 		if (!process.env.ILIB_BASE_PATH) {
-			process.env.ILIB_BASE_PATH = path.join(this.options.external.publicPath, 'node_modules', 'ilib-webos-tv');
+			process.env.ILIB_BASE_PATH = path.join(this.options.external.publicPath, 'node_modules', 'ilib');
 		}
 	}
 
