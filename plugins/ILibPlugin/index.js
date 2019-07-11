@@ -176,7 +176,7 @@ class ILibPlugin {
 					packageSearch(process.cwd(), 'ilib') ||
 					(pkgName === '@enact/i18n' && fs.existsSync(path.join(process.cwd(), 'ilib')) && 'ilib');
 			} catch (e) {
-				console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
+				console.error('ERROR: iLib locale not detected. Please ensure "ilib" is installed.');
 				process.exit(1);
 			}
 		}
