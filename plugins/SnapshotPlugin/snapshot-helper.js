@@ -29,7 +29,7 @@ global.updateEnvironment = function() {
 
 	try {
 		// Mark the iLib localestorage cache as needing re-validation.
-		var ilib = require('@enact/i18n/ilib/lib/ilib');
+		var ilib = require('ilib/lib/ilib');
 		if (ilib && ilib._load) {
 			ilib._load._cacheValidated = false;
 		}

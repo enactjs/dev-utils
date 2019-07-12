@@ -2,7 +2,7 @@ const path = require('path');
 const glob = require('glob');
 const fs = require('graceful-fs');
 const {SyncWaterfallHook} = require('tapable');
-const {DefinePlugin, Template} = require('webpack');
+const {ContextReplacementPlugin, DefinePlugin, Template} = require('webpack');
 
 function packageName(file) {
 	try {
@@ -169,13 +169,14 @@ class ILibPlugin {
 				if (pkgName.indexOf('@enact') === 0) {
 					this.options.create = false;
 				}
-				if (pkgName === '@enact/i18n') {
-					this.options.ilib = 'ilib';
-				} else {
-					this.options.ilib = packageSearch(process.cwd(), '@enact/i18n/ilib');
-				}
+				// look for ilib as a root-level node_module package location
+				this.options.ilib =
+					// Backward compatability for old Enact libraries
+					packageSearch(process.cwd(), path.join('@enact', 'i18n', 'ilib')) ||
+					packageSearch(process.cwd(), 'ilib') ||
+					(pkgName === '@enact/i18n' && fs.existsSync(path.join(process.cwd(), 'ilib')) && 'ilib');
 			} catch (e) {
-				console.error('ERROR: iLib locale not detected. Please ensure @enact/i18n is installed.');
+				console.error('ERROR: iLib locale not detected. Please ensure "ilib" is installed.');
 				process.exit(1);
 			}
 		}
@@ -188,7 +189,7 @@ class ILibPlugin {
 				this.options.bundles.moonstone = 'resources';
 				this.options.resources = '_resources_';
 			} else {
-				const moonstone = packageSearch(process.cwd(), '@enact/moonstone');
+				const moonstone = packageSearch(process.cwd(), path.join('@enact', 'moonstone'));
 				if (moonstone) {
 					this.options.bundles.moonstone = path.join(moonstone, 'resources');
 				}
@@ -226,6 +227,10 @@ class ILibPlugin {
 
 			// Rewrite the iLib global constants to specific values corresponding to the build.
 			new DefinePlugin(definedConstants).apply(compiler);
+
+			// Prevent webpack from attempting to create a dynamic context for certain iLib utilities
+			// which contain unused function-expression require statements.
+			new ContextReplacementPlugin(/ilib/, /^$/).apply(compiler);
 
 			compiler.hooks.compilation.tap('ILibPlugin', compilation => {
 				// Define compilation hooks
