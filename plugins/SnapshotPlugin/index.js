@@ -55,7 +55,7 @@ class SnapshotPlugin {
 		compiler.hooks.v8Snapshot = new SyncHook([]);
 
 		// Ignore packages that don't exists so snapshot helper can skip them
-		['@enact/i18n', '@enact/moonstone', '@enact/core/snapshot'].forEach(lib => {
+		['ilib', '@enact/i18n', '@enact/moonstone', '@enact/core/snapshot'].forEach(lib => {
 			if (!fs.existsSync(path.join(app, 'node_modules', lib))) {
 				new IgnorePlugin(new RegExp(lib)).apply(compiler);
 			}
