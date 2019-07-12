@@ -1,3 +1,7 @@
+# 2.3.0 (July 12, 2019)
+
+* Added support utility-wide for new `ilib` external NPM package (with backward compatibility for `@enact/i18n/ilib`).
+
 # 2.2.2 (July 2, 2019)
 
 * Reduce `find-cache-dir` version to `^2.0.0` to retain NodeJS 6.x compatibility for one more release.
