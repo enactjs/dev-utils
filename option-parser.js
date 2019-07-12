@@ -80,9 +80,10 @@ const config = {
 			[];
 
 		// Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
-		config.ri = enact.ri || {
-			baseSize: config.screenTypes.reduce((r, s) => (s.base && s.pxPerRem) || r, null)
-		};
+		config.ri =
+			enact.ri || enact.ri === false
+				? enact.ri
+				: config.screenTypes.reduce((r, s) => (s.base && {baseSize: s.pxPerRem}) || r, undefined);
 
 		// Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
 		config.fontGenerator =
