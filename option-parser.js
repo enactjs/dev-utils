@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const resolve = require('resolve');
 const browserslist = require('browserslist');
 const pkgRoot = require('./package-root');
 
@@ -16,27 +17,71 @@ const defaultTargets = [
 const pkg = pkgRoot();
 let enact = pkg.meta.enact || {};
 
-function gentlyParse(file) {
+const capitalize = name => name.charAt(0).toUpperCase() + name.slice(1);
+const valid = v => v || typeof v === 'boolean';
+
+const gentlyParse = file => {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding: 'utf8'}));
 	} catch (e) {
 		return undefined;
 	}
-}
+};
 
-function screenTypes(theme) {
-	const decorator = theme.charAt(0).toUpperCase() + theme.slice(1) + 'Decorator';
-	const scoped = path.join('node_modules', '@enact', theme, decorator, 'screenTypes.json');
-	const basic = path.join('node_modules', theme, decorator, 'screenTypes.json');
-	return fs.existsSync(scoped) ? scoped : fs.existsSync(basic) ? basic : null;
-}
+const themeFile = (context, theme, file) => {
+	const checks = [`@enact/${theme}/${file}`, `${theme}/${file}`];
 
-function fontGenerator(theme) {
-	const decorator = theme.charAt(0).toUpperCase() + theme.slice(1) + 'Decorator';
-	const scoped = path.join('node_modules', '@enact', theme, decorator, 'fontGenerator.js');
-	const basic = path.join('node_modules', theme, decorator, 'fontGenerator.js');
-	return fs.existsSync(scoped) ? scoped : fs.existsSync(basic) ? basic : null;
-}
+	for (let i = 0; i < checks.length; i++) {
+		try {
+			return resolve.sync(checks[i], {basedir: context});
+		} catch (e) {}
+	}
+};
+
+const decoFile = (dir, file) => {
+	return [
+		path.join(dir, 'ThemeDecorator', file),
+		path.join(dir, capitalize(path.basename(dir)) + 'Decorator', file)
+	].find(fs.existsSync);
+};
+
+const themeConfig = (context, theme) => {
+	const pkgFile = themeFile(context, theme, 'package.json');
+	if (pkgFile) {
+		const meta = require(pkgFile);
+		const dir = path.dirname(pkgFile);
+		const cfg = meta.enact || {};
+		cfg.name = meta.name;
+		if (!cfg.screenTypes) cfg.screenTypes = decoFile(dir, 'screenTypes.json');
+		if (!cfg.fontGenerator) cfg.fontGenerator = decoFile(dir, 'fontGenerator.js');
+		if (cfg.theme) cfg.theme = themeConfig(dir, cfg.theme);
+		return cfg;
+	}
+};
+
+const computed = (prop, app, theme) => {
+	// Environment variables take top priority
+	const envProp = 'ENACT_' + prop.toUpperCase();
+	if (valid(process.env[envProp])) {
+		if (/^[{[].*[}\]]$/.test(process.env[envProp].trim())) {
+			try {
+				return JSON.parse(process.env[envProp]);
+			} catch (e) {}
+		}
+		return process.env[envProp];
+	}
+	// App level values take secondary priority
+	if (valid(app[prop])) return app[prop];
+	// Theme-level values take tertiary priority
+	const computeThemeProp = (p, cfg) => {
+		if (valid(cfg[p])) {
+			return cfg[p];
+		} else if (cfg.theme) {
+			return computeThemeProp(p, cfg.theme);
+		}
+	};
+	return computeThemeProp(prop, theme);
+};
 
 const config = {
 	// Project base directory.
@@ -47,62 +92,63 @@ const config = {
 	applyEnactMeta: function(meta) {
 		enact = Object.assign(enact, meta);
 
+		// Parse the theme config tree for defaults
+		config.theme = themeConfig(pkg.path, enact.theme || 'moonstone');
+
 		// Optional alternate entrypoint for isomorphic builds.
-		config.isomorphic = enact.isomorphic;
+		config.isomorphic = computed('isomorphic', enact, config.theme);
 		// Optional filepath to an alternate HTML template for html-webpack-plugin.
-		config.template = enact.template;
+		config.template = computed('template', enact, config.theme);
 		// Optional <title></title> value for HTML
-		config.title = enact.title;
+		config.title = computed('title', enact, config.theme);
 		// Optional flag whether to externalize the prerender startup js
-		config.externalStartup = enact.externalStartup;
+		config.externalStartup = computed('externalStartup', enact, config.theme);
 		// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
-		config.nodeBuiltins = enact.nodeBuiltins;
+		config.nodeBuiltins = computed('nodeBuiltins', enact, config.theme);
 		// Optional property to specify a version of NodeJS to target required polyfills.
 		// True or 'current' will use active version of Node, otherwise will use a specified version number.
-		config.node = typeof enact.node !== 'object' && enact.node;
+		config.node = computed('node', enact, config.theme);
 		// Optional window condition(s) that indicate deeplinking and invalidate HTML prerender.
-		config.deep = enact.deep;
+		config.deep = computed('deep', enact, config.theme);
 		// Proxy target to use within the http-proxy-middleware during serving.
-		config.proxy = enact.proxy || pkg.meta.proxy;
+		config.proxy = computed('proxy', enact, config.theme) || pkg.meta.proxy;
 		// Optionally force all LESS/CSS to be handled modularly, instead of solely having
 		// the *.module.css and *.module.less files be processed in a modular context.
-		config.forceCSSModules = enact.forceCSSModules;
-		// Optional theme preset for theme-specific settings (see below).
-		config.theme = enact.theme;
+		config.forceCSSModules = computed('forceCSSModules', enact, config.theme);
 
 		// Resolve array of screenType configurations. When not found, falls back to any theme preset or moonstone.
+		const screens = computed('screenTypes', enact, config.theme);
 		config.screenTypes =
-			(Array.isArray(enact.screenTypes) && enact.screenTypes) ||
-			(typeof enact.screenTypes === 'string' &&
-				(gentlyParse(path.join(pkg.path, enact.screenTypes)) ||
-					gentlyParse(path.join(pkg.path, 'node_modules', enact.screenTypes)))) ||
-			gentlyParse(screenTypes(enact.theme || 'moonstone')) ||
+			(Array.isArray(screens) && screens) ||
+			(typeof screens === 'string' &&
+				((path.isAbsolute(screens) && gentlyParse(screens)) ||
+					gentlyParse(path.join(pkg.path, screens)) ||
+					gentlyParse(path.join(pkg.path, 'node_modules', screens)))) ||
 			[];
 
 		// Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
-		config.ri =
-			enact.ri || enact.ri === false
-				? enact.ri
-				: config.screenTypes.reduce((r, s) => (s.base && {baseSize: s.pxPerRem}) || r, undefined);
+		const riConfig = computed('ri', enact, config.theme);
+		config.ri = valid(riConfig)
+			? riConfig
+			: config.screenTypes.reduce((r, s) => (s.base && {baseSize: s.pxPerRem}) || r, undefined);
 
 		// Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
-		config.fontGenerator =
-			(typeof enact.screenTypes === 'string' &&
-				[
-					path.join(pkg.path, enact.fontGenerator),
-					path.join(pkg.path, 'node_modules', enact.fontGenerator)
-				].find(fs.existsSync)) ||
-			fontGenerator(enact.theme || 'moonstone');
+		const fontGenerator = computed('fontGenerator', enact, config.theme);
+		config.fontGenerator = path.isAbsolute(screens)
+			? fontGenerator
+			: [path.join(pkg.path, fontGenerator), path.join(pkg.path, 'node_modules', fontGenerator)].find(
+					fs.existsSync
+			  );
 
 		// Override theme's accent LESS variable value if desired. Private option; may be removed in future.
 		// When used, creates a LESS variable override map, overriding '@moon-accent' and/or '@<theme>-accent'
 		// values with the specified override. This allows a simple way to alter Enact spotlight color.
-		config.accent =
-			enact.accent &&
-			Object.assign(
-				{'moon-accent': enact.accent},
-				enact.theme && enact.theme !== 'moonstone' && {[enact.theme + '-accent']: enact.accent}
-			);
+		if (enact.accent) {
+			config.accent = {'moon-accent': enact.accent};
+			for (let t = config.theme; t.theme; t = t.theme) {
+				config.accent[t.name.replace('@enact/', '') + '-accent'] = enact.accent;
+			}
+		}
 	},
 	// Sets the browserslist default fallback set of browsers to the Enact default browser support list.
 	setEnactTargetsAsDefault: function() {
