@@ -46,12 +46,18 @@ const decoFile = (dir, file) => {
 };
 
 const themeConfig = (context, theme) => {
+	const pathProps = ['isomorphic', 'template', 'screenTypes', 'fontGenerator'];
 	const pkgFile = themeFile(context, theme, 'package.json');
 	if (pkgFile) {
 		const meta = require(pkgFile);
 		const dir = path.dirname(pkgFile);
 		const cfg = meta.enact || {};
 		cfg.name = meta.name;
+		pathProps.forEach(prop => {
+			if (cfg[prop] && typeof cfg[prop] === 'string') {
+				cfg[prop] = path.join(context, cfg[prop]);
+			}
+		});
 		if (!cfg.screenTypes) cfg.screenTypes = decoFile(dir, 'screenTypes.json');
 		if (!cfg.fontGenerator) cfg.fontGenerator = decoFile(dir, 'fontGenerator.js');
 		if (cfg.theme) cfg.theme = themeConfig(dir, cfg.theme);
