@@ -227,13 +227,14 @@ class ILibPlugin {
 			for (const name in opts.bundles) {
 				if (opts.bundles[name]) {
 					const bundle = resolveBundle(opts.bundles[name], opts.context);
+					const bundleManifest = path.join(bundle.path, 'ilibmanifest.json');
 					const envName = path
 						.basename(name)
 						.toUpperCase()
 						.replace(/[-_\s]/g, '_');
 					definedConstants['ILIB_' + envName + '_PATH'] = bundle.resolved;
-					if (opts.emit && bundle.emit) {
-						manifests.push(path.join(bundle.path, 'ilibmanifest.json'));
+					if (opts.emit && bundle.emit && fs.existsSync(bundleManifest)) {
+						manifests.push(bundleManifest);
 					}
 				}
 			}
