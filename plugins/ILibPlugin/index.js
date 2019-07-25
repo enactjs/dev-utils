@@ -15,6 +15,7 @@ function packageName(file) {
 
 function packageSearch(dir, pkg) {
 	let pkgPath;
+	if (!path.isAbsolute(dir)) dir = path.join(process.cwd(), dir);
 	while (dir.length > 0 && dir !== path.dirname(dir) && !pkgPath) {
 		const full = path.join(dir, 'node_modules', pkg);
 		if (fs.existsSync(full)) {
@@ -184,7 +185,6 @@ class ILibPlugin {
 		if (typeof this.options.resources === 'undefined') {
 			this.options.resources = 'resources';
 		}
-		this.options.bundles = this.options.bundles || {};
 		if ((!this.options.bundles || !this.options.bundles.moonstone) && pkgName === '@enact/moonstone') {
 			this.options.bundles = this.options.bundles || {};
 			this.options.bundles.moonstone = 'resources';
@@ -205,11 +205,12 @@ class ILibPlugin {
 
 			// If bundles are undefined, attempt to autodetect theme bundles at buildtime
 			if (typeof opts.bundles === 'undefined') {
+				opts.bundles = {};
 				let pkgDir = process.cwd();
-				for (let t = app.theme; t.theme; t = t.theme) {
+				for (let t = app.theme; t; t = t.theme) {
 					pkgDir = packageSearch(pkgDir, t.name);
 					if (pkgDir) {
-						this.options.bundles[t.name] = path.join(pkgDir, 'resources');
+						opts.bundles[t.name] = path.join(pkgDir, 'resources');
 					} else {
 						console.warn('WARNING: Unable to location theme package ' + t.name);
 					}
