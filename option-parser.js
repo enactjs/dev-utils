@@ -55,7 +55,7 @@ const themeConfig = (context, theme) => {
 		cfg.name = meta.name;
 		pathProps.forEach(prop => {
 			if (cfg[prop] && typeof cfg[prop] === 'string') {
-				cfg[prop] = path.join(context, cfg[prop]);
+				cfg[prop] = path.join(dir, cfg[prop]);
 			}
 		});
 		if (!cfg.screenTypes) cfg.screenTypes = decoFile(dir, 'screenTypes.json');
@@ -151,7 +151,7 @@ const config = {
 		// values with the specified override. This allows a simple way to alter Enact spotlight color.
 		if (enact.accent) {
 			config.accent = {'moon-accent': enact.accent};
-			for (let t = config.theme; t.theme; t = t.theme) {
+			for (let t = config.theme; t; t = t.theme) {
 				config.accent[t.name.replace('@enact/', '') + '-accent'] = enact.accent;
 			}
 		}
