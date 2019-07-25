@@ -3,6 +3,7 @@ const glob = require('glob');
 const fs = require('graceful-fs');
 const {SyncWaterfallHook} = require('tapable');
 const {ContextReplacementPlugin, DefinePlugin, Template} = require('webpack');
+const app = require('../../option-parser');
 
 function packageName(file) {
 	try {
@@ -184,16 +185,10 @@ class ILibPlugin {
 			this.options.resources = 'resources';
 		}
 		this.options.bundles = this.options.bundles || {};
-		if (typeof this.options.bundles.moonstone === 'undefined') {
-			if (pkgName === '@enact/moonstone') {
-				this.options.bundles.moonstone = 'resources';
-				this.options.resources = '_resources_';
-			} else {
-				const moonstone = packageSearch(process.cwd(), path.join('@enact', 'moonstone'));
-				if (moonstone) {
-					this.options.bundles.moonstone = path.join(moonstone, 'resources');
-				}
-			}
+		if ((!this.options.bundles || !this.options.bundles.moonstone) && pkgName === '@enact/moonstone') {
+			this.options.bundles = this.options.bundles || {};
+			this.options.bundles.moonstone = 'resources';
+			this.options.resources = '_resources_';
 		}
 
 		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
@@ -208,6 +203,19 @@ class ILibPlugin {
 		if (opts.ilib) {
 			opts.context = compiler.context;
 
+			// If bundles are undefined, attempt to autodetect theme bundles at buildtime
+			if (typeof opts.bundles === 'undefined') {
+				let pkgDir = process.cwd();
+				for (let t = app.theme; t.theme; t = t.theme) {
+					pkgDir = packageSearch(pkgDir, t.name);
+					if (pkgDir) {
+						this.options.bundles[t.name] = path.join(pkgDir, 'resources');
+					} else {
+						console.warn('WARNING: Unable to location theme package ' + t.name);
+					}
+				}
+			}
+
 			// Resolve an accurate basepath for iLib.
 			const ilib = resolveBundle(opts.ilib, opts.context);
 			const definedConstants = {
@@ -218,7 +226,11 @@ class ILibPlugin {
 			for (const name in opts.bundles) {
 				if (opts.bundles[name]) {
 					const bundle = resolveBundle(opts.bundles[name], opts.context);
-					definedConstants['ILIB_' + name.toUpperCase() + '_PATH'] = bundle.resolved;
+					const envName = path
+						.basename(name)
+						.toUpperCase()
+						.replace(/[-_\s]/g, '_');
+					definedConstants['ILIB_' + envName + '_PATH'] = bundle.resolved;
 					if (opts.emit && bundle.emit) {
 						manifests.push(path.join(bundle.path, 'ilibmanifest.json'));
 					}
