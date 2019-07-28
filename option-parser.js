@@ -140,11 +140,13 @@ const config = {
 
 		// Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
 		const fontGenerator = computed('fontGenerator', enact, config.theme);
-		config.fontGenerator = path.isAbsolute(screens)
-			? fontGenerator
-			: [path.join(pkg.path, fontGenerator), path.join(pkg.path, 'node_modules', fontGenerator)].find(
-					fs.existsSync
-			  );
+		config.fontGenerator =
+			fontGenerator &&
+			(path.isAbsolute(fontGenerator)
+				? fontGenerator
+				: [path.join(pkg.path, fontGenerator), path.join(pkg.path, 'node_modules', fontGenerator)].find(
+						fs.existsSync
+				  ));
 
 		// Override theme's accent LESS variable value if desired. Private option; may be removed in future.
 		// When used, creates a LESS variable override map, overriding '@moon-accent' and/or '@<theme>-accent'
