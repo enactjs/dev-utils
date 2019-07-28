@@ -86,7 +86,7 @@ const computed = (prop, app, theme) => {
 			return computeThemeProp(p, cfg.theme);
 		}
 	};
-	return computeThemeProp(prop, theme);
+	if (theme) return computeThemeProp(prop, theme);
 };
 
 const config = {
