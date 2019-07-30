@@ -40,24 +40,19 @@ const themeFile = (context, theme, file) => {
 
 const decoFile = (dir, file) => {
 	return [
-		path.join(dir, 'ThemeDecorator', file),
-		path.join(dir, capitalize(path.basename(dir)) + 'Decorator', file)
-	].find(fs.existsSync);
+		// Possible theme decorator locations
+		path.join('ThemeDecorator', file),
+		path.join(capitalize(path.basename(dir)) + 'Decorator', file)
+	].find(f => fs.existsSync(path.join(dir, f)));
 };
 
 const themeConfig = (context, theme) => {
-	const pathProps = ['isomorphic', 'template', 'screenTypes', 'fontGenerator'];
 	const pkgFile = themeFile(context, theme, 'package.json');
 	if (pkgFile) {
 		const meta = require(pkgFile);
 		const cfg = meta.enact || {};
 		cfg.name = meta.name;
 		cfg.path = path.dirname(pkgFile);
-		pathProps.forEach(prop => {
-			if (cfg[prop] && typeof cfg[prop] === 'string') {
-				cfg[prop] = path.join(cfg.path, cfg[prop]);
-			}
-		});
 		if (!cfg.screenTypes) cfg.screenTypes = decoFile(cfg.path, 'screenTypes.json');
 		if (!cfg.fontGenerator) cfg.fontGenerator = decoFile(cfg.path, 'fontGenerator.js');
 		if (cfg.theme) cfg.theme = themeConfig(cfg.path, cfg.theme);
@@ -79,8 +74,10 @@ const computed = (prop, app, theme) => {
 	// App level values take secondary priority
 	if (valid(app[prop])) return app[prop];
 	// Theme-level values take tertiary priority
+	const pathProps = ['isomorphic', 'template', 'screenTypes', 'fontGenerator'];
 	const computeThemeProp = (p, cfg) => {
 		if (valid(cfg[p])) {
+			if (pathProps.includes(p)) return path.join(cfg.path, cfg[p]);
 			return cfg[p];
 		} else if (cfg.theme) {
 			return computeThemeProp(p, cfg.theme);
