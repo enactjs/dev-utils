@@ -17,9 +17,10 @@ const defaultTargets = [
 const pkg = pkgRoot();
 let enact = pkg.meta.enact || {};
 
-const capitalize = name => name.charAt(0).toUpperCase() + name.slice(1);
-const valid = v => v || typeof v === 'boolean';
+const capitalize = name => name[0].toUpperCase() + name.slice(1);
+const valid = v => v || v === false;
 
+// Gently parse a file returning undefined on thrown errors
 const gentlyParse = file => {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding: 'utf8'}));
@@ -28,6 +29,7 @@ const gentlyParse = file => {
 	}
 };
 
+// Resolve a filepath relative to a context and theme
 const themeFile = (context, theme, file) => {
 	const checks = [`@enact/${theme}/${file}`, `${theme}/${file}`];
 
@@ -38,6 +40,7 @@ const themeFile = (context, theme, file) => {
 	}
 };
 
+// Resolve a valid theme decorator relative filepath (eg. screentypes.json)
 const decoFile = (dir, file) => {
 	return [
 		// Possible theme decorator locations
@@ -46,6 +49,7 @@ const decoFile = (dir, file) => {
 	].find(f => fs.existsSync(path.join(dir, f)));
 };
 
+// Recursively resolves theme configuration details
 const themeConfig = (context, theme) => {
 	const pkgFile = themeFile(context, theme, 'package.json');
 	if (pkgFile) {
@@ -60,6 +64,10 @@ const themeConfig = (context, theme) => {
 	}
 };
 
+// Computes the value of a config prop in a hierarchy of:
+//     1. Environment variable level (ENACT_<prop>)
+//     2. Application level (within app's package.json)
+//     3. Theme level (explicitly or implicitly within theme)
 const computed = (prop, app, theme) => {
 	// Environment variables take top priority
 	const envProp = 'ENACT_' + prop.toUpperCase();
