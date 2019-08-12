@@ -329,6 +329,8 @@ function parseLocales(context, target) {
 		return [];
 	} else if (Array.isArray(target)) {
 		return target;
+	} else if (target.toLowerCase() === 'webos') {
+		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-webos.json'), {encoding: 'utf8'})).locales;
 	} else if (target === 'tv') {
 		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-tv.json'), {encoding: 'utf8'})).locales;
 	} else if (target === 'signage') {
