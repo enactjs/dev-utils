@@ -72,7 +72,7 @@ const computed = (prop, app, theme) => {
 	// Environment variables take top priority
 	const envProp = 'ENACT_' + prop.toUpperCase();
 	if (valid(process.env[envProp])) {
-		if (/^[{[].*[}\]]$/.test(process.env[envProp].trim())) {
+		if (/^([{[].*[}\]]|true|false)$/.test(process.env[envProp].trim())) {
 			try {
 				return JSON.parse(process.env[envProp]);
 			} catch (e) {}
@@ -104,7 +104,7 @@ const config = {
 		enact = Object.assign(enact, meta);
 
 		// Parse the theme config tree for defaults
-		config.theme = themeConfig(pkg.path, enact.theme || 'moonstone');
+		config.theme = themeConfig(pkg.path, process.env.ENACT_THEME || enact.theme || 'moonstone');
 
 		// Optional alternate entrypoint for isomorphic builds.
 		config.isomorphic = computed('isomorphic', enact, config.theme);
