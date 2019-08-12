@@ -1,3 +1,9 @@
+# 2.4.0 (August 12, 2019)
+
+* Redesigned `option-parser` with encapsulated theme option support and environment variable overriding.
+* Update `ILibPlugin` to support theme-based ResBundle resources.
+* Fixed bug where undefined `ri` values would result in `Infinity` pixel values.
+
 # 2.3.0 (July 12, 2019)
 
 * Added support utility-wide for new `ilib` external NPM package (with backward compatibility for `@enact/i18n/ilib`).
