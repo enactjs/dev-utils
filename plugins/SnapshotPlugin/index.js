@@ -55,11 +55,18 @@ class SnapshotPlugin {
 		compiler.hooks.v8Snapshot = new SyncHook([]);
 
 		// Ignore packages that don't exists so snapshot helper can skip them
-		['ilib', '@enact/i18n', '@enact/moonstone', '@enact/core/snapshot'].forEach(lib => {
-			if (!fs.existsSync(path.join(app, 'node_modules', lib))) {
-				new IgnorePlugin(new RegExp(lib)).apply(compiler);
-			}
+		const ignoreContext = path.dirname(SnapshotPlugin.helperJS);
+		const missing = lib => !fs.existsSync(path.join(app, 'node_modules', lib));
+		const filter = lib => (resource, context) => {
+			return resource.startsWith(lib) && context === ignoreContext;
+		};
+		['@enact/i18n', '@enact/moonstone', '@enact/core/snapshot'].filter(missing).forEach(p => {
+			new IgnorePlugin({checkResource: filter(p)}).apply(compiler);
 		});
+		// ilib can be aliased to @enact/i18n/ilib, so verify both are missing before ignoring
+		if (['ilib', '@enact/i18n/ilib'].every(missing)) {
+			new IgnorePlugin({checkResource: filter('ilib')}).apply(compiler);
+		}
 
 		// Redirect external 'react-dom' import/require statements to the snapshot helper
 		compiler.hooks.normalModuleFactory.tap('SnapshotPlugin', factory => {
