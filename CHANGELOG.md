@@ -1,3 +1,7 @@
+# 2.4.1 (September 4, 2019)
+
+* `SnapshotPlugin`:  Fixed V8 snapshotting when `ilib` external package is not found.
+
 # 2.4.0 (August 12, 2019)
 
 * Redesigned `option-parser` with encapsulated theme option support and environment variable overriding.
