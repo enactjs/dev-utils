@@ -26,6 +26,14 @@ module.exports = {
 					],
 					follow: true
 				})
+				.concat(
+					glob.sync('ilib/**/*.@(js|jsx|es6)', {
+						cwd: path.resolve(path.join(app, 'node_modules')),
+						nodir: true,
+						ignore: ['**/localedata/**/*.*', '**/node_modules/**/*.*'],
+						follow: true
+					})
+				)
 				.concat(['react', 'react-dom'])
 		};
 
