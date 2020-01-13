@@ -6,7 +6,7 @@ module.exports = {
 		config.plugins.push(
 			new EnactFrameworkRefPlugin({
 				name: 'enact_framework',
-				libraries: ['@enact', 'react', 'react-dom'],
+				libraries: ['@enact', 'react', 'react-dom', 'ilib'],
 				external: {
 					publicPath: opts['externals-public'] || opts.externalsPublic || opts.externals,
 					snapshot: opts.snapshot
