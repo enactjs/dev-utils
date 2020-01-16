@@ -30,7 +30,13 @@ module.exports = {
 					glob.sync('ilib/**/*.@(js|jsx|es6)', {
 						cwd: path.resolve(path.join(app, 'node_modules')),
 						nodir: true,
-						ignore: ['**/localedata/**/*.*', '**/node_modules/**/*.*'],
+						ignore: [
+							'**/localedata/**/*.*',
+							'**/node_modules/**/*.*',
+							'**/ilib-node*.js',
+							'**/AsyncNodeLoader.js',
+							'**/NodeLoader.js'
+						],
 						follow: true
 					})
 				)
