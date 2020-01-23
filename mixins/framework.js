@@ -19,6 +19,7 @@ module.exports = {
 						'**/build/**/*.*',
 						'**/dist/**/*.*',
 						'**/@enact/dev-utils/**/*.*',
+						'**/@enact/ui-test-utils/**/*.*',
 						'**/ilib/localedata/**/*.*',
 						path.join(config.output.path, '*'),
 						'**/node_modules/**/*.*',
