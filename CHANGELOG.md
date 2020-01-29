@@ -1,3 +1,9 @@
+# 2.4.2 (January 29, 2020)
+
+* `EnactFrameworkPlugin`: Added support for ilib inclusion in bundles.
+* `EnactFrameworkRefPlugin`: Added support for `ignore` array option for package paths to handle internally, rather than deferred to external.
+* `ILibPlugin`: Removed special handling for moonstone package and added generic constant support for root-level packages.
+
 # 2.4.1 (September 4, 2019)
 
 * `SnapshotPlugin`:  Fixed V8 snapshotting when `ilib` external package is not found.
