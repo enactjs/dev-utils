@@ -14,11 +14,14 @@ class DelegatedEnactFactoryPlugin {
 	apply(normalModuleFactory) {
 		const name = this.options.name;
 		const libReg = new RegExp('^(' + this.options.libraries.join('|') + ')(?=[\\\\\\/]|$)');
+		const ignReg =
+			this.options.ignore &&
+			new RegExp('^(' + this.options.ignore.map(p => p.replace('/', '\\/')).join('|') + ')(?=[\\\\\\/]|$)');
 		normalModuleFactory.hooks.factory.tap('DelegatedEnactFactoryPlugin', factory => {
 			return function(data, callback) {
 				const dependency = data.dependencies[0];
 				const request = dependency.request;
-				if (request && libReg.test(request)) {
+				if (request && libReg.test(request) && (!ignReg || !ignReg.test(request))) {
 					return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
 				}
 				return factory(data, callback);
@@ -51,6 +54,12 @@ class EnactFrameworkRefPlugin {
 		this.options = options;
 		this.options.name = this.options.name || 'enact_framework';
 		this.options.libraries = this.options.libraries || ['@enact', 'react', 'react-dom', 'ilib'];
+		this.options.ignore = this.options.ignore || [
+			'@enact/dev-utils',
+			'@enact/storybook-utils',
+			'@enact/ui-test-utils',
+			'@enact/screenshot-test-utils'
+		];
 		this.options.external = this.options.external || {};
 		this.options.external.publicPath =
 			this.options.publicPath || this.options.external.publicPath || this.options.external.path;
@@ -108,7 +117,8 @@ class EnactFrameworkRefPlugin {
 		compiler.hooks.compile.tap('EnactFrameworkRefPlugin', ({normalModuleFactory}) => {
 			new DelegatedEnactFactoryPlugin({
 				name: this.options.name,
-				libraries: this.options.libraries
+				libraries: this.options.libraries,
+				ignore: this.options.ignore
 			}).apply(normalModuleFactory);
 		});
 	}
