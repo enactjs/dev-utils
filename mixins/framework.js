@@ -19,6 +19,9 @@ module.exports = {
 						'**/build/**/*.*',
 						'**/dist/**/*.*',
 						'**/@enact/dev-utils/**/*.*',
+						'**/@enact/storybook-utils/**/*.*',
+						'**/@enact/ui-test-utils/**/*.*',
+						'**/@enact/screenshot-test-utils/**/*.*',
 						'**/ilib/localedata/**/*.*',
 						path.join(config.output.path, '*'),
 						'**/node_modules/**/*.*',
@@ -26,6 +29,20 @@ module.exports = {
 					],
 					follow: true
 				})
+				.concat(
+					glob.sync('ilib/**/*.@(js|jsx|es6)', {
+						cwd: path.resolve(path.join(app, 'node_modules')),
+						nodir: true,
+						ignore: [
+							'**/localedata/**/*.*',
+							'**/node_modules/**/*.*',
+							'**/ilib-node*.js',
+							'**/AsyncNodeLoader.js',
+							'**/NodeLoader.js'
+						],
+						follow: true
+					})
+				)
 				.concat(['react', 'react-dom'])
 		};
 

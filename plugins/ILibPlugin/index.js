@@ -46,6 +46,17 @@ function transformPath(context, file) {
 		.replace(/\.\.(\/)?/g, '_$1');
 }
 
+function bundleConst(name) {
+	return (
+		'ILIB_' +
+		path
+			.basename(name)
+			.toUpperCase()
+			.replace(/[-_\s]/g, '_') +
+		'_PATH'
+	);
+}
+
 function resolveBundle(dir, context) {
 	const bundle = {resolved: dir, path: dir, emit: true};
 	if (path.isAbsolute(bundle.path)) {
@@ -185,11 +196,6 @@ class ILibPlugin {
 		if (typeof this.options.resources === 'undefined') {
 			this.options.resources = 'resources';
 		}
-		if ((!this.options.bundles || !this.options.bundles.moonstone) && pkgName === '@enact/moonstone') {
-			this.options.bundles = this.options.bundles || {};
-			this.options.bundles.moonstone = 'resources';
-			this.options.resources = '_resources_';
-		}
 
 		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
 		this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
@@ -224,15 +230,12 @@ class ILibPlugin {
 				ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
 				ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
 			};
+			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
 			for (const name in opts.bundles) {
 				if (opts.bundles[name]) {
 					const bundle = resolveBundle(opts.bundles[name], opts.context);
 					const bundleManifest = path.join(bundle.path, 'ilibmanifest.json');
-					const envName = path
-						.basename(name)
-						.toUpperCase()
-						.replace(/[-_\s]/g, '_');
-					definedConstants['ILIB_' + envName + '_PATH'] = bundle.resolved;
+					definedConstants[bundleConst(name)] = bundle.resolved;
 					if (opts.emit && bundle.emit && fs.existsSync(bundleManifest)) {
 						manifests.push(bundleManifest);
 					}
