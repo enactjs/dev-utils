@@ -66,8 +66,8 @@ const themeConfig = (context, theme) => {
 
 // Computes the value of a config prop in a hierarchy of:
 //     1. Environment variable level (ENACT_<prop>)
-//     2. Application level (within app's package.json)
-//     3. Theme level (explicitly or implicitly within theme)
+//     2. Local source level (within a package.json or local ThemeDecorator)
+//     3. Extended theme level (explicitly or implicitly within extended theme)
 const computed = (prop, app, theme) => {
 	// Environment variables take top priority
 	const envProp = 'ENACT_' + prop.toUpperCase();
@@ -79,9 +79,15 @@ const computed = (prop, app, theme) => {
 		}
 		return process.env[envProp];
 	}
-	// App level values take secondary priority
+	// Local source level values take secondary priority
 	if (valid(app[prop])) return app[prop];
-	// Theme-level values take tertiary priority
+	const selfThemeFiles = {
+		screenTypes: decoFile(pkg.path, 'screenTypes.json'),
+		fontGenerator: decoFile(pkg.path, 'fontGenerator.js')
+	};
+	if (valid(selfThemeFiles[prop])) return selfThemeFiles[prop];
+
+	// Extended theme level values take tertiary priority
 	const pathProps = ['isomorphic', 'template', 'screenTypes', 'fontGenerator'];
 	const computeThemeProp = (p, cfg) => {
 		if (valid(cfg[p])) {
