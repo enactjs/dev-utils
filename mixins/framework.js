@@ -25,7 +25,8 @@ module.exports = {
 						'**/ilib/localedata/**/*.*',
 						path.join(config.output.path, '*'),
 						'**/node_modules/**/*.*',
-						'**/tests/*.js'
+						'**/samples/**/*.*',
+						'**/tests/**/*.*'
 					],
 					follow: true
 				})
