@@ -1,3 +1,8 @@
+# 2.5.0 (February 25, 2020)
+
+* Updated `option-parser` to support auto-detection of local source level theme files (screentypes.json, fontgenerator.js).
+* Fixed theme repo `framework` mixin usage by ignoring all sample and test files and avoiding contamination.
+
 # 2.4.2 (January 29, 2020)
 
 * `EnactFrameworkPlugin`: Added support for ilib inclusion in bundles.
