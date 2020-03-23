@@ -1,3 +1,7 @@
+# 2.5.1 (March 23, 2020)
+
+* Fixed `framework` mixin erroneously including `ilib/lib/RhinoLoader.js`.
+
 # 2.5.0 (February 25, 2020)
 
 * Updated `option-parser` to support auto-detection of local source level theme files (screentypes.json, fontgenerator.js).
