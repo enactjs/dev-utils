@@ -39,7 +39,8 @@ module.exports = {
 							'**/node_modules/**/*.*',
 							'**/ilib-node*.js',
 							'**/AsyncNodeLoader.js',
-							'**/NodeLoader.js'
+							'**/NodeLoader.js',
+							'**/RhinoLoader.js'
 						],
 						follow: true
 					})
