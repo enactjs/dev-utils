@@ -63,8 +63,8 @@ function resolveBundle(dir, context) {
 		bundle.emit = false;
 		bundle.resolved = JSON.stringify(bundle.path);
 	} else {
-		if (fs.existsSync(bundle.path)) {
-			bundle.path = fs.realpathSync(bundle.path);
+		if (fs.existsSync(path.join(context, bundle.path))) {
+			bundle.path = fs.realpathSync(path.join(context, bundle.path));
 		}
 		bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
 	}
@@ -207,7 +207,7 @@ class ILibPlugin {
 		const created = [];
 		let manifests = [];
 		if (opts.ilib) {
-			opts.context = compiler.context;
+			opts.context = opts.context || compiler.context;
 
 			// If bundles are undefined, attempt to autodetect theme bundles at buildtime
 			if (typeof opts.bundles === 'undefined') {
@@ -225,9 +225,10 @@ class ILibPlugin {
 
 			// Resolve an accurate basepath for iLib.
 			const ilib = resolveBundle(opts.ilib, opts.context);
+			const resources = resolveBundle(opts.resources || 'resources', opts.context);
 			const definedConstants = {
 				ILIB_BASE_PATH: ilib.resolved,
-				ILIB_RESOURCES_PATH: resolveBundle(opts.resources || 'resources', opts.context).resolved,
+				ILIB_RESOURCES_PATH: resources.resolved,
 				ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
 			};
 			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
@@ -270,7 +271,7 @@ class ILibPlugin {
 				manifests.unshift(path.join(ilib.path, 'locale', 'ilibmanifest.json'));
 			}
 			if (opts.emit && opts.resources) {
-				manifests.push(path.join(opts.resources, 'ilibmanifest.json'));
+				manifests.push(path.join(resources.path, 'ilibmanifest.json'));
 			}
 			for (let i = 0; i < manifests.length; i++) {
 				if (!fs.existsSync(manifests[i])) {
