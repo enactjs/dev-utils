@@ -1,3 +1,10 @@
+# 2.6.0 (April 3, 2020)
+
+* `ILibPlugin`:
+  * Added support for `context` option rather than always defaulting to `compiler.context`
+  * Fixed context not being used when detecting/resolving bundles
+  * Fixes app-level resource bundle to use resolved filepath to ensure context sensitivity.
+
 # 2.5.1 (March 23, 2020)
 
 * Fixed `framework` mixin erroneously including `ilib/lib/RhinoLoader.js`.
