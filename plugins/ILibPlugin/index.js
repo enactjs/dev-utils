@@ -203,9 +203,11 @@ class ILibPlugin {
 
 		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
 		this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
-		this.options.emit = typeof this.options.emit !== 'boolean' || this.options.emit;
+		this.options.emit =
+			typeof process.env.ILIB_ASSET_EMIT !== 'undefined'
+				? process.env.ILIB_ASSET_EMIT === 'true'
+				: typeof this.options.emit !== 'boolean' || this.options.emit;
 		this.options.symlinks = typeof this.options.symlinks !== 'boolean' || this.options.symlinks;
-		this.options.disable = process.env.ILIB_DISABLE === 'true' || this.options.disable === true;
 	}
 
 	apply(compiler) {
@@ -236,7 +238,8 @@ class ILibPlugin {
 				ILIB_BASE_PATH: ilib.resolved,
 				ILIB_RESOURCES_PATH: resources.resolved,
 				ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id',
-				ILIB_DISABLE: JSON.stringify(opts.disable)
+				// when `emit` is false and `ilib` is not absolute, can delare no assets
+				ILIB_NO_ASSETS: JSON.stringify(!opts.emit && !path.isAbsolute(opts.ilib))
 			};
 			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
 			for (const name in opts.bundles) {
@@ -272,37 +275,36 @@ class ILibPlugin {
 				});
 			});
 
-			// exit early if ilib usage is disabled (no assets are needed to emit)
-			if (opts.disable) return;
-
 			// Prepare manifest list for usage.
 			// Missing files will created if needed otherwise scanned.
-			if (opts.emit && ilib.emit) {
-				manifests.unshift(path.join(ilib.path, 'locale', 'ilibmanifest.json'));
-			}
-			if (opts.emit && opts.resources) {
-				manifests.push(path.join(resources.path, 'ilibmanifest.json'));
-			}
-			for (let i = 0; i < manifests.length; i++) {
-				if (!fs.existsSync(manifests[i])) {
-					const dir = path.dirname(manifests[i]);
-					let files = [];
-					if (fs.existsSync(dir)) {
-						files = glob.sync('./**/!(appinfo).json', {nodir: true, cwd: dir});
-						for (let k = 0; k < files.length; k++) {
-							files[k] = files[k].replace(/^\.\//, '');
+			if (opts.emit) {
+				if (ilib.emit) {
+					manifests.unshift(path.join(ilib.path, 'locale', 'ilibmanifest.json'));
+				}
+				if (opts.resources) {
+					manifests.push(path.join(resources.path, 'ilibmanifest.json'));
+				}
+				for (let i = 0; i < manifests.length; i++) {
+					if (!fs.existsSync(manifests[i])) {
+						const dir = path.dirname(manifests[i]);
+						let files = [];
+						if (fs.existsSync(dir)) {
+							files = glob.sync('./**/!(appinfo).json', {nodir: true, cwd: dir});
+							for (let k = 0; k < files.length; k++) {
+								files[k] = files[k].replace(/^\.\//, '');
+							}
 						}
-					}
-					if (opts.create) {
-						if (!fs.existsSync(dir)) {
-							fs.mkdirSync(dir);
+						if (opts.create) {
+							if (!fs.existsSync(dir)) {
+								fs.mkdirSync(dir);
+							}
+							fs.writeFileSync(manifests[i], JSON.stringify({files: files}, null, '\t'), {
+								encoding: 'utf8'
+							});
+							created.push(manifests[i]);
+						} else {
+							manifests[i] = {generate: manifests[i], value: files};
 						}
-						fs.writeFileSync(manifests[i], JSON.stringify({files: files}, null, '\t'), {
-							encoding: 'utf8'
-						});
-						created.push(manifests[i]);
-					} else {
-						manifests[i] = {generate: manifests[i], value: files};
 					}
 				}
 			}
