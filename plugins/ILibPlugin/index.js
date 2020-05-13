@@ -205,6 +205,7 @@ class ILibPlugin {
 		this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
 		this.options.emit = typeof this.options.emit !== 'boolean' || this.options.emit;
 		this.options.symlinks = typeof this.options.symlinks !== 'boolean' || this.options.symlinks;
+		this.options.disable = process.env.ILIB_DISABLE === 'true' || this.options.disable === true;
 	}
 
 	apply(compiler) {
@@ -234,7 +235,8 @@ class ILibPlugin {
 			const definedConstants = {
 				ILIB_BASE_PATH: ilib.resolved,
 				ILIB_RESOURCES_PATH: resources.resolved,
-				ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id'
+				ILIB_CACHE_ID: '__webpack_require__.ilib_cache_id',
+				ILIB_DISABLE: JSON.stringify(opts.disable)
 			};
 			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
 			for (const name in opts.bundles) {
@@ -269,6 +271,9 @@ class ILibPlugin {
 					return Template.asString(buf);
 				});
 			});
+
+			// exit early if ilib usage is disabled (no assets are needed to emit)
+			if (opts.disable) return;
 
 			// Prepare manifest list for usage.
 			// Missing files will created if needed otherwise scanned.
