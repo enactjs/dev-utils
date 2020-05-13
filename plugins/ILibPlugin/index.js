@@ -57,14 +57,18 @@ function bundleConst(name) {
 	);
 }
 
-function resolveBundle(dir, context) {
+function resolveBundle(dir, context, symlinks) {
 	const bundle = {resolved: dir, path: dir, emit: true};
 	if (path.isAbsolute(bundle.path)) {
 		bundle.emit = false;
 		bundle.resolved = JSON.stringify(bundle.path);
 	} else {
 		if (fs.existsSync(path.join(context, bundle.path))) {
-			bundle.path = fs.realpathSync(path.join(context, bundle.path));
+			if (symlinks) {
+				bundle.path = fs.realpathSync(path.join(context, bundle.path));
+			} else {
+				bundle.path = path.join(context, bundle.path);
+			}
 		}
 		bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
 	}
@@ -78,7 +82,7 @@ function readManifest(compilation, manifest, opts) {
 	let files = [];
 	if (typeof manifest === 'string') {
 		if (fs.existsSync(manifest)) {
-			manifest = fs.realpathSync(manifest);
+			if (opts.symlinks) manifest = fs.realpathSync(manifest);
 			data = fs.readFileSync(manifest, {encoding: 'utf8'});
 			if (data) {
 				files = JSON.parse(data).files || files;
@@ -102,7 +106,7 @@ function handleBundles(compilation, manifests, opts, callback) {
 		try {
 			const files = readManifest(compilation, manifest, opts);
 			if (fs.existsSync(manifest) || opts.create) {
-				const dir = fs.realpathSync(path.dirname(manifest));
+				const dir = opts.symlinks ? fs.realpathSync(path.dirname(manifest)) : path.dirname(manifest);
 				handleManifestFiles(compilation, dir, files, opts, () => {
 					handleBundles(compilation, manifests, opts, callback);
 				});
@@ -200,6 +204,7 @@ class ILibPlugin {
 		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
 		this.options.create = typeof this.options.create !== 'boolean' || this.options.create;
 		this.options.emit = typeof this.options.emit !== 'boolean' || this.options.emit;
+		this.options.symlinks = typeof this.options.symlinks !== 'boolean' || this.options.symlinks;
 	}
 
 	apply(compiler) {
@@ -224,8 +229,8 @@ class ILibPlugin {
 			}
 
 			// Resolve an accurate basepath for iLib.
-			const ilib = resolveBundle(opts.ilib, opts.context);
-			const resources = resolveBundle(opts.resources || 'resources', opts.context);
+			const ilib = resolveBundle(opts.ilib, opts.context, opts.symlinks);
+			const resources = resolveBundle(opts.resources || 'resources', opts.context, opts.symlinks);
 			const definedConstants = {
 				ILIB_BASE_PATH: ilib.resolved,
 				ILIB_RESOURCES_PATH: resources.resolved,
@@ -234,7 +239,7 @@ class ILibPlugin {
 			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
 			for (const name in opts.bundles) {
 				if (opts.bundles[name]) {
-					const bundle = resolveBundle(opts.bundles[name], opts.context);
+					const bundle = resolveBundle(opts.bundles[name], opts.context, opts.symlinks);
 					const bundleManifest = path.join(bundle.path, 'ilibmanifest.json');
 					definedConstants[bundleConst(name)] = bundle.resolved;
 					if (opts.emit && bundle.emit && fs.existsSync(bundleManifest)) {
