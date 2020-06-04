@@ -129,6 +129,8 @@ const config = {
 		config.deep = computed('deep', enact, config.theme);
 		// Proxy target to use within the http-proxy-middleware during serving.
 		config.proxy = computed('proxy', enact, config.theme) || pkg.meta.proxy;
+		// Public path URL at which the app is served or destined to be hosted.
+		config.publicUrl = computed('publicUrl', enact, config.theme) || pkg.meta.homepage;
 		// Optionally force all LESS/CSS to be handled modularly, instead of solely having
 		// the *.module.css and *.module.less files be processed in a modular context.
 		config.forceCSSModules = computed('forceCSSModules', enact, config.theme);
