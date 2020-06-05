@@ -19,17 +19,6 @@ module.exports = {
 					options: 'React'
 				});
 			}
-			// Expose iLib locale utility function module so we can update the locale on page load, if used.
-			if (opts.locales) {
-				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
-				if (fs.existsSync(locale)) {
-					config.module.rules.unshift({
-						test: [fs.realpathSync(locale), locale],
-						loader: 'expose-loader',
-						options: 'iLibLocale'
-					});
-				}
-			}
 		}
 
 		// If 'isomorphic' value is a string, use custom entrypoint.
