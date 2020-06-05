@@ -24,7 +24,7 @@ module.exports = {
 				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
 				if (fs.existsSync(locale)) {
 					config.module.rules.unshift({
-						test: fs.realpathSync(locale),
+						test: [fs.realpathSync(locale), locale],
 						loader: 'expose-loader',
 						options: 'iLibLocale'
 					});
