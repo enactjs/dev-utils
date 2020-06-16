@@ -36,7 +36,9 @@ const themeFile = (context, theme, file) => {
 	for (let i = 0; i < checks.length; i++) {
 		try {
 			return resolve.sync(checks[i], {basedir: context});
-		} catch (e) {}
+		} catch (e) {
+			// do nothing
+		}
 	}
 };
 
@@ -75,7 +77,9 @@ const computed = (prop, app, theme) => {
 		if (/^([{[].*[}\]]|true|false)$/.test(process.env[envProp].trim())) {
 			try {
 				return JSON.parse(process.env[envProp]);
-			} catch (e) {}
+			} catch (e) {
+				// do nothing
+			}
 		}
 		return process.env[envProp];
 	}
@@ -106,7 +110,7 @@ const config = {
 	// Project name.
 	name: pkg.meta.name,
 	// Parse Enact metadata and apply options onto the config.
-	applyEnactMeta: function(meta) {
+	applyEnactMeta: function (meta) {
 		enact = Object.assign(enact, meta);
 
 		// Parse the theme config tree for defaults
@@ -172,7 +176,7 @@ const config = {
 		}
 	},
 	// Sets the browserslist default fallback set of browsers to the Enact default browser support list.
-	setEnactTargetsAsDefault: function() {
+	setEnactTargetsAsDefault: function () {
 		if (!browserslist.loadConfig({path: pkg.path})) process.env.BROWSERSLIST = defaultTargets.join(',');
 	}
 };
@@ -180,7 +184,7 @@ const config = {
 Object.defineProperty(config, 'environment', {
 	configurable: false,
 	enumerable: true,
-	get: function() {
+	get: function () {
 		if (enact.environment) return enact.environment;
 
 		let targets = browserslist.loadConfig({path: pkg.path});

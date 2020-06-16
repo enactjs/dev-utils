@@ -5,7 +5,7 @@ const app = require('../option-parser');
 const PrerenderPlugin = require('../plugins/PrerenderPlugin');
 
 module.exports = {
-	apply: function(config, opts = {}) {
+	apply: function (config, opts = {}) {
 		// Resolve ReactDOM and ReactDOMSever relative to the app.
 		const reactDOMServer = path.join(app.context, 'node_modules', 'react-dom', 'server.js');
 

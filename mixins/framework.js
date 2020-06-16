@@ -4,7 +4,7 @@ const helper = require('../config-helper');
 const EnactFrameworkPlugin = require('../plugins/dll/EnactFrameworkPlugin');
 
 module.exports = {
-	apply: function(config, opts = {}) {
+	apply: function (config, opts = {}) {
 		const app = helper.appRoot();
 		// Form list of framework entries; Every @enact/* js file as well as react/react-dom
 		config.entry = {

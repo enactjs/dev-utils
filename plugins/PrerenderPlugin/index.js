@@ -473,7 +473,7 @@ function language(locale) {
 
 function rootInjection(html) {
 	const rootDiv = findRootDiv(html);
-	return function(prerender) {
+	return function (prerender) {
 		if (rootDiv) {
 			return rootDiv.before + '<div id="root">' + prerender + '</div>' + rootDiv.after;
 		} else {
@@ -525,16 +525,16 @@ function parsePrerender(html) {
 // Adds a file entry with data to be emitted as an asset.
 function emitAsset(compilation, file, data) {
 	compilation.assets[file] = {
-		size: function() {
+		size: function () {
 			return data.length;
 		},
-		source: function() {
+		source: function () {
 			return data;
 		},
-		updateHash: function(hash) {
+		updateHash: function (hash) {
 			return hash.update(data);
 		},
-		map: function() {
+		map: function () {
 			return null;
 		}
 	};

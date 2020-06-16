@@ -5,7 +5,7 @@ const DllModule = require('webpack/lib/DllModule');
 const {RawSource} = require('webpack-sources');
 
 const pkgCache = {};
-const checkPkgMain = function(dir) {
+const checkPkgMain = function (dir) {
 	if (pkgCache[dir]) {
 		return pkgCache[dir].main;
 	} else {
@@ -20,7 +20,7 @@ const checkPkgMain = function(dir) {
 };
 
 const parentCache = {};
-const findParent = function(dir) {
+const findParent = function (dir) {
 	if (parentCache[dir]) {
 		return parentCache[dir];
 	} else {
@@ -64,7 +64,7 @@ function normalizeModuleID(id) {
 	return id;
 }
 
-DllModule.prototype.source = function() {
+DllModule.prototype.source = function () {
 	let header = '';
 	if (DllModule.entries[this.name]) {
 		header += '__webpack_require__.load = function(loader) {\n';

@@ -18,7 +18,7 @@ class DelegatedEnactFactoryPlugin {
 			this.options.ignore &&
 			new RegExp('^(' + this.options.ignore.map(p => p.replace('/', '\\/')).join('|') + ')(?=[\\\\\\/]|$)');
 		normalModuleFactory.hooks.factory.tap('DelegatedEnactFactoryPlugin', factory => {
-			return function(data, callback) {
+			return function (data, callback) {
 				const dependency = data.dependencies[0];
 				const request = dependency.request;
 				if (request && libReg.test(request) && (!ignReg || !ignReg.test(request))) {

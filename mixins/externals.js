@@ -1,7 +1,7 @@
 const EnactFrameworkRefPlugin = require('../plugins/dll/EnactFrameworkRefPlugin');
 
 module.exports = {
-	apply: function(config, opts = {}) {
+	apply: function (config, opts = {}) {
 		// Add the reference plugin so the app uses the external framework
 		config.plugins.push(
 			new EnactFrameworkRefPlugin({

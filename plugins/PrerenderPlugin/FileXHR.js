@@ -2,17 +2,17 @@ const fs = require('fs');
 
 function FileXHR() {}
 
-FileXHR.prototype.open = function(method, uri, async) {
+FileXHR.prototype.open = function (method, uri, async) {
 	this.method = method;
 	this.uri = uri;
 	this.sync = async === false;
 };
 
-FileXHR.prototype.addEventListener = function(evt, fn) {
+FileXHR.prototype.addEventListener = function (evt, fn) {
 	this['on' + evt] = fn;
 };
 
-FileXHR.prototype.send = function() {
+FileXHR.prototype.send = function () {
 	if (this.method.toUpperCase() === 'GET' && this.uri && this.sync) {
 		if (process.env.ILIB_BASE_PATH) {
 			// Backward compatability for old iLib location
@@ -31,10 +31,10 @@ FileXHR.prototype.send = function() {
 
 			this.response = this.responseText = fs.readFileSync(parsedURI, {encoding: 'utf8'});
 			this.status = 200;
-			this.onload && this.onload();
+			if (this.onload) this.onload();
 		} catch (e) {
 			this.status = 404;
-			this.onerror && this.onerror(e.message || e);
+			if (this.onerror) this.onerror(e.message || e);
 		}
 	}
 };

@@ -161,16 +161,16 @@ function shouldEmit(compiler, file, cache) {
 // Add a given asset's data to the compilation array in a webpack-compatible source object.
 function emitAsset(compilation, name, data) {
 	compilation.assets[name] = {
-		size: function() {
+		size: function () {
 			return data.length;
 		},
-		source: function() {
+		source: function () {
 			return data;
 		},
-		updateHash: function(hash) {
+		updateHash: function (hash) {
 			return hash.update(data);
 		},
-		map: function() {
+		map: function () {
 			return null;
 		}
 	};
