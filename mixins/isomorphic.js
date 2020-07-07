@@ -16,7 +16,9 @@ module.exports = {
 				config.module.rules.unshift({
 					test: fs.realpathSync(react),
 					loader: 'expose-loader',
-					options: 'React'
+					options: {
+						exposes: 'React'
+					}
 				});
 			}
 		}
@@ -36,6 +38,7 @@ module.exports = {
 		config.output.globalObject = 'this';
 
 		// Include plugin to prerender the html into the index.html
+		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
 		config.plugins.push(
 			new PrerenderPlugin({
 				server: reactDOMServer,
@@ -45,7 +48,8 @@ module.exports = {
 				screenTypes: app.screenTypes,
 				fontGenerator: app.fontGenerator,
 				externalStartup: app.externalStartup,
-				mapfile: opts.mapfile
+				mapfile: opts.mapfile,
+				htmlPlugin: htmlPluginInstance && htmlPluginInstance.constructor
 			})
 		);
 
