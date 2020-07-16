@@ -1,3 +1,7 @@
+# [unreleased]
+
+* Added support for `extraLargeIcon` asset field in `WebOSMetaPlugin`
+
 # 2.7.0 (May 13, 2020)
 
 * `ILibPlugin`: Added support for `symlinks` boolean option (defaults to `true`). Similar to Webpack's `resolve.symlinks` this controls whether the plugin will resolve symlink paths when resolving iLib bundles during asset output.
