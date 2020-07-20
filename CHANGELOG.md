@@ -1,6 +1,6 @@
-# [unreleased]
+# 2.8.0 (July 20, 2020)
 
-* Added support for `extraLargeIcon` asset field in `WebOSMetaPlugin`
+* `WebOSMetaPlugin`: Added support for `extraLargeIcon` asset field.
 
 # 2.7.0 (May 13, 2020)
 
