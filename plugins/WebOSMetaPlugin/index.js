@@ -7,6 +7,7 @@ const {SyncWaterfallHook} = require('tapable');
 const props = [
 	'icon',
 	'largeIcon',
+	'extraLargeIcon',
 	'miniicon',
 	'smallicon',
 	'splashicon',
