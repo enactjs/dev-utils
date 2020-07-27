@@ -63,6 +63,7 @@ class EnactFrameworkRefPlugin {
 		this.options.external = this.options.external || {};
 		this.options.external.publicPath =
 			this.options.publicPath || this.options.external.publicPath || this.options.external.path;
+		if (!this.options.htmlPlugin) this.options.htmlPlugin = require('html-webpack-plugin');
 
 		if (!process.env.ILIB_BASE_PATH) {
 			// Backwards support for Enact <3
@@ -83,6 +84,7 @@ class EnactFrameworkRefPlugin {
 
 	apply(compiler) {
 		const external = this.options.external;
+		const htmlPlugin = this.options.htmlPlugin;
 
 		// Declare enact_framework as an external dependency
 		const externals = {};
@@ -90,18 +92,20 @@ class EnactFrameworkRefPlugin {
 		new ExternalsPlugin(this.options.libraryTarget || 'var', externals).apply(compiler);
 
 		compiler.hooks.compilation.tap('EnactFrameworkRefPlugin', (compilation, {normalModuleFactory}) => {
+			const htmlPluginHooks = htmlPlugin.getHooks(compilation);
+
 			compilation.dependencyFactories.set(DelegatedSourceDependency, normalModuleFactory);
 
-			compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tap('EnactFrameworkRefPlugin', chunks => {
-				chunks.assets.js.unshift({
+			htmlPluginHooks.beforeAssetTagGeneration.tapAsync('EnactFrameworkRefPlugin', (htmlPluginData, callback) => {
+				htmlPluginData.assets.js.unshift({
 					entryName: 'enact',
 					path: normalizePath(external.publicPath, 'enact.js', compiler).replace(/\\+/g, '/')
 				});
-				chunks.assets.css.unshift({
+				htmlPluginData.assets.css.unshift({
 					entryName: 'enact',
 					path: normalizePath(external.publicPath, 'enact.css', compiler).replace(/\\+/g, '/')
 				});
-				return chunks;
+				callback(null, htmlPluginData);
 			});
 
 			if (external.snapshot && isNodeOutputFS(compiler) && compilation.hooks.webosMetaRootAppinfo) {
