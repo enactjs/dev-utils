@@ -124,6 +124,8 @@ const config = {
 		config.title = computed('title', enact, config.theme);
 		// Optional flag whether to externalize the prerender startup js
 		config.externalStartup = computed('externalStartup', enact, config.theme);
+		// Optional object mapping of webpack path aliases to use when building
+		config.alias = computed('alias', enact, config.alias);
 		// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 		config.nodeBuiltins = computed('nodeBuiltins', enact, config.theme);
 		// Optional property to specify a version of NodeJS to target required polyfills.
