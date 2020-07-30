@@ -13,7 +13,7 @@ module.exports = {
 		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
 
 		const libraries = ['@enact', 'react', 'react-dom', 'ilib'];
-		if (opts['externals-corejs'] || opts.externalsCorejs) libraries.push('core-js');
+		if (opts['externals-polyfill'] || opts.externalsPolyfill) libraries.push('core-js');
 
 		const app = packageRoot();
 		if (app.meta.name.startsWith('@enact/') && fs.existsSync(path.join(app.path, 'ThemeDecorator'))) {
