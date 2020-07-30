@@ -40,7 +40,7 @@ class DelegatedEnactFactoryPlugin {
 					return callback(null, new DelegatedModule(name, {id: polyID}, 'require', polyID, polyID));
 				} else if (local && request && context && request.startsWith('.')) {
 					let resource = path.join(context, request);
-					if (resource.startsWith(app.context)) {
+					if (resource.startsWith(app.context) && !/[\\/]tests[\\/]/.test(resource)) {
 						const parent = findParentMain(path.dirname(resource));
 						if (parent.pointsTo === resource) resource = parent.path;
 						const localID = resource.replace(app.context, app.name).replace(/\\/g, '/');
