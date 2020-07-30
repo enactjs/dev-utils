@@ -15,7 +15,7 @@ module.exports = {
 		// Form list of framework entries; Every @enact/* js file as well as react/react-dom
 		config.entry = {
 			enact: fastGlob
-				.sync(['@enact/**/*.@(js|jsx|es6)'], {
+				.sync('@enact/**/*.@(js|jsx|es6)', {
 					cwd: path.resolve(path.join(app.path, 'node_modules')),
 					onlyFiles: true,
 					ignore: [
@@ -37,7 +37,7 @@ module.exports = {
 					followSymbolicLinks: true
 				})
 				.concat(
-					fastGlob.sync(['ilib/**/*.@(js|jsx|es6)'], {
+					fastGlob.sync('ilib/**/*.@(js|jsx|es6)', {
 						cwd: path.resolve(path.join(app.path, 'node_modules')),
 						onlyFiles: true,
 						ignore: [
@@ -56,7 +56,7 @@ module.exports = {
 		if (app.meta.name.startsWith('@enact/') && fs.existsSync(path.join(app.path, 'ThemeDecorator'))) {
 			config.entry.enact = config.entry.enact.concat(
 				fastGlob
-					.sync(['**/*.@(js|jsx|es6)'], {
+					.sync('**/*.@(js|jsx|es6)', {
 						cwd: app.path,
 						onlyFiles: true,
 						ignore: [
@@ -79,7 +79,7 @@ module.exports = {
 				config.entry.enact.push(polyfillFile);
 			} else {
 				config.entry.enact = config.entry.enact.concat(
-					fastGlob.sync(['modules/**/*.@(js|jsx|es6)'], {
+					fastGlob.sync('modules/**/*.@(js|jsx|es6)', {
 						cwd: path.dirname(require.resolve('core-js/package.json', require.main)),
 						absolute: true,
 						onlyFiles: true
