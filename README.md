@@ -29,7 +29,7 @@ Contains a collection of webpack configuration manipulation functions. Able to f
 
 #### `css-module-ident`
 
-An optional `getLocalIdent` function for Webpack CSS loader's modular classname resolution.  This is a development and debug function which evaluates aren't Node module resolution pathnames, rather than absolute resource paths.
+An optional `getLocalIdent` function for Webpack CSS loader's modular classname resolution.  This for development and debugging, harnessing class names based on Node module resolution, for a readable and repeatable output.
 
 #### `option-parser`
 
