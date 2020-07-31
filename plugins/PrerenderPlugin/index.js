@@ -15,6 +15,7 @@ class PrerenderPlugin {
 			this.options.mapfile = 'locale-map.json';
 		// eslint-disable-next-line
 		if (!this.options.server) this.options.server = require.resolve('react-dom/server');
+		if (!this.options.htmlPlugin) this.options.htmlPlugin = require('html-webpack-plugin');
 	}
 
 	apply(compiler) {
@@ -23,6 +24,7 @@ class PrerenderPlugin {
 		let locales;
 
 		compiler.hooks.compilation.tap('PrerenderPlugin', compilation => {
+			const htmlPluginHooks = opts.htmlPlugin.getHooks(compilation);
 			const appInfoOptimize = {groups: {}, coverage: []};
 			let jsAssets = [];
 
@@ -167,119 +169,111 @@ class PrerenderPlugin {
 			});
 
 			// Force HtmlWebpackPlugin to use body inject format and set aside the js assets.
-			compilation.hooks.htmlWebpackPluginBeforeHtmlProcessing.tapAsync(
-				'PrerenderPlugin',
-				(htmlPluginData, callback) => {
-					htmlPluginData.plugin.options.inject = 'body';
-					jsAssets = htmlPluginData.assets.js.map(file => file.path);
-					htmlPluginData.assets.js = [];
-					callback(null, htmlPluginData);
-				}
-			);
+			htmlPluginHooks.beforeAssetTagGeneration.tapAsync('PrerenderPlugin', (htmlPluginData, callback) => {
+				htmlPluginData.plugin.options.inject = 'body';
+				jsAssets = htmlPluginData.assets.js.map(file => file.path);
+				htmlPluginData.assets.js = [];
+				callback(null, htmlPluginData);
+			});
 
 			// Use the prerendered-startup.js to asynchronously add the js assets at load time and embed that
 			// script inline in the HTML head.
-			compilation.hooks.htmlWebpackPluginAlterAssetTags.tapAsync(
-				'PrerenderPlugin',
-				(htmlPluginData, callback) => {
-					const startupScriptTag = {
-						tagName: 'script',
-						closeTag: true,
-						attributes: {
-							type: 'text/javascript'
-						},
-						innerHTML: templates.startup(opts.screenTypes, jsAssets)
-					};
-					const startupPath = 'startup/startup.js';
-					if (opts.externalStartup && !compilation.assets[startupPath]) {
-						startupScriptTag.attributes.src = startupPath;
-						emitAsset(compilation, startupPath, startupScriptTag.innerHTML);
-						delete startupScriptTag.innerHTML;
-					}
-					htmlPluginData.head.unshift(startupScriptTag);
-					callback(null, htmlPluginData);
+			htmlPluginHooks.alterAssetTagGroups.tapAsync('PrerenderPlugin', (htmlPluginData, callback) => {
+				const startupScriptTag = {
+					tagName: 'script',
+					closeTag: true,
+					attributes: {
+						type: 'text/javascript'
+					},
+					innerHTML: templates.startup(opts.screenTypes, jsAssets)
+				};
+				const startupPath = 'startup/startup.js';
+				if (opts.externalStartup && !compilation.assets[startupPath]) {
+					startupScriptTag.attributes.src = startupPath;
+					emitAsset(compilation, startupPath, startupScriptTag.innerHTML);
+					delete startupScriptTag.innerHTML;
 				}
-			);
+				htmlPluginData.headTags.unshift(startupScriptTag);
+				callback(null, htmlPluginData);
+			});
 
 			// Inject prerendered static HTML
-			compilation.hooks.htmlWebpackPluginAfterHtmlProcessing.tapAsync(
-				'PrerenderPlugin',
-				(htmlPluginData, callback) => {
-					const applyToRoot = rootInjection(htmlPluginData.html);
-					Promise.all(
-						locales.map((loc, i) => {
-							const linked = Object.keys(status.alias).filter(key => status.alias[key] === loc);
-							const body = [];
-							let mapping;
+			htmlPluginHooks.afterTemplateExecution.tapAsync('PrerenderPlugin', (htmlPluginData, callback) => {
+				const applyToRoot = rootInjection(htmlPluginData.html);
+				Promise.all(
+					locales.map((loc, i) => {
+						const linked = Object.keys(status.alias).filter(key => status.alias[key] === loc);
+						const body = [];
+						let mapping;
 
-							if (status.err || !status.prerender[i] || status.alias[i]) return;
+						if (status.err || !status.prerender[i] || status.alias[i]) return;
 
-							if (linked.length === 0) {
-								// Single locale, re-inject root classes and react checksum.
-								status.prerender[i] = status.prerender[i]
-									.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
-									.replace(
-										/(<div[^>]*data-react-checksum=")"/i,
-										'$1' + status.attr[i].checksum + '"'
-									);
-							} else {
-								// Create a mapping of locales and classes
-								mapping = linked.reduce(
-									(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
-									{}
-								);
-							}
+						if (linked.length === 0) {
+							// Single locale, re-inject root classes and react checksum.
+							status.prerender[i] = status.prerender[i]
+								.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
+								.replace(/(<div[^>]*data-react-checksum=")"/i, '$1' + status.attr[i].checksum + '"');
+						} else {
+							// Create a mapping of locales and classes
+							mapping = linked.reduce(
+								(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
+								{}
+							);
+						}
 
-							// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
-							const appHtml = parsePrerender(status.prerender[i]);
-							const updater = templates.update(mapping, opts.deep, appHtml.prerender);
-							if (opts.deep) appHtml.prerender = '';
-							if (updater) {
-								const updaterScriptTag = {
-									tagName: 'script',
-									closeTag: true,
-									attributes: {
-										type: 'text/javascript'
-									}
-								};
-								if (!opts.externalStartup) {
-									updaterScriptTag.innerHTML = updater;
-								} else {
-									updaterScriptTag.attributes.src = 'startup/' + loc + '.js';
-									emitAsset(compilation, updaterScriptTag.attributes.src, updater);
+						// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
+						const appHtml = parsePrerender(status.prerender[i]);
+						const updater = templates.update(mapping, opts.deep, appHtml.prerender);
+						if (opts.deep) appHtml.prerender = '';
+						if (updater) {
+							const updaterScriptTag = {
+								tagName: 'script',
+								closeTag: true,
+								attributes: {
+									type: 'text/javascript'
 								}
-								body.push(updaterScriptTag);
+							};
+							if (!opts.externalStartup) {
+								updaterScriptTag.innerHTML = updater;
+							} else {
+								updaterScriptTag.attributes.src = 'startup/' + loc + '.js';
+								emitAsset(compilation, updaterScriptTag.attributes.src, updater);
 							}
+							body.push(updaterScriptTag);
+						}
 
-							// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
-							htmlPluginData.plugin.options.inject = true;
-							if (htmlPluginData.plugin.options.minify) {
-								// Preserve any React15 HTML comment nodes
-								htmlPluginData.plugin.options.minify.removeComments = false;
-							}
-							return htmlPluginData.plugin
-								.postProcessHtml(applyToRoot(appHtml.prerender), {}, {head: appHtml.head, body: body})
-								.then(html => {
-									if (locales.length === 1) {
-										// Only 1 locale, so just output as the default root index.html
-										htmlPluginData.html = html;
-									} else {
-										// Multiple locales, so output as locale-specific html file.
-										emitAsset(compilation, 'index.' + loc + '.html', html);
-									}
-								});
-						})
-					)
-						.then(() => {
-							callback(null, htmlPluginData);
-						})
-						.catch(err => {
-							// Avoid misattribution of error to html plugin compiler by assigning error directly.
-							compilation.errors.push(err);
-							callback(null, htmlPluginData);
-						});
-				}
-			);
+						// Inject app HTML then re-process in HtmlWebpackPlugin for potential minification.
+						htmlPluginData.plugin.options.inject = true;
+						if (htmlPluginData.plugin.options.minify) {
+							// Preserve any React15 HTML comment nodes
+							htmlPluginData.plugin.options.minify.removeComments = false;
+						}
+						return htmlPluginData.plugin
+							.postProcessHtml(
+								applyToRoot(appHtml.prerender),
+								{},
+								{headTags: appHtml.head, bodyTags: body}
+							)
+							.then(html => {
+								if (locales.length === 1) {
+									// Only 1 locale, so just output as the default root index.html
+									htmlPluginData.html = html;
+								} else {
+									// Multiple locales, so output as locale-specific html file.
+									emitAsset(compilation, 'index.' + loc + '.html', html);
+								}
+							});
+					})
+				)
+					.then(() => {
+						callback(null, htmlPluginData);
+					})
+					.catch(err => {
+						// Avoid misattribution of error to html plugin compiler by assigning error directly.
+						compilation.errors.push(err);
+						callback(null, htmlPluginData);
+					});
+			});
 		});
 
 		// Report any failed locale prerenders at the compiler level to fail the build,
@@ -473,7 +467,7 @@ function language(locale) {
 
 function rootInjection(html) {
 	const rootDiv = findRootDiv(html);
-	return function(prerender) {
+	return function (prerender) {
 		if (rootDiv) {
 			return rootDiv.before + '<div id="root">' + prerender + '</div>' + rootDiv.after;
 		} else {
@@ -525,16 +519,16 @@ function parsePrerender(html) {
 // Adds a file entry with data to be emitted as an asset.
 function emitAsset(compilation, file, data) {
 	compilation.assets[file] = {
-		size: function() {
+		size: function () {
 			return data.length;
 		},
-		source: function() {
+		source: function () {
 			return data;
 		},
-		updateHash: function(hash) {
+		updateHash: function (hash) {
 			return hash.update(data);
 		},
-		map: function() {
+		map: function () {
 			return null;
 		}
 	};

@@ -110,7 +110,7 @@ class SnapshotPlugin {
 						const stat = fs.statSync(path.join(compiler.outputPath, opts.blob));
 						if (stat.size > 0) {
 							compilation.assets[opts.blob] = {
-								size: function() {
+								size: function () {
 									return stat.size;
 								},
 								emitted: true

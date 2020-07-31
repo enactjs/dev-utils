@@ -35,6 +35,6 @@ function findRoot(curr) {
 	}
 }
 
-module.exports = function(start) {
+module.exports = function (start) {
 	return findRoot(path.resolve(start || process.cwd()));
 };

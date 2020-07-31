@@ -6,11 +6,15 @@ function isNamed(name) {
 	return fn => name && fn && fn.constructor && fn.constructor.name && fn.constructor.name === name;
 }
 
+function isPolyfill(file) {
+	return /[\\/]polyfills\.(js|jsx|mjs|ts|tsx)$/.test(file);
+}
+
 module.exports = {
-	appRoot: function() {
+	appRoot: function () {
 		return rootCache ? rootCache : (rootCache = pkgRoot().path);
 	},
-	injectEntry: function(config, entry, opts = {}) {
+	injectEntry: function (config, entry, opts = {}) {
 		if (typeof config.entry === 'string') {
 			config.entry = [config.entry];
 		}
@@ -28,7 +32,7 @@ module.exports = {
 			config.entry[opts.chunk || 'main'] = o.entry;
 		}
 	},
-	mainEntry: function(config, opts = {}) {
+	mainEntry: function (config, opts = {}) {
 		if (typeof config.entry === 'string') {
 			return config.entry;
 		} else if (Array.isArray(config.entry)) {
@@ -37,7 +41,7 @@ module.exports = {
 			return this.mainEntry({entry: config.entry[opts.chunk || 'main']}, opts);
 		}
 	},
-	replaceMain: function(config, replacement, opts = {}) {
+	replaceMain: function (config, replacement, opts = {}) {
 		if (typeof config.entry === 'string') {
 			config.entry = replacement;
 		} else if (Array.isArray(config.entry)) {
@@ -46,23 +50,38 @@ module.exports = {
 			this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
 		}
 	},
-	findPlugin: function({plugins = []} = {}, name) {
+	polyfillFile: function ({entry} = {}) {
+		if (typeof entry === 'string') {
+			return isPolyfill(entry) && entry;
+		} else if (Array.isArray(entry)) {
+			return entry.find(isPolyfill);
+		} else if (typeof entry === 'object') {
+			return Object.keys(entry).reduce(
+				(result, n) =>
+					result ||
+					(typeof entry[n] === 'string' && isPolyfill(entry[n]) && entry[n]) ||
+					(Array.isArray(entry[n]) && entry[n].find(isPolyfill)),
+				undefined
+			);
+		}
+	},
+	findPlugin: function ({plugins = []} = {}, name) {
 		return plugins.findIndex(isNamed(name));
 	},
-	getPluginByName: function({plugins = []} = {}, name) {
+	getPluginByName: function ({plugins = []} = {}, name) {
 		return plugins[this.findPlugin({plugins}, name)];
 	},
-	removePlugin: function({plugins = []} = {}, name) {
+	removePlugin: function ({plugins = []} = {}, name) {
 		const i = this.findPlugin({plugins}, name);
 		if (i >= 0) plugins.splice(i, 1);
 	},
-	findMinimizer: function({optimization = []} = {}, name) {
+	findMinimizer: function ({optimization = []} = {}, name) {
 		return (optimization.minimizer || []).findIndex(isNamed(name));
 	},
-	getMinimizerByName: function({optimization = []} = {}, name) {
+	getMinimizerByName: function ({optimization = []} = {}, name) {
 		return (optimization.minimizer || [])[this.findMinimizer({optimization}, name)];
 	},
-	removeMinimizer: function({optimization = {}} = {}, name) {
+	removeMinimizer: function ({optimization = {}} = {}, name) {
 		const i = this.findMinimizer({optimization}, name);
 		if (i >= 0) optimization.minimizer.splice(i, 1);
 	}

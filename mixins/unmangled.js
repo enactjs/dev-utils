@@ -1,7 +1,7 @@
 const helper = require('../config-helper');
 
 module.exports = {
-	apply: function(config) {
+	apply: function (config) {
 		// Allow Terser's optimizations/debug-code-removal but don't minify
 		const terserPlugin = helper.getMinimizerByName(config, 'TerserPlugin');
 		if (terserPlugin) {

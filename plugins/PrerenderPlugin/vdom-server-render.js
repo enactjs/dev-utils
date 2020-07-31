@@ -40,7 +40,7 @@ module.exports = {
 				chunk 			Chunk filename; used to visually note within thrown errors
 				externals		Filepath to external Enact framework to use with rendering
 	*/
-	stage: function(code, opts) {
+	stage: function (code, opts) {
 		code = code.replace('__webpack_require__.e =', '__webpack_require__.e = function() {}; var origE =');
 		code = code.replace(
 			'function webpackAsyncContext(req) {',
@@ -69,7 +69,7 @@ module.exports = {
 		Returns:
 			HTML static rendered string of the app's initial state.
 	*/
-	render: function(opts) {
+	render: function (opts) {
 		if (!chunkTarget) throw new Error('Source code not staged, unable render vdom into HTML string.');
 		let style, rendered;
 
@@ -90,31 +90,24 @@ module.exports = {
 			} catch (e) {
 				// Temporary fallback to use deprecated global hook.
 				global.enactHooks = global.enactHooks || {};
-				global.enactHooks.prerender = function(hook) {
+				global.enactHooks.prerender = function (hook) {
 					if (hook.appendToHead) {
 						style = hook.appendToHead;
 					}
 				};
 			}
 
+			global.process.env.LANG = opts.locale;
+
 			if (opts.externals) {
 				// Ensure locale switching  support is loaded globally with external framework usage.
-				const framework = require(path.resolve(path.join(opts.externals, 'enact.js')));
-				global.iLibLocale = framework('@enact/i18n/locale');
+				const framework = requireUncached(path.resolve(path.join(opts.externals, 'enact.js')));
 				global.React = framework('react');
 			} else {
 				delete global.React;
-				delete global.iLibLocale;
 			}
 
 			const chunk = requireUncached(path.resolve(chunkTarget));
-
-			// Update locale if needed.
-			if (opts.locale && global.iLibLocale && global.iLibLocale.updateLocale) {
-				console.resume();
-				global.iLibLocale.updateLocale(opts.locale);
-				console.mute();
-			}
 
 			// Clear any server-related children modules from cache
 			Object.keys(require.cache)
@@ -145,7 +138,7 @@ module.exports = {
 	/*
 		Deletes any staged sourcecode cunks
 	*/
-	unstage: function() {
+	unstage: function () {
 		if (chunkTarget && fs.existsSync(chunkTarget)) fs.unlinkSync(chunkTarget);
 	}
 };

@@ -1,3 +1,26 @@
+# 3.0.0 (July 31, 2020)
+
+* All dependencies updated for lastest releases.
+* Added new `css-module-ident` module, which contains a debug webpack css-loader `getLocalIdent` function that produces plaintext predictable classnames.
+* Added support for `config-helper` to detect any polyfill entrypoints.
+* Added support for `option-parser` to handle `alias` and `publicUrl` fields.
+* Switched from `node-glob`to `fast-glob` for speed improvements.
+* `framework` mixin:
+  * Added `externals-polyfill`/`externalsPolyfill` boolean option, which includes any detected polyfill entrypoint (or `core-js` modules) within the framework bundle.
+  * Added local files to framework bundle when local project itself is an @enact framework theme..
+* `externals` mixin:
+  * Added `externals-polyfill`/`externalsPolyfill` boolean option, which will detect any polyfill entry and forward it to `EnactFrameworkRefPlugin`.
+  * Added local scope of files to the list of libraries when applied on an @enact framework theme.
+* `PrerenderPlugin`: Updated to interact with HtmlWebpackPlugin 4.x hook format.
+* `EnactFrameworkPlugin`:
+  * Added `polyfill` string option, which specifies a polyfill file that will be labelled as `@enact/polyfils` module in the framework bundle.
+  * Updated module ID resolving to handle `core-js` modules with top-level `corejs/*` accessors.
+  * Updated module ID resolving to handle locally-scoped files.
+* `EnactFrameworkRefPlugin`:
+  * Added `polyfill` string option, which specifies a polyfill file to delegate out as `@enact/polyfills`.
+  * Updated module delegate handling to setup correct paths for locally-scoped files when they're externally used.
+
+
 # 2.8.0 (July 20, 2020)
 
 * `WebOSMetaPlugin`: Added support for `extraLargeIcon` asset field.
