@@ -24,6 +24,12 @@ const {EnactFrameworkPlugin} = require('@enact/dev-utils');
     ],
 ```
 
+### Configuration
+You can pass configuration settings to `EnactFrameworkRefPlugin`.
+Allowed values are as follows:
+
+- `polyfill`: Filepath to an optional polyfill module to include in the enact framework bundle as `@enact/polyfill`. Any underlying `core-js` modules will also be organized for easy access.
+
 
 # EnactFrameworkRefPlugin
 
@@ -57,6 +63,7 @@ Allowed values are as follows:
 
 - `name`: Global-exposed name of enact library bundle. Defaults to `'enact_framework'`.
 - `libraries`: Packages or package scopes to reference from the external library bundle. Defaults to `['@enact', 'react', 'react-dom']`.
+- `polyfill`: Filepath to a polyfill module to delegate out as `@enact/polyfill`.
 - `externals`: Object containing external properties. Supports
   - `publicPath`: Public path the externals will be found at during runtime.
   - `snapshot`: Whether or not the external library bundle is in v8 snapshot format.

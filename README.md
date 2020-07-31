@@ -27,6 +27,10 @@ npm install --save-dev @enact/dev-utils
 
 Contains a collection of webpack configuration manipulation functions. Able to find a webpack project root as well as manipulate entrypoints, loaders, and plugins.
 
+#### `css-module-ident`
+
+An optional `getLocalIdent` function for Webpack CSS loader's modular classname resolution.  This is for development and debugging, harnessing class names based on Node module resolution for a readable and repeatable output.
+
 #### `option-parser`
 
 Detects the `enact` object within the root `package.json` and autodetects/resolves omitted options.

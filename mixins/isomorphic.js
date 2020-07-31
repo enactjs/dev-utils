@@ -5,7 +5,7 @@ const app = require('../option-parser');
 const PrerenderPlugin = require('../plugins/PrerenderPlugin');
 
 module.exports = {
-	apply: function(config, opts = {}) {
+	apply: function (config, opts = {}) {
 		// Resolve ReactDOM and ReactDOMSever relative to the app.
 		const reactDOMServer = path.join(app.context, 'node_modules', 'react-dom', 'server.js');
 
@@ -16,19 +16,10 @@ module.exports = {
 				config.module.rules.unshift({
 					test: fs.realpathSync(react),
 					loader: 'expose-loader',
-					options: 'React'
+					options: {
+						exposes: 'React'
+					}
 				});
-			}
-			// Expose iLib locale utility function module so we can update the locale on page load, if used.
-			if (opts.locales) {
-				const locale = path.join(app.context, 'node_modules', '@enact', 'i18n', 'locale', 'locale.js');
-				if (fs.existsSync(locale)) {
-					config.module.rules.unshift({
-						test: fs.realpathSync(locale),
-						loader: 'expose-loader',
-						options: 'iLibLocale'
-					});
-				}
 			}
 		}
 
@@ -47,6 +38,7 @@ module.exports = {
 		config.output.globalObject = 'this';
 
 		// Include plugin to prerender the html into the index.html
+		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
 		config.plugins.push(
 			new PrerenderPlugin({
 				server: reactDOMServer,
@@ -56,7 +48,8 @@ module.exports = {
 				screenTypes: app.screenTypes,
 				fontGenerator: app.fontGenerator,
 				externalStartup: app.externalStartup,
-				mapfile: opts.mapfile
+				mapfile: opts.mapfile,
+				htmlPlugin: htmlPluginInstance && htmlPluginInstance.constructor
 			})
 		);
 

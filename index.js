@@ -10,10 +10,11 @@ const exportOnDemand = obj => {
 
 // Export the general mixins and dev utilities.
 exportOnDemand({
-	mixins: () => require('./mixins'),
 	configHelper: () => require('./config-helper'),
-	packageRoot: () => require('./package-root'),
-	optionParser: () => require('./option-parser')
+	cssModuleIdent: () => require('./css-module-ident'),
+	mixins: () => require('./mixins'),
+	optionParser: () => require('./option-parser'),
+	packageRoot: () => require('./package-root')
 });
 
 // Export the Webpack plugins.

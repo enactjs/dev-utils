@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const glob = require('glob');
+const glob = require('fast-glob');
 const {SyncWaterfallHook} = require('tapable');
 
 // List of asset-pointing appinfo properties.
@@ -132,16 +132,16 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 function emitAsset(name, assets, data) {
 	// Add a given asset's data to the compilation array in a webpack-compatible source object.
 	assets[name] = {
-		size: function() {
+		size: function () {
 			return data.length;
 		},
-		source: function() {
+		source: function () {
 			return data;
 		},
-		updateHash: function(hash) {
+		updateHash: function (hash) {
 			return hash.update(data);
 		},
-		map: function() {
+		map: function () {
 			return null;
 		}
 	};
@@ -198,7 +198,7 @@ class WebOSMetaPlugin {
 			// Scan for all localized appinfo.json files in the "resources" directory.
 			let loc = glob.sync('resources/**/appinfo.json', {
 				cwd: context,
-				nodir: true
+				onlyFiles: true
 			});
 			loc = compilation.hooks.webosMetaListLocalized.call(loc);
 			// Add each locale-specific appinfo.json and its relative assets to the compilation.

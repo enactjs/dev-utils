@@ -1,5 +1,5 @@
 module.exports = {
-	apply: function(config, opts = {}) {
+	apply: function (config, opts = {}) {
 		opts.isomorphic = opts.isomorphic || opts.snapshot;
 
 		if (opts.minify === false) {

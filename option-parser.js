@@ -36,7 +36,9 @@ const themeFile = (context, theme, file) => {
 	for (let i = 0; i < checks.length; i++) {
 		try {
 			return resolve.sync(checks[i], {basedir: context});
-		} catch (e) {}
+		} catch (e) {
+			// do nothing
+		}
 	}
 };
 
@@ -75,7 +77,9 @@ const computed = (prop, app, theme) => {
 		if (/^([{[].*[}\]]|true|false)$/.test(process.env[envProp].trim())) {
 			try {
 				return JSON.parse(process.env[envProp]);
-			} catch (e) {}
+			} catch (e) {
+				// do nothing
+			}
 		}
 		return process.env[envProp];
 	}
@@ -106,7 +110,7 @@ const config = {
 	// Project name.
 	name: pkg.meta.name,
 	// Parse Enact metadata and apply options onto the config.
-	applyEnactMeta: function(meta) {
+	applyEnactMeta: function (meta) {
 		enact = Object.assign(enact, meta);
 
 		// Parse the theme config tree for defaults
@@ -120,6 +124,8 @@ const config = {
 		config.title = computed('title', enact, config.theme);
 		// Optional flag whether to externalize the prerender startup js
 		config.externalStartup = computed('externalStartup', enact, config.theme);
+		// Optional object mapping of webpack path aliases to use when building
+		config.alias = computed('alias', enact, config.alias);
 		// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 		config.nodeBuiltins = computed('nodeBuiltins', enact, config.theme);
 		// Optional property to specify a version of NodeJS to target required polyfills.
@@ -129,6 +135,8 @@ const config = {
 		config.deep = computed('deep', enact, config.theme);
 		// Proxy target to use within the http-proxy-middleware during serving.
 		config.proxy = computed('proxy', enact, config.theme) || pkg.meta.proxy;
+		// Public path URL at which the app is served or destined to be hosted.
+		config.publicUrl = computed('publicUrl', enact, config.theme) || pkg.meta.homepage;
 		// Optionally force all LESS/CSS to be handled modularly, instead of solely having
 		// the *.module.css and *.module.less files be processed in a modular context.
 		config.forceCSSModules = computed('forceCSSModules', enact, config.theme);
@@ -170,7 +178,7 @@ const config = {
 		}
 	},
 	// Sets the browserslist default fallback set of browsers to the Enact default browser support list.
-	setEnactTargetsAsDefault: function() {
+	setEnactTargetsAsDefault: function () {
 		if (!browserslist.loadConfig({path: pkg.path})) process.env.BROWSERSLIST = defaultTargets.join(',');
 	}
 };
@@ -178,7 +186,7 @@ const config = {
 Object.defineProperty(config, 'environment', {
 	configurable: false,
 	enumerable: true,
-	get: function() {
+	get: function () {
 		if (enact.environment) return enact.environment;
 
 		let targets = browserslist.loadConfig({path: pkg.path});
