@@ -13,7 +13,6 @@ module.exports = {
 		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
 
 		const libraries = ['@enact', 'react', 'react-dom', 'ilib'];
-		if (opts['externals-polyfill'] || opts.externalsPolyfill) libraries.push('core-js');
 
 		const app = packageRoot();
 		if (app.meta.name.startsWith('@enact/') && fs.existsSync(path.join(app.path, 'ThemeDecorator'))) {
@@ -25,7 +24,7 @@ module.exports = {
 			new EnactFrameworkRefPlugin({
 				name: 'enact_framework',
 				libraries,
-				polyfill,
+				polyfill: (opts['externals-polyfill'] || opts.externalsPolyfill) && polyfill,
 				external: {
 					publicPath: opts['externals-public'] || opts.externalsPublic || opts.externals,
 					snapshot: opts.snapshot
