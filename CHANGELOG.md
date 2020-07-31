@@ -1,3 +1,7 @@
+# 3.0.1 (July 31, 2020)
+
+* `framework` mixin: Adds the full list of Jest unit test locations to ignore when scanning framework files to include in framework bundles.
+
 # 3.0.0 (July 31, 2020)
 
 * All dependencies updated for lastest releases.
