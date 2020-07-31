@@ -3,6 +3,7 @@ const path = require('path');
 const DllEntryPlugin = require('webpack/lib/DllEntryPlugin');
 const DllModule = require('webpack/lib/DllModule');
 const {RawSource} = require('webpack-sources');
+const app = require('../../option-parser');
 
 const pkgCache = {};
 const checkPkgMain = function (dir) {
@@ -35,7 +36,7 @@ const findParent = function (dir) {
 	}
 };
 
-function normalizeModuleID(id) {
+function normalizeModuleID(id, polyfill) {
 	const dir = fs.existsSync(id) && fs.statSync(id).isDirectory() ? id : path.dirname(id);
 	parentCache[dir] = findParent(dir);
 	if (parentCache[dir]) {
@@ -48,17 +49,31 @@ function normalizeModuleID(id) {
 
 	// Remove any leading ./node_modules prefix
 	const nodeModulesPrefix = './node_modules/';
-	if (id.indexOf(nodeModulesPrefix) === 0) {
+	if (id.startsWith(nodeModulesPrefix)) {
 		id = id.substring(nodeModulesPrefix.length);
 	}
-	if (id.indexOf('node_modules') === -1) {
+
+	// Reduce core-js long paths to shorthand
+	if (id.includes('node_modules/core-js/')) {
+		id = id.substring(id.indexOf('node_modules/core-js/') + 13);
+	}
+
+	// Transform IDs as needed
+	if (path.resolve(id) === polyfill) {
+		// shorthand to load core-js
+		id = '@enact/polyfills';
+	} else if (!id.includes('node_modules')) {
 		// Remove any js file extension
-		if (id.indexOf('.js') === id.length - 3) {
+		if (id.endsWith('.js')) {
 			id = id.substring(0, id.length - 3);
 		}
 		// Remove any /index suffix as we want the user-accessible ID
-		if (id.indexOf('/index') === id.length - 6 && id.length > 6) {
+		if (id.endsWith('/index') && id.length > 6 && !id.startsWith('core-js')) {
 			id = id.substring(0, id.length - 6);
+		}
+		// Add package name prefix for local files
+		if (id.startsWith('.') && !id.startsWith('..')) {
+			id = id.replace('.', app.name);
 		}
 	}
 	return id;
@@ -83,6 +98,8 @@ class EnactFrameworkPlugin {
 	}
 
 	apply(compiler) {
+		const poly = this.options.polyfill;
+
 		// Map entries to the DLLEntryPlugin
 		DllModule.entries = {};
 		compiler.hooks.entryOption.tap('EnactFrameworkPlugin', (context, entry) => {
@@ -90,7 +107,8 @@ class EnactFrameworkPlugin {
 				if (Array.isArray(item)) {
 					DllModule.entries[name] = [];
 					for (let i = 0; i < item.length; i++) {
-						DllModule.entries[name].push(normalizeModuleID('./node_modules/' + item[i]));
+						const prefix = item[i].startsWith('.') ? '' : './node_modules/';
+						DllModule.entries[name].push(normalizeModuleID(prefix + item[i], poly));
 					}
 					return new DllEntryPlugin(context, item, name);
 				} else {
@@ -113,7 +131,7 @@ class EnactFrameworkPlugin {
 						m.id = m.libIdent({
 							context: this.options.context || compiler.options.context
 						});
-						m.id = normalizeModuleID(m.id);
+						m.id = normalizeModuleID(m.id, poly);
 					}
 				}, this);
 			});

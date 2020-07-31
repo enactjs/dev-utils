@@ -1,17 +1,23 @@
+const fs = require('fs');
 const path = require('path');
-const glob = require('glob');
+const fastGlob = require('fast-glob');
 const helper = require('../config-helper');
+const packageRoot = require('../package-root');
 const EnactFrameworkPlugin = require('../plugins/dll/EnactFrameworkPlugin');
 
 module.exports = {
 	apply: function (config, opts = {}) {
-		const app = helper.appRoot();
+		const app = packageRoot();
+
+		// Scan for any polyfills.js entry file for potential re-usage.
+		const polyfillFile = helper.polyfillFile(config);
+
 		// Form list of framework entries; Every @enact/* js file as well as react/react-dom
 		config.entry = {
-			enact: glob
+			enact: fastGlob
 				.sync('@enact/**/*.@(js|jsx|es6)', {
-					cwd: path.resolve(path.join(app, 'node_modules')),
-					nodir: true,
+					cwd: path.resolve(path.join(app.path, 'node_modules')),
+					onlyFiles: true,
 					ignore: [
 						'**/webpack.config.js',
 						'**/.eslintrc.js',
@@ -28,25 +34,59 @@ module.exports = {
 						'**/samples/**/*.*',
 						'**/tests/**/*.*'
 					],
-					follow: true
+					followSymbolicLinks: true
 				})
 				.concat(
-					glob.sync('ilib/**/*.@(js|jsx|es6)', {
-						cwd: path.resolve(path.join(app, 'node_modules')),
-						nodir: true,
+					fastGlob.sync('ilib/**/*.@(js|jsx|es6)', {
+						cwd: path.resolve(path.join(app.path, 'node_modules')),
+						onlyFiles: true,
 						ignore: [
-							'**/localedata/**/*.*',
-							'**/node_modules/**/*.*',
+							'!node_modules',
+							'!locale',
 							'**/ilib-node*.js',
 							'**/AsyncNodeLoader.js',
 							'**/NodeLoader.js',
 							'**/RhinoLoader.js'
 						],
-						follow: true
+						followSymbolicLinks: true
 					})
 				)
 				.concat(['react', 'react-dom'])
 		};
+		if (app.meta.name.startsWith('@enact/') && fs.existsSync(path.join(app.path, 'ThemeDecorator'))) {
+			config.entry.enact = config.entry.enact.concat(
+				fastGlob
+					.sync('**/*.@(js|jsx|es6)', {
+						cwd: app.path,
+						onlyFiles: true,
+						ignore: [
+							'!node_modules',
+							'!samples',
+							'!dist',
+							'!build',
+							'!resources',
+							'!coverage',
+							'!tests',
+							'**/tests/**/*.*'
+						]
+					})
+					.map(f => './' + f)
+			);
+		}
+
+		if (opts['externals-polyfill'] || opts.externalsPolyfill) {
+			if (polyfillFile) {
+				config.entry.enact.push(polyfillFile);
+			} else {
+				config.entry.enact = config.entry.enact.concat(
+					fastGlob.sync('modules/**/*.@(js|jsx|es6)', {
+						cwd: path.dirname(require.resolve('core-js/package.json', require.main)),
+						absolute: true,
+						onlyFiles: true
+					})
+				);
+			}
+		}
 
 		// Use universal module definition to allow usage and name as 'enact_framework'
 		config.output.library = 'enact_framework';
@@ -66,7 +106,11 @@ module.exports = {
 		['HtmlWebpackPlugin', 'WebOSMetaPlugin'].forEach(plugin => helper.removePlugin(config, plugin));
 
 		// Add the framework plugin to build in an externally accessible manner
-		config.plugins.push(new EnactFrameworkPlugin());
+		config.plugins.push(
+			new EnactFrameworkPlugin({
+				polyfill: (opts['externals-polyfill'] || opts.externalsPolyfill) && polyfillFile
+			})
+		);
 
 		if (opts.snapshot) {
 			const SnapshotPlugin = require('../plugins/SnapshotPlugin');

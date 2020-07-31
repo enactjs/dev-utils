@@ -3,24 +3,53 @@ const path = require('path');
 const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
 const DelegatedModule = require('webpack/lib/DelegatedModule');
 const ExternalsPlugin = require('webpack/lib/ExternalsPlugin');
+const app = require('../../option-parser');
+
+const findParentMain = function (dir) {
+	const currPkg = path.join(dir, 'package.json');
+	if (fs.existsSync(currPkg)) {
+		const meta = JSON.parse(fs.readFileSync(currPkg, {encoding: 'utf8'}));
+		if (meta.main) return {path: dir, pointsTo: path.join(dir, meta.main).replace(/\.js/, '')};
+	}
+	if (dir === '/' || dir === '' || dir === '.') return null;
+	return findParentMain(path.dirname(dir));
+};
 
 // Custom DelegateFactoryPlugin designed to redirect Enact framework require() calls
 // to the external framework
 class DelegatedEnactFactoryPlugin {
 	constructor(options = {}) {
 		this.options = options;
+		this.options.local = this.options.libraries.includes('.');
+		if (this.options.local) this.options.libraries.splice(this.options.libraries.indexOf('.'), 1);
 	}
 
 	apply(normalModuleFactory) {
-		const name = this.options.name;
-		const libReg = new RegExp('^(' + this.options.libraries.join('|') + ')(?=[\\\\\\/]|$)');
+		const {name, libraries, ignore, local, polyfill} = this.options;
+		const libReg = new RegExp('^(' + libraries.join('|') + ')(?=[\\\\\\/]|$)');
 		const ignReg =
-			this.options.ignore &&
-			new RegExp('^(' + this.options.ignore.map(p => p.replace('/', '\\/')).join('|') + ')(?=[\\\\\\/]|$)');
+			ignore && new RegExp('^(' + ignore.map(p => p.replace('/', '\\/')).join('|') + ')(?=[\\\\\\/]|$)');
 		normalModuleFactory.hooks.factory.tap('DelegatedEnactFactoryPlugin', factory => {
 			return function (data, callback) {
 				const dependency = data.dependencies[0];
 				const request = dependency.request;
+				const context = dependency.originModule && dependency.originModule.context;
+
+				if (request === polyfill) {
+					const polyID = '@enact/polyfills';
+					return callback(null, new DelegatedModule(name, {id: polyID}, 'require', polyID, polyID));
+				} else if (local && request && context && request.startsWith('.')) {
+					let resource = path.join(context, request);
+					if (
+						resource.startsWith(app.context) &&
+						!/[\\/]tests[\\/]/.test('./' + path.relative(app.context, resource))
+					) {
+						const parent = findParentMain(path.dirname(resource));
+						if (parent.pointsTo === resource) resource = parent.path;
+						const localID = resource.replace(app.context, app.name).replace(/\\/g, '/');
+						return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
+					}
+				}
 				if (request && libReg.test(request) && (!ignReg || !ignReg.test(request))) {
 					return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
 				}
@@ -83,8 +112,7 @@ class EnactFrameworkRefPlugin {
 	}
 
 	apply(compiler) {
-		const external = this.options.external;
-		const htmlPlugin = this.options.htmlPlugin;
+		const {name, libraries, ignore, external, polyfill, htmlPlugin} = this.options;
 
 		// Declare enact_framework as an external dependency
 		const externals = {};
@@ -97,14 +125,12 @@ class EnactFrameworkRefPlugin {
 			compilation.dependencyFactories.set(DelegatedSourceDependency, normalModuleFactory);
 
 			htmlPluginHooks.beforeAssetTagGeneration.tapAsync('EnactFrameworkRefPlugin', (htmlPluginData, callback) => {
-				htmlPluginData.assets.js.unshift({
-					entryName: 'enact',
-					path: normalizePath(external.publicPath, 'enact.js', compiler).replace(/\\+/g, '/')
-				});
-				htmlPluginData.assets.css.unshift({
-					entryName: 'enact',
-					path: normalizePath(external.publicPath, 'enact.css', compiler).replace(/\\+/g, '/')
-				});
+				htmlPluginData.assets.js.unshift(
+					normalizePath(external.publicPath, 'enact.js', compiler).replace(/\\+/g, '/')
+				);
+				htmlPluginData.assets.css.unshift(
+					normalizePath(external.publicPath, 'enact.css', compiler).replace(/\\+/g, '/')
+				);
 				callback(null, htmlPluginData);
 			});
 
@@ -120,9 +146,10 @@ class EnactFrameworkRefPlugin {
 		// Apply the Enact factory plugin to handle the require() delagation/rerouting
 		compiler.hooks.compile.tap('EnactFrameworkRefPlugin', ({normalModuleFactory}) => {
 			new DelegatedEnactFactoryPlugin({
-				name: this.options.name,
-				libraries: this.options.libraries,
-				ignore: this.options.ignore
+				name,
+				libraries,
+				ignore,
+				polyfill
 			}).apply(normalModuleFactory);
 		});
 	}

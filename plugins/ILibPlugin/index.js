@@ -1,5 +1,5 @@
 const path = require('path');
-const glob = require('glob');
+const glob = require('fast-glob');
 const fs = require('graceful-fs');
 const {SyncWaterfallHook} = require('tapable');
 const {ContextReplacementPlugin, DefinePlugin, Template} = require('webpack');
@@ -289,7 +289,7 @@ class ILibPlugin {
 						const dir = path.dirname(manifests[i]);
 						let files = [];
 						if (fs.existsSync(dir)) {
-							files = glob.sync('./**/!(appinfo).json', {nodir: true, cwd: dir});
+							files = glob.sync('./**/!(appinfo).json', {onlyFiles: true, cwd: dir});
 							for (let k = 0; k < files.length; k++) {
 								files[k] = files[k].replace(/^\.\//, '');
 							}

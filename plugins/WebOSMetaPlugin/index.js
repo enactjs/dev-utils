@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const glob = require('glob');
+const glob = require('fast-glob');
 const {SyncWaterfallHook} = require('tapable');
 
 // List of asset-pointing appinfo properties.
@@ -198,7 +198,7 @@ class WebOSMetaPlugin {
 			// Scan for all localized appinfo.json files in the "resources" directory.
 			let loc = glob.sync('resources/**/appinfo.json', {
 				cwd: context,
-				nodir: true
+				onlyFiles: true
 			});
 			loc = compilation.hooks.webosMetaListLocalized.call(loc);
 			// Add each locale-specific appinfo.json and its relative assets to the compilation.

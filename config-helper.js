@@ -6,6 +6,10 @@ function isNamed(name) {
 	return fn => name && fn && fn.constructor && fn.constructor.name && fn.constructor.name === name;
 }
 
+function isPolyfill(file) {
+	return /[\\/]polyfills\.(js|jsx|mjs|ts|tsx)$/.test(file);
+}
+
 module.exports = {
 	appRoot: function () {
 		return rootCache ? rootCache : (rootCache = pkgRoot().path);
@@ -44,6 +48,21 @@ module.exports = {
 			config.entry[config.entry.length - 1] = replacement;
 		} else if (typeof config.entry === 'object') {
 			this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
+		}
+	},
+	polyfillFile: function ({entry} = {}) {
+		if (typeof entry === 'string') {
+			return isPolyfill(entry) && entry;
+		} else if (Array.isArray(entry)) {
+			return entry.find(isPolyfill);
+		} else if (typeof entry === 'object') {
+			return Object.keys(entry).reduce(
+				(result, n) =>
+					result ||
+					(typeof entry[n] === 'string' && isPolyfill(entry[n]) && entry[n]) ||
+					(Array.isArray(entry[n]) && entry[n].find(isPolyfill)),
+				undefined
+			);
 		}
 	},
 	findPlugin: function ({plugins = []} = {}, name) {
