@@ -67,7 +67,9 @@ module.exports = {
 							'!resources',
 							'!coverage',
 							'!tests',
-							'**/tests/**/*.*'
+							'**/__tests__/**/*.{js,jsx,ts,tsx}',
+							'**/?(*.)(spec|test).{js,jsx,ts,tsx}',
+							'**/*-specs.{js,jsx,ts,tsx}'
 						]
 					})
 					.map(f => './' + f)
