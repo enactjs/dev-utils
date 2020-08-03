@@ -28,7 +28,7 @@ class DelegatedEnactFactoryPlugin {
 		const {name, libraries, ignore, local, polyfill} = this.options;
 		const libReg = new RegExp('^(' + libraries.join('|') + ')(?=[\\\\\\/]|$)');
 		const ignReg =
-			ignore && new RegExp('^(' + ignore.map(p => p.replace('/', '\\/')).join('|') + ')(?=[\\\\\\/]|$)');
+			ignore && new RegExp('^(' + ignore.map(p => p.replace('/', '[\\\\\\/]')).join('|') + ')(?=[\\\\\\/]|$)');
 		normalModuleFactory.hooks.factory.tap('DelegatedEnactFactoryPlugin', factory => {
 			return function (data, callback) {
 				const dependency = data.dependencies[0];
@@ -42,7 +42,8 @@ class DelegatedEnactFactoryPlugin {
 					let resource = path.join(context, request);
 					if (
 						resource.startsWith(app.context) &&
-						!/[\\/]tests[\\/]/.test('./' + path.relative(app.context, resource))
+						!/[\\/]tests[\\/]/.test('./' + path.relative(app.context, resource)) &&
+						(!ignReg || !ignReg.test(resource.replace(/^(.*[\\/]node_modules[\\/])+/, '')))
 					) {
 						const parent = findParentMain(path.dirname(resource));
 						if (parent.pointsTo === resource) resource = parent.path;
