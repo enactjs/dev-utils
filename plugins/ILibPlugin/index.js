@@ -57,7 +57,7 @@ function bundleConst(name) {
 	);
 }
 
-function resolveBundle(dir, context, symlinks) {
+function resolveBundle(dir, context, symlinks, relative) {
 	const bundle = {resolved: dir, path: dir, emit: true};
 	if (path.isAbsolute(bundle.path)) {
 		bundle.emit = false;
@@ -70,7 +70,11 @@ function resolveBundle(dir, context, symlinks) {
 				bundle.path = path.join(context, bundle.path);
 			}
 		}
-		bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
+		if (relative) {
+			bundle.resolved = JSON.stringify(transformPath(context, bundle.path));
+		} else {
+			bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
+		}
 	}
 	return bundle;
 }
@@ -215,7 +219,7 @@ class ILibPlugin {
 		const created = [];
 		let manifests = [];
 		if (opts.ilib) {
-			opts.context = opts.context || compiler.context;
+			opts.context = process.env.ILIB_CONTEXT || opts.context || compiler.context;
 
 			// If bundles are undefined, attempt to autodetect theme bundles at buildtime
 			if (typeof opts.bundles === 'undefined') {
@@ -233,7 +237,12 @@ class ILibPlugin {
 
 			// Resolve an accurate basepath for iLib.
 			const ilib = resolveBundle(opts.ilib, opts.context, opts.symlinks);
-			const resources = resolveBundle(opts.resources || 'resources', opts.context, opts.symlinks);
+			const resources = resolveBundle(
+				opts.resources || 'resources',
+				opts.context,
+				opts.symlinks,
+				Boolean(opts.relativeResources)
+			);
 			const definedConstants = {
 				ILIB_BASE_PATH: ilib.resolved,
 				ILIB_RESOURCES_PATH: resources.resolved,

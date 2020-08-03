@@ -15,7 +15,10 @@ module.exports = {
 		const libraries = ['@enact', 'react', 'react-dom', 'ilib'];
 
 		const app = packageRoot();
-		if (app.meta.name.startsWith('@enact/') && fs.existsSync(path.join(app.path, 'ThemeDecorator'))) {
+		if (
+			app.meta.name.startsWith('@enact/') &&
+			(fs.existsSync(path.join(app.path, 'ThemeDecorator')) || app.meta.name === '@enact/i18n')
+		) {
 			libraries.push('.');
 		}
 
