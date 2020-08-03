@@ -1,3 +1,7 @@
+# 3.0.2 (August 3, 2020)
+
+* `EnactFrameworkRefPlugin`: Fixed to ensure locally-accessed files within ignored packages do not get delegated.
+
 # 3.0.1 (July 31, 2020)
 
 * `framework` mixin: Adds the full list of Jest unit test locations to ignore when scanning framework files to include in framework bundles.
