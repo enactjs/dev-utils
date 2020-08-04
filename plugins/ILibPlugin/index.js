@@ -206,7 +206,7 @@ class ILibPlugin {
 		}
 
 		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
-		this.options.create = 
+		this.options.create =
 			typeof process.env.ILIB_ASSET_CREATE !== 'undefined'
 				? process.env.ILIB_ASSET_CREATE === 'true'
 				: typeof this.options.create !== 'boolean' || this.options.create;
