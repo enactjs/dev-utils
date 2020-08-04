@@ -35,6 +35,7 @@ Allowed values are as follows:
 - `emit`: Whether or not to emit the stock iLib locale assets to the output directory. Defaults to `true`.
 - `cache`: Whether or not to cache locale/resource assets and copy emit them if they're newer/changed from source files. Defaults to `true`.
 - `context`: Context directory for the app source. Determined automatically via webpack's context, however can be overriden with this property.
+- `relativeResources`: Whether or not the app-level resources should be resolved relative to the HTML, rather than the public path.
 - `symlinks`: Whether or not to resolve symlinks' real paths when handling bundles. Similar to webpack's `resolve.symlinks` option. Defaults to `true`.
 
 
