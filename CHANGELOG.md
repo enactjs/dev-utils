@@ -1,3 +1,12 @@
+# 3.1.0 (August 3, 2020)
+
+* `externals` and `framework` mixins: ensure that `@enact/i18n` is included with a framework bundle, even when local files. This package is unique as it contains the iLib path hardcoding and should be within the framework bundle.
+* `framework` mixin: set relative application resbundle (`"resources"` relative to the html location)
+* `ILibPlugin`:
+  * Add support for `relativeResources` boolean option, which specifies the resources will be relative to the HTML and not relative to any public path that's been set.
+  * Add override support for `context` option via `ILIB_CONTEXT` environment variable.
+  * Add override support for `create` option via `ILIB_ASSET_CREATE` environment variable.
+
 # 3.0.2 (August 3, 2020)
 
 * `EnactFrameworkRefPlugin`: Fixed to ensure locally-accessed files within ignored packages do not get delegated.
