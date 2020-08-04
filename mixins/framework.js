@@ -53,7 +53,10 @@ module.exports = {
 				)
 				.concat(['react', 'react-dom'])
 		};
-		if (app.meta.name.startsWith('@enact/') && fs.existsSync(path.join(app.path, 'ThemeDecorator'))) {
+		if (
+			app.meta.name.startsWith('@enact/') &&
+			(fs.existsSync(path.join(app.path, 'ThemeDecorator')) || app.meta.name === '@enact/i18n')
+		) {
 			config.entry.enact = config.entry.enact.concat(
 				fastGlob
 					.sync('**/*.@(js|jsx|es6)', {
@@ -102,6 +105,7 @@ module.exports = {
 		if (ilibPlugin) {
 			ilibPlugin.options.create = false;
 			ilibPlugin.options.resources = false;
+			ilibPlugin.options.relativeResources = true;
 		}
 
 		// Remove the HTML generation plugin and webOS-meta plugin
