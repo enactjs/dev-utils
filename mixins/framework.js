@@ -11,6 +11,7 @@ module.exports = {
 
 		// Scan for any polyfills.js entry file for potential re-usage.
 		const polyfillFile = helper.polyfillFile(config);
+		const d = {};
 
 		// Form list of framework entries; Every @enact/* js file as well as react/react-dom
 		config.entry = {
@@ -78,6 +79,63 @@ module.exports = {
 					.map(f => './' + f)
 			);
 		}
+
+		d.enact = fastGlob
+				.sync('@enact/**/*.@(js|jsx|es6)', {
+					cwd: path.resolve(path.join(app.path, 'node_modules')),
+					onlyFiles: true,
+					ignore: [
+						'**/webpack.config.js',
+						'**/.eslintrc.js',
+						'**/karma.conf.js',
+						'**/build/**/*.*',
+						'**/dist/**/*.*',
+						'**/@enact/dev-utils/**/*.*',
+						'**/@enact/storybook-utils/**/*.*',
+						'**/@enact/ui-test-utils/**/*.*',
+						'**/@enact/screenshot-test-utils/**/*.*',
+						'**/ilib/localedata/**/*.*',
+						path.join(config.output.path, '*'),
+						'**/node_modules/**/*.*',
+						'**/samples/**/*.*',
+						'**/tests/**/*.*'
+					],
+					followSymbolicLinks: true
+				});
+		d.ilib = fastGlob.sync('ilib/**/*.@(js|jsx|es6)', {
+						cwd: path.resolve(path.join(app.path, 'node_modules')),
+						onlyFiles: true,
+						ignore: [
+							'!node_modules',
+							'!locale',
+							'**/ilib-node*.js',
+							'**/AsyncNodeLoader.js',
+							'**/NodeLoader.js',
+							'**/RhinoLoader.js'
+						],
+						followSymbolicLinks: true
+					});
+		d.local = config.entry.enact.concat(
+				fastGlob
+					.sync('**/*.@(js|jsx|es6)', {
+						cwd: app.path,
+						onlyFiles: true,
+						ignore: [
+							'!node_modules',
+							'!samples',
+							'!dist',
+							'!build',
+							'!resources',
+							'!coverage',
+							'!tests',
+							'**/__tests__/**/*.{js,jsx,ts,tsx}',
+							'**/?(*.)(spec|test).{js,jsx,ts,tsx}',
+							'**/*-specs.{js,jsx,ts,tsx}'
+						]
+					})
+					.map(f => './' + f)
+			);
+		fs.writeFileSync('debug.log', JSON.stringify(d, null, '\t'), {encoding:'utf8'})
 
 		if (opts['externals-polyfill'] || opts.externalsPolyfill) {
 			if (polyfillFile) {
