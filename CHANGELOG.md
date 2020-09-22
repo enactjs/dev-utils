@@ -1,3 +1,7 @@
+# unreleased
+
+* `SnapshotPlugin`: Fixed to clear ilib cache when updating environment
+
 # 2.8.0 (July 20, 2020)
 
 * `WebOSMetaPlugin`: Added support for `extraLargeIcon` asset field.
