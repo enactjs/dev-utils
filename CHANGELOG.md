@@ -1,4 +1,4 @@
-# unreleased
+# 2.8.1 (September 23, 2020)
 
 * `SnapshotPlugin`: Fixed to clear ilib cache when updating environment
 
