@@ -129,7 +129,7 @@ class SnapshotPlugin {
 				}
 
 				if (err) {
-					console.log(chalk.red('Snapshot blob generation failed.'));
+					console.log(chalk.red('Snapshot blob generation "' + opts.exec + ' ' + opts.args.join(' ') + '" in "' + compiler.outputPath + '" directory failed: \nstdout: "' + child.stdout + '"\nstderr: "' + child.stderr + '"'));
 				}
 
 				callback(err);
