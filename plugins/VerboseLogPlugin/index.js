@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const {constructor: Chalk} = require('chalk');
+const {Instance: Chalk} = require('chalk');
 const {ProgressPlugin} = require('webpack');
 
 class VerboseLogPlugin {
