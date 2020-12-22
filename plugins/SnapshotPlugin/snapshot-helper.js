@@ -32,6 +32,9 @@ global.updateEnvironment = function() {
 		var ilib = require('ilib/lib/ilib');
 		if (ilib && ilib._load) {
 			ilib._load._cacheValidated = false;
+			if (ilib.clearCache) {
+				ilib.clearCache();
+			}
 		}
 
 		// Clear the active resBundle and string cache.
