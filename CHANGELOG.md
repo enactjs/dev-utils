@@ -37,6 +37,9 @@
   * Added `polyfill` string option, which specifies a polyfill file to delegate out as `@enact/polyfills`.
   * Updated module delegate handling to setup correct paths for locally-scoped files when they're externally used.
 
+# 2.8.1 (September 23, 2020)
+
+* `SnapshotPlugin`: Fixed to clear ilib cache when updating environment
 
 # 2.8.0 (July 20, 2020)
 
