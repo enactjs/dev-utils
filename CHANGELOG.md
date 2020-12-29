@@ -1,3 +1,7 @@
+# unreleased
+
+* `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
+
 # 3.1.0 (August 3, 2020)
 
 * `externals` and `framework` mixins: ensure that `@enact/i18n` is included with a framework bundle, even when local files. This package is unique as it contains the iLib path hardcoding and should be within the framework bundle.
