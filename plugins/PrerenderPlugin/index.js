@@ -171,7 +171,7 @@ class PrerenderPlugin {
 			// Force HtmlWebpackPlugin to use body inject format and set aside the js assets.
 			htmlPluginHooks.beforeAssetTagGeneration.tapAsync('PrerenderPlugin', (htmlPluginData, callback) => {
 				htmlPluginData.plugin.options.inject = 'body';
-				jsAssets = htmlPluginData.assets.js.map(file => file.path);
+				jsAssets = htmlPluginData.assets.js.map(file => file);
 				htmlPluginData.assets.js = [];
 				callback(null, htmlPluginData);
 			});
