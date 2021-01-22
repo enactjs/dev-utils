@@ -302,6 +302,15 @@ class PrerenderPlugin {
 				callback();
 			}
 		});
+
+		compiler.hooks.emit.tapAsync('PrerenderPlugin', (compilation, callback) => {
+			// Replace ReactDOM.render to ReactDOM.hydrate from main.js
+			const data = compilation.assets[opts.chunk].source();
+			const replacedData = data.replace(/render(?=(?:(?!render|getElementById).)*getElementById\(('|")root)/, 'hydrate');
+			emitAsset(compilation, opts.chunk, replacedData);
+
+			callback();
+		});
 	}
 }
 
