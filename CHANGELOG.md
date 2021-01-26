@@ -1,6 +1,8 @@
 # unreleased
 
-* `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
+* `PrerenderPlugin`:
+  * Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps
+  * Fixed compatibility for supporting latest `html-webpack-plugin`
 
 # 3.1.0 (August 3, 2020)
 
