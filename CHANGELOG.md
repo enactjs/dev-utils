@@ -1,6 +1,7 @@
 # unreleased
 
 * `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
+* `framework` mixin: Adds the `@enact/docs-utils` locations to ignore when scanning framework files to include in framework bundles.
 
 # 3.1.0 (August 3, 2020)
 
