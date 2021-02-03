@@ -25,6 +25,7 @@ module.exports = {
 						'**/build/**/*.*',
 						'**/dist/**/*.*',
 						'**/@enact/dev-utils/**/*.*',
+						'**/@enact/docs-utils/**/*.*',
 						'**/@enact/storybook-utils/**/*.*',
 						'**/@enact/ui-test-utils/**/*.*',
 						'**/@enact/screenshot-test-utils/**/*.*',

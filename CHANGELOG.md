@@ -1,3 +1,8 @@
+# 3.1.1 (February 3, 2021)
+
+* `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
+* `framework` mixin: Adds the `@enact/docs-utils` location to ignore when scanning framework files to include in framework bundles.
+
 # 3.1.0 (August 3, 2020)
 
 * `externals` and `framework` mixins: ensure that `@enact/i18n` is included with a framework bundle, even when local files. This package is unique as it contains the iLib path hardcoding and should be within the framework bundle.
@@ -37,6 +42,9 @@
   * Added `polyfill` string option, which specifies a polyfill file to delegate out as `@enact/polyfills`.
   * Updated module delegate handling to setup correct paths for locally-scoped files when they're externally used.
 
+# 2.8.1 (September 23, 2020)
+
+* `SnapshotPlugin`: Fixed to clear ilib cache when updating environment
 
 # 2.8.0 (July 20, 2020)
 
