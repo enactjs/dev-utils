@@ -1,8 +1,11 @@
-# unreleased
+# [unreleased]
 
-* `PrerenderPlugin`:
-  * Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps
-  * Fixed compatibility for supporting latest `html-webpack-plugin`
+* `PrerenderPlugin`: Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps
+
+# 3.1.1 (February 3, 2021)
+
+* `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
+* `framework` mixin: Adds the `@enact/docs-utils` location to ignore when scanning framework files to include in framework bundles.
 
 # 3.1.0 (August 3, 2020)
 
