@@ -1,4 +1,4 @@
-/* eslint no-var: off, prettier/prettier: off */
+/* eslint-disable */
 /*
  *  mock-window.js
  *

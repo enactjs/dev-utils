@@ -1,3 +1,8 @@
+# 4.0.0 (February 5, 2021)
+
+* Updated dependencies including React 17
+* `PrerenderPlugin`: Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps
+
 # 3.1.1 (February 3, 2021)
 
 * `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
