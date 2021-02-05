@@ -1,5 +1,6 @@
 # [unreleased]
 
+* Updated dependencies including React 17
 * `PrerenderPlugin`: Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps
 
 # 3.1.1 (February 3, 2021)
