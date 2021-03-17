@@ -72,7 +72,7 @@ module.exports = {
 							'!coverage',
 							'!tests',
 							'**/__tests__/**/*.{js,jsx,ts,tsx}',
-							'**/?(*.)(spec|test).{js,jsx,ts,tsx}',
+							'**/?(*.)+(spec|test).[jt]s?(x)',
 							'**/*-specs.{js,jsx,ts,tsx}'
 						]
 					})
