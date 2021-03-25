@@ -41,10 +41,16 @@ global.updateEnvironment = function() {
 		var resBundle = require('@enact/i18n/src/resBundle');
 		resBundle.clearResBundle();
 		try {
-			var sandstoneBundle = require('@enact/sandstone/internal/$L');
-			sandstoneBundle.clearResBundle();
+			var moonstoneBundle = require('@enact/moonstone/internal/$L');
+			moonstoneBundle.clearResBundle();
 		} catch (moonEx) {
 			handleException(moonEx);
+		}
+		try {
+			var sandstoneBundle = require('@enact/sandstone/internal/$L');
+			sandstoneBundle.clearResBundle();
+		} catch (sandEx) {
+			handleException(sandEx);
 		}
 
 		// Update the iLib/Enact locale to the active window's locale.
