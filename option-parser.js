@@ -114,7 +114,7 @@ const config = {
 		enact = Object.assign(enact, meta);
 
 		// Parse the theme config tree for defaults
-		config.theme = themeConfig(pkg.path, process.env.ENACT_THEME || enact.theme || 'moonstone');
+		config.theme = themeConfig(pkg.path, process.env.ENACT_THEME || enact.theme || 'sandstone');
 
 		// Optional alternate entrypoint for isomorphic builds.
 		config.isomorphic = computed('isomorphic', enact, config.theme);
@@ -141,7 +141,7 @@ const config = {
 		// the *.module.css and *.module.less files be processed in a modular context.
 		config.forceCSSModules = computed('forceCSSModules', enact, config.theme);
 
-		// Resolve array of screenType configurations. When not found, falls back to any theme preset or moonstone.
+		// Resolve array of screenType configurations. When not found, falls back to any theme preset or sandstone.
 		const screens = computed('screenTypes', enact, config.theme);
 		config.screenTypes =
 			(Array.isArray(screens) && screens) ||
@@ -157,7 +157,7 @@ const config = {
 			? riConfig
 			: config.screenTypes.reduce((r, s) => (s.base && {baseSize: s.pxPerRem}) || r, undefined);
 
-		// Resolved filepath to fontGenerator. When not found, falls back to any theme preset or moonstone.
+		// Resolved filepath to fontGenerator. When not found, falls back to any theme preset or sandstone.
 		const fontGenerator = computed('fontGenerator', enact, config.theme);
 		config.fontGenerator =
 			fontGenerator &&
