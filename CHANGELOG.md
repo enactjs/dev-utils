@@ -1,6 +1,7 @@
 # unreleased
 
-* Set default theme config to sandstone in `option-parser` and `SnapshotPlugin` 
+* `option-parser`: Set default theme config to `sandstone`.
+* `SnapshotPlugin`: Added `sandstone` support for clearing resource bundle.
 * `framework` mixin: Fixed the glob patterns for test files to ignore.
 
 # 4.0.0 (February 5, 2021)
