@@ -1,11 +1,17 @@
+# 4.1.0 (March 26, 2021)
+
+* `option-parser`: Set default theme config to `sandstone`.
+* `SnapshotPlugin`: Added `sandstone` support for clearing resource bundle.
+* `framework` mixin: Fixed the glob patterns for test files to ignore.
+
 # 4.0.0 (February 5, 2021)
 
-* Updated dependencies including React 17
-* `PrerenderPlugin`: Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps
+* Updated dependencies including React 17.
+* `PrerenderPlugin`: Added support for `ReactDOM.hydrate` instead of `ReactDOM.render` for prerendered apps.
 
 # 3.1.1 (February 3, 2021)
 
-* `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
+* `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`.
 * `framework` mixin: Adds the `@enact/docs-utils` location to ignore when scanning framework files to include in framework bundles.
 
 # 3.1.0 (August 3, 2020)
