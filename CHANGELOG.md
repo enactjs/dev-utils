@@ -1,4 +1,4 @@
-# unreleased
+# 4.1.0 (March 26, 2021)
 
 * `option-parser`: Set default theme config to `sandstone`.
 * `SnapshotPlugin`: Added `sandstone` support for clearing resource bundle.
