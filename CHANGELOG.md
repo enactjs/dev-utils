@@ -1,3 +1,7 @@
+# unreleased
+
+* `PrerenderPlugin`: Fixed not injecting startup js when multiple locales exist
+
 # 4.1.0 (March 26, 2021)
 
 * `option-parser`: Set default theme config to `sandstone`.

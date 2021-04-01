@@ -198,7 +198,7 @@ class PrerenderPlugin {
 			});
 
 			// Inject prerendered static HTML
-			htmlPluginHooks.afterTemplateExecution.tapAsync('PrerenderPlugin', (htmlPluginData, callback) => {
+			htmlPluginHooks.beforeEmit.tapAsync('PrerenderPlugin', (htmlPluginData, callback) => {
 				const applyToRoot = rootInjection(htmlPluginData.html);
 				Promise.all(
 					locales.map((loc, i) => {
