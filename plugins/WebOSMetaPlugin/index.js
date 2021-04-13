@@ -148,7 +148,8 @@ function emitAsset(name, assets, data) {
 }
 
 class WebOSMetaPlugin {
-	constructor(options = {}) {
+	constructor(htmlWebpackPlugin, options = {}) {
+		this.htmlWebpackPlugin = htmlWebpackPlugin;
 		this.options = options;
 	}
 
@@ -163,10 +164,10 @@ class WebOSMetaPlugin {
 			compilation.hooks.webosMetaLocalizedAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
 
 			// Hook into html-webpack-plugin to dynamically set page title
-			if (compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration) {
-				compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tapAsync(
-					'WebOSMetaPlugin',
-					(params, callback) => {
+			if (this.htmlWebpackPlugin) {
+				this.htmlWebpackPlugin
+					.getHooks(compilation)
+					.beforeAssetTagGeneration.tapAsync('WebOSMetaPlugin', (params, callback) => {
 						const appinfo = rootAppInfo(context, scan);
 						if (appinfo) {
 							// When no explicit HTML document title is provided, automically use the root appinfo's title value.
@@ -177,9 +178,8 @@ class WebOSMetaPlugin {
 								params.plugin.options.title = appinfo.obj.title;
 							}
 						}
-						callback();
-					}
-				);
+						callback(null, params);
+					});
 			}
 		});
 
