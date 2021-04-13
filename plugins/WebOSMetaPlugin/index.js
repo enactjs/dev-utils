@@ -148,8 +148,7 @@ function emitAsset(name, assets, data) {
 }
 
 class WebOSMetaPlugin {
-	constructor(htmlWebpackPlugin, options = {}) {
-		this.htmlWebpackPlugin = htmlWebpackPlugin;
+	constructor(options = {}) {
 		this.options = options;
 	}
 
@@ -164,22 +163,22 @@ class WebOSMetaPlugin {
 			compilation.hooks.webosMetaLocalizedAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
 
 			// Hook into html-webpack-plugin to dynamically set page title
-			if (this.htmlWebpackPlugin) {
-				this.htmlWebpackPlugin
-					.getHooks(compilation)
-					.beforeAssetTagGeneration.tapAsync('WebOSMetaPlugin', (params, callback) => {
-						const appinfo = rootAppInfo(context, scan);
-						if (appinfo) {
-							// When no explicit HTML document title is provided, automically use the root appinfo's title value.
-							if (
-								appinfo.obj.title &&
-								(!params.plugin.options.title || params.plugin.options.title === 'Webpack App')
-							) {
-								params.plugin.options.title = appinfo.obj.title;
-							}
+			if (this.options.htmlPlugin) {
+				const htmlPluginHooks = this.options.htmlPlugin.getHooks(compilation);
+				htmlPluginHooks.beforeAssetTagGeneration.tapAsync('WebOSMetaPlugin', (htmlPluginData, callback) => {
+					const appinfo = rootAppInfo(context, scan);
+					if (appinfo) {
+						// When no explicit HTML document title is provided, automically use the root appinfo's title value.
+						if (
+							appinfo.obj.title &&
+							(!htmlPluginData.plugin.options.title ||
+								htmlPluginData.plugin.options.title === 'Webpack App')
+						) {
+							htmlPluginData.plugin.options.title = appinfo.obj.title;
 						}
-						callback(null, params);
-					});
+					}
+					callback(null, htmlPluginData);
+				});
 			}
 		});
 
