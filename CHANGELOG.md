@@ -1,4 +1,4 @@
-# unreleased
+# 3.1.2 (May 11, 2021)
 
 * `WebOSMetaPlugin`:
   * Fixed not inserting title into the output HTML.
