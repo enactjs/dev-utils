@@ -1,5 +1,8 @@
 # unreleased
 
+* `WebOSMetaPlugin`:
+  * Fixed not inserting title into the output HTML.
+  * Removed the deprecated callback and replace the latest.
 * `PrerenderPlugin`: Fixed not injecting startup js when multiple locales exist.
 
 # 3.1.1 (February 3, 2021)
