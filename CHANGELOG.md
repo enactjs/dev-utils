@@ -1,3 +1,7 @@
+# unreleased
+
+* `PrerenderPlugin`: Fixed not injecting startup js when multiple locales exist.
+
 # 3.1.1 (February 3, 2021)
 
 * `PrerenderPlugin`: Fixed compatibility for supporting latest `html-webpack-plugin`
