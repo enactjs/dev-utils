@@ -1,3 +1,9 @@
+# unreleased
+
+* `PrerenderPlugin`:
+  * removed react checksum codes from index.js
+  * removed react checksum codes from templates.js
+
 # 4.1.1 (April 23, 2021)
 
 * `WebOSMetaPlugin`:
