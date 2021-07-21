@@ -65,14 +65,13 @@ class PrerenderPlugin {
 
 							// Extract the root CSS classes from the prerendered html code.
 							status.attr[i] = {classes: ''};
-							appHtml = appHtml
-								.replace(
-									/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
-									(match, before, s, classAttr) => {
-										status.attr[i].classes = classAttr;
-										return before + '"';
-									}
-								);
+							appHtml = appHtml.replace(
+								/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
+								(match, before, s, classAttr) => {
+									status.attr[i].classes = classAttr;
+									return before + '"';
+								}
+							);
 
 							// Dedupe the sanitized html code and alias as needed
 							const index = status.prerender.indexOf(appHtml);
@@ -206,8 +205,10 @@ class PrerenderPlugin {
 
 						if (linked.length === 0) {
 							// Single locale, re-inject root classes.
-							status.prerender[i] = status.prerender[i]
-								.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"');
+							status.prerender[i] = status.prerender[i].replace(
+								/(<div[^>]*class="[^"]*)"/i,
+								'$1' + status.attr[i].classes + '"'
+							);
 						} else {
 							// Create a mapping of locales and classes
 							mapping = linked.reduce(
