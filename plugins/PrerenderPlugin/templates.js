@@ -86,7 +86,7 @@ const deepLink = (conditions, prerender, wrapped) => conditions ? `
 ` : (wrapped || null);
 
 const multiLocale = (mapping) => mapping && `
-	// Apply locale-specific root classes and checksum.
+	// Apply locale-specific root classes.
 	var details = ${JSON.stringify(mapping, null, '\t').replace(/\n/g, '\n\t')};
 	var lang = navigator.language.toLowerCase();
 	var conf = details[lang] || details[lang.substring(0, 2)];
