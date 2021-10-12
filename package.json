@@ -1,6 +1,6 @@
 {
   "name": "@enact/dev-utils",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "A collection of development utilities for Enact apps.",
   "main": "index.js",
   "author": "Jason Robitaille <jason.robitaille@lge.com>",
@@ -67,7 +67,7 @@
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "^7.11.0",
-    "eslint-config-enact": "^3.0.1",
+    "eslint-config-enact": "^3.1.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-enact": "^0.2.1",
