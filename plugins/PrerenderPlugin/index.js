@@ -63,20 +63,15 @@ class PrerenderPlugin {
 							});
 							let appHtml = vdomServer.render(renderOpts);
 
-							// Extract the root CSS classes and react checksum from the prerendered html code.
+							// Extract the root CSS classes from the prerendered html code.
 							status.attr[i] = {classes: ''};
-							appHtml = appHtml
-								.replace(
-									/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
-									(match, before, s, classAttr) => {
-										status.attr[i].classes = classAttr;
-										return before + '"';
-									}
-								)
-								.replace(/(<div[^>]*data-react-checksum=")([^"]*)"/i, (match, before, checksum) => {
-									status.attr[i].checksum = checksum;
+							appHtml = appHtml.replace(
+								/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
+								(match, before, s, classAttr) => {
+									status.attr[i].classes = classAttr;
 									return before + '"';
-								});
+								}
+							);
 
 							// Dedupe the sanitized html code and alias as needed
 							const index = status.prerender.indexOf(appHtml);
@@ -209,10 +204,11 @@ class PrerenderPlugin {
 						if (status.err || !status.prerender[i] || status.alias[i]) return;
 
 						if (linked.length === 0) {
-							// Single locale, re-inject root classes and react checksum.
-							status.prerender[i] = status.prerender[i]
-								.replace(/(<div[^>]*class="[^"]*)"/i, '$1' + status.attr[i].classes + '"')
-								.replace(/(<div[^>]*data-react-checksum=")"/i, '$1' + status.attr[i].checksum + '"');
+							// Single locale, re-inject root classes.
+							status.prerender[i] = status.prerender[i].replace(
+								/(<div[^>]*class="[^"]*)"/i,
+								'$1' + status.attr[i].classes + '"'
+							);
 						} else {
 							// Create a mapping of locales and classes
 							mapping = linked.reduce(

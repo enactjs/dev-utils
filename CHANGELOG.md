@@ -1,3 +1,7 @@
+# 4.1.2 (October 12, 2021)
+
+* `PrerenderPlugin`: Cleaned up `data-react-checksum` related code.
+
 # 4.1.1 (April 23, 2021)
 
 * `WebOSMetaPlugin`:
