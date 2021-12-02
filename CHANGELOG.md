@@ -1,3 +1,7 @@
+# unreleased
+
+* Added `fbjs` module to fix snapshot build failuare.
+
 # 4.1.2 (October 12, 2021)
 
 * `PrerenderPlugin`: Cleaned up `data-react-checksum` related code.
