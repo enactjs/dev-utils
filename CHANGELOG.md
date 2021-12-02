@@ -1,4 +1,4 @@
-# unreleased
+# 4.1.3 (December 2, 2021)
 
 * Added `fbjs` module to fix snapshot build failuare.
 
