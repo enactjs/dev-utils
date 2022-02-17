@@ -126,8 +126,10 @@ const config = {
 		config.externalStartup = computed('externalStartup', enact, config.theme);
 		// Optional object mapping of webpack path aliases to use when building
 		config.alias = computed('alias', enact, config.alias);
-		// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
+		// Optional webpack node configuration value(only global, __filename or __dirname) (see https://webpack.js.org/configuration/node/).
 		config.nodeBuiltins = computed('nodeBuiltins', enact, config.theme);
+		// Optional webpack node configuration value (see https://webpack.js.org/configuration/resolve/#resolvefallback).
+		config.fallbackNodeBuiltins = computed('fallbackNodeBuiltins', enact, config.theme);
 		// Optional property to specify a version of NodeJS to target required polyfills.
 		// True or 'current' will use active version of Node, otherwise will use a specified version number.
 		config.node = computed('node', enact, config.theme);
