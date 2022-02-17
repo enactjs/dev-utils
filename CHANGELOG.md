@@ -1,6 +1,6 @@
 # unreleased
 
-* Added `additionalModulePaths` to enact options to specify paths to check when resolving modules.
+* `option-parser`: Added `additionalModulePaths` to specify paths to check when resolving modules.
 
 # 4.1.3 (December 2, 2021)
 
