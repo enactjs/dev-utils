@@ -142,6 +142,7 @@ const config = {
 		// Optionally force all LESS/CSS to be handled modularly, instead of solely having
 		// the *.module.css and *.module.less files be processed in a modular context.
 		config.forceCSSModules = computed('forceCSSModules', enact, config.theme);
+		config.additionalModulePaths = computed('additionalModulePaths', enact, config.theme);
 
 		// Resolve array of screenType configurations. When not found, falls back to any theme preset or sandstone.
 		const screens = computed('screenTypes', enact, config.theme);
