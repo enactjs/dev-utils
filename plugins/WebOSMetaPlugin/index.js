@@ -23,6 +23,7 @@ let variableSysPaths = null;
 // This allows us to avoid having multiple of the same files for locales that
 // share assets.
 const assetPathCache = {};
+const customHookMap = new WeakMap();
 
 function readAppInfo(file) {
 	// Read and parse appinfo.json file if it exists.
@@ -158,9 +159,11 @@ class WebOSMetaPlugin {
 
 		compiler.hooks.compilation.tap('WebOSMetaPlugin', compilation => {
 			// Define compilation hooks
-			compilation.hooks.webosMetaRootAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
-			compilation.hooks.webosMetaListLocalized = new SyncWaterfallHook(['list']);
-			compilation.hooks.webosMetaLocalizedAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
+			customHookMap.set(compilation, {
+				webosMetaRootAppinfo: new SyncWaterfallHook(['appinfo', 'details']),
+				webosMetaListLocalized: new SyncWaterfallHook(['list']),
+				webosMetaLocalizedAppinfo: new SyncWaterfallHook(['appinfo', 'details'])
+			});
 
 			// Hook into html-webpack-plugin to dynamically set page title
 			if (this.options.htmlPlugin) {
@@ -186,7 +189,7 @@ class WebOSMetaPlugin {
 			// Add the root appinfo.json as well as its relative assets to the compilation.
 			const meta = rootAppInfo(context, scan);
 			if (meta && meta.obj) {
-				meta.obj = compilation.hooks.webosMetaRootAppinfo.call(meta.obj, {
+				meta.obj = customHookMap.get(compilation).webosMetaRootAppinfo.call(meta.obj, {
 					path: meta.path
 				});
 				handleSysAssetPath(context, meta.obj);
@@ -199,7 +202,7 @@ class WebOSMetaPlugin {
 				cwd: context,
 				onlyFiles: true
 			});
-			loc = compilation.hooks.webosMetaListLocalized.call(loc);
+			loc = customHookMap.get(compilation).webosMetaListLocalized.call(loc);
 			// Add each locale-specific appinfo.json and its relative assets to the compilation.
 			let locFile, locRel, locMeta, locCode;
 			for (let i = 0; i < loc.length; i++) {
@@ -215,7 +218,7 @@ class WebOSMetaPlugin {
 				if (locMeta) {
 					locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile));
 					locCode = locCode.replace(/[\\/]+/g, '-');
-					locMeta = compilation.hooks.webosMetaLocalizedAppinfo.call(locMeta, {
+					locMeta = customHookMap.get(compilation).webosMetaLocalizedAppinfo.call(locMeta, {
 						path: locFile,
 						locale: locCode
 					});

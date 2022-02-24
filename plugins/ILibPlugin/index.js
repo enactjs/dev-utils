@@ -5,6 +5,8 @@ const {SyncWaterfallHook} = require('tapable');
 const {ContextReplacementPlugin, DefinePlugin, Template} = require('webpack');
 const app = require('../../option-parser');
 
+const customHookMap = new WeakMap();
+
 function packageName(file) {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding: 'utf8'})).name || '';
@@ -274,7 +276,9 @@ class ILibPlugin {
 
 			compiler.hooks.compilation.tap('ILibPlugin', compilation => {
 				// Define compilation hooks
-				compilation.hooks.ilibManifestList = new SyncWaterfallHook(['manifests']);
+				customHookMap.set(compilation, {
+					ilibManifestList: new SyncWaterfallHook(['manifests'])
+				});
 
 				// Add a unique ID value to the webpack require-function, so that the value is correctly updated,
 				// even when hot-reloading and serving.
@@ -332,7 +336,7 @@ class ILibPlugin {
 						)
 					);
 				}
-				manifests = compilation.hooks.ilibManifestList.call(manifests);
+				manifests = customHookMap.get(compilation).ilibManifestList.call(manifests);
 				handleBundles(compilation, manifests, opts, callback);
 			});
 		}
