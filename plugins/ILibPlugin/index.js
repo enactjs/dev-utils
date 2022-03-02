@@ -286,7 +286,7 @@ class ILibPlugin {
 				main.hooks.requireExtensions.tap('ILibPlugin', source => {
 					const buf = [source];
 					buf.push('');
-					buf.push(main.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
+					buf.push('__webpack_require__.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
 					return Template.asString(buf);
 				});
 			});
