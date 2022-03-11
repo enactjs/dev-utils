@@ -57,7 +57,7 @@ function bundleConst(name) {
 	);
 }
 
-function resolveBundle(dir, context, symlinks, relative) {
+function resolveBundle({dir, context, symlinks, relative, publicPath}) {
 	const bundle = {resolved: dir, path: dir, emit: true};
 	if (path.isAbsolute(bundle.path)) {
 		bundle.emit = false;
@@ -73,7 +73,7 @@ function resolveBundle(dir, context, symlinks, relative) {
 		if (relative) {
 			bundle.resolved = JSON.stringify(transformPath(context, bundle.path));
 		} else {
-			bundle.resolved = '__webpack_require__.p + ' + JSON.stringify(transformPath(context, bundle.path));
+			bundle.resolved = publicPath + JSON.stringify(transformPath(context, bundle.path));
 		}
 	}
 	return bundle;
@@ -180,6 +180,26 @@ function emitAsset(compilation, name, data) {
 	};
 }
 
+const iLibPluginHooksMap = new WeakMap();
+
+function getILibPluginHooks(compilation) {
+	let hooks = iLibPluginHooksMap.get(compilation);
+
+	// Setup the hooks only once
+	if (hooks === undefined) {
+		hooks = createiLibPluginHooks();
+		iLibPluginHooksMap.set(compilation, hooks);
+	}
+
+	return hooks;
+}
+
+function createiLibPluginHooks() {
+	return {
+		ilibManifestList: new SyncWaterfallHook(['manifests'])
+	};
+}
+
 class ILibPlugin {
 	constructor(options = {}) {
 		this.options = options;
@@ -239,13 +259,19 @@ class ILibPlugin {
 			}
 
 			// Resolve an accurate basepath for iLib.
-			const ilib = resolveBundle(opts.ilib, opts.context, opts.symlinks);
-			const resources = resolveBundle(
-				opts.resources || 'resources',
-				opts.context,
-				opts.symlinks,
-				Boolean(opts.relativeResources)
-			);
+			const ilib = resolveBundle({
+				dir: opts.ilib,
+				context: opts.context,
+				symlinks: opts.symlinks,
+				publicPath: opts.publicPath
+			});
+			const resources = resolveBundle({
+				dir: opts.resources || 'resources',
+				context: opts.context,
+				symlinks: opts.symlinks,
+				relative: Boolean(opts.relativeResources),
+				publicPath: opts.publicPath
+			});
 			const definedConstants = {
 				ILIB_BASE_PATH: ilib.resolved,
 				ILIB_RESOURCES_PATH: resources.resolved,
@@ -253,10 +279,19 @@ class ILibPlugin {
 				// when `emit` is false and `ilib` is not absolute, can delare no assets
 				ILIB_NO_ASSETS: JSON.stringify(!opts.emit && !path.isAbsolute(opts.ilib))
 			};
+			if (opts.ilibAdditionalResourcesPath) {
+				definedConstants.ILIB_ADDITIONAL_RESOURCES_PATH = '"' + opts.ilibAdditionalResourcesPath + '"';
+			}
+			console.log({definedConstants});
 			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
 			for (const name in opts.bundles) {
 				if (opts.bundles[name]) {
-					const bundle = resolveBundle(opts.bundles[name], opts.context, opts.symlinks);
+					const bundle = resolveBundle({
+						dir: opts.bundles[name],
+						context: opts.context,
+						symlinks: opts.symlinks,
+						publicPath: opts.publicPath
+					});
 					const bundleManifest = path.join(bundle.path, 'ilibmanifest.json');
 					definedConstants[bundleConst(name)] = bundle.resolved;
 					if (opts.emit && bundle.emit && fs.existsSync(bundleManifest)) {
@@ -273,16 +308,13 @@ class ILibPlugin {
 			new ContextReplacementPlugin(/ilib/, /^$/).apply(compiler);
 
 			compiler.hooks.compilation.tap('ILibPlugin', compilation => {
-				// Define compilation hooks
-				compilation.hooks.ilibManifestList = new SyncWaterfallHook(['manifests']);
-
 				// Add a unique ID value to the webpack require-function, so that the value is correctly updated,
 				// even when hot-reloading and serving.
 				const main = compilation.mainTemplate;
 				main.hooks.requireExtensions.tap('ILibPlugin', source => {
 					const buf = [source];
 					buf.push('');
-					buf.push(main.requireFn + '.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
+					buf.push('__webpack_require__.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
 					return Template.asString(buf);
 				});
 			});
@@ -332,11 +364,18 @@ class ILibPlugin {
 						)
 					);
 				}
-				manifests = compilation.hooks.ilibManifestList.call(manifests);
+				manifests = getILibPluginHooks(compilation).ilibManifestList.call(manifests);
 				handleBundles(compilation, manifests, opts, callback);
 			});
 		}
 	}
 }
+
+/**
+ * A static helper to get the hooks for this plugin
+ *
+ * Usage: ILibPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
+ */
+ILibPlugin.getHooks = getILibPluginHooks;
 
 module.exports = ILibPlugin;
