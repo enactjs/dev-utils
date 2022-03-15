@@ -1,4 +1,5 @@
 const fs = require('fs');
+const gracefulFs = require('graceful-fs');
 const path = require('path');
 const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
 const DelegatedModule = require('webpack/lib/DelegatedModule');
@@ -70,11 +71,11 @@ function normalizePath(dir, file, compiler) {
 }
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
+// The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
 	return (
 		compiler.outputFileSystem &&
-		compiler.outputFileSystem.constructor &&
-		compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem'
+		JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs)
 	);
 }
 

@@ -28,12 +28,11 @@ function packageSearch(dir, pkg) {
 }
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
+// The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
 	return (
 		compiler.outputFileSystem &&
-		compiler.outputFileSystem.constructor &&
-		compiler.outputFileSystem.constructor.name &&
-		compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem'
+		JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs)
 	);
 }
 
@@ -187,14 +186,14 @@ function getILibPluginHooks(compilation) {
 
 	// Setup the hooks only once
 	if (hooks === undefined) {
-		hooks = createiLibPluginHooks();
+		hooks = createILibPluginHooks();
 		iLibPluginHooksMap.set(compilation, hooks);
 	}
 
 	return hooks;
 }
 
-function createiLibPluginHooks() {
+function createILibPluginHooks() {
 	return {
 		ilibManifestList: new SyncWaterfallHook(['manifests'])
 	};
@@ -282,7 +281,6 @@ class ILibPlugin {
 			if (opts.ilibAdditionalResourcesPath) {
 				definedConstants.ILIB_ADDITIONAL_RESOURCES_PATH = '"' + opts.ilibAdditionalResourcesPath + '"';
 			}
-			console.log({definedConstants});
 			definedConstants[bundleConst(app.name)] = definedConstants.ILIB_RESOURCES_PATH;
 			for (const name in opts.bundles) {
 				if (opts.bundles[name]) {
@@ -371,11 +369,8 @@ class ILibPlugin {
 	}
 }
 
-/**
- * A static helper to get the hooks for this plugin
- *
- * Usage: ILibPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
- */
+// A static helper to get the hooks for this plugin
+// Usage: ILibPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
 ILibPlugin.getHooks = getILibPluginHooks;
 
 module.exports = ILibPlugin;

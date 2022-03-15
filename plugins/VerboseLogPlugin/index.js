@@ -24,6 +24,7 @@ class VerboseLogPlugin {
 				return base + ' ' + transform(content);
 			}
 		};
+
 		const update = ({percent, message, details, file}) => {
 			if (active !== file || !file) {
 				const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';

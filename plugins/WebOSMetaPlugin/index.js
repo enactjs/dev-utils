@@ -246,11 +246,8 @@ class WebOSMetaPlugin {
 	}
 }
 
-/**
- * A static helper to get the hooks for this plugin
- *
- * Usage: WebOSMetaPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
- */
+// A static helper to get the hooks for this plugin
+// Usage: WebOSMetaPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
 WebOSMetaPlugin.getHooks = getWebOSMetaPluginHooks;
 
 module.exports = WebOSMetaPlugin;
