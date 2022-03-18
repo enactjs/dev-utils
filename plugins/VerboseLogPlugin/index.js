@@ -11,6 +11,7 @@ class VerboseLogPlugin {
 	}
 
 	apply(compiler) {
+		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
 		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
 		let active;
@@ -53,24 +54,25 @@ class VerboseLogPlugin {
 		}).apply(compiler);
 
 		compiler.hooks.compilation.tap('VerboseLogPlugin', compilation => {
-			if (compilation.hooks.prerenderChunk) {
-				compilation.hooks.prerenderChunk.tap('VerboseLogPlugin', () => {
+			if (opts.prerenderPlugin) {
+				const prerenderPluginHooks = opts.prerenderPlugin.getHooks(compilation);
+				prerenderPluginHooks.prerenderChunk.tap('VerboseLogPlugin', () => {
 					update({
 						percent: 0.885,
 						message: 'prerendering chunk to HTML'
 					});
 				});
 			}
-		});
-
-		if (compiler.hooks.v8Snapshot) {
-			compiler.hooks.v8Snapshot.tap('VerboseLogPlugin', () => {
-				update({
-					percent: 0.97,
-					message: 'generating v8 snapshot blob'
+			if (opts.snapshotPlugin) {
+				const snapshotPluginHooks = opts.snapshotPlugin.getHooks(compilation);
+				snapshotPluginHooks.v8Snapshot.tap('VerboseLogPlugin', () => {
+					update({
+						percent: 0.97,
+						message: 'generating v8 snapshot blob'
+					});
 				});
-			});
-		}
+			}
+		});
 	}
 }
 
