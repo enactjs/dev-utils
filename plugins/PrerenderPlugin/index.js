@@ -7,15 +7,15 @@ const {htmlTagObjectToString} = require('html-webpack-plugin/lib/html-tags');
 const templates = require('./templates');
 const vdomServer = require('./vdom-server-render');
 
-const preRenderPluginHooksMap = new WeakMap();
+const prerenderPluginHooksMap = new WeakMap();
 
 function getPrerenderPluginHooks(compilation) {
-	let hooks = preRenderPluginHooksMap.get(compilation);
+	let hooks = prerenderPluginHooksMap.get(compilation);
 
 	// Setup the hooks only once
 	if (hooks === undefined) {
 		hooks = createPrerenderPluginHooks();
-		preRenderPluginHooksMap.set(compilation, hooks);
+		prerenderPluginHooksMap.set(compilation, hooks);
 	}
 
 	return hooks;
