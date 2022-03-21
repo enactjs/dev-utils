@@ -1,7 +1,7 @@
 # unreleased
 
-* Update all dependencies, with webpack peer dependency restricted to >=5.0.0.
-* Update all webpack plugins to use WeakMap since `compilation.hooks` became frozen.
+* Updated all dependencies, with webpack peer dependency restricted to >=5.0.0.
+* Updated all webpack plugins to use WeakMap since `compilation.hooks` became frozen.
 * `IlibPlugin`:
   * Added `ILIB_ADDITIONAL_RESOURCES_PATH` to defined constants if provided.
   * Added `publicPath` option to specify webpack public path.
