@@ -1,6 +1,6 @@
 const fs = require('fs');
-const gracefulFs = require('graceful-fs');
 const path = require('path');
+const gracefulFs = require('graceful-fs');
 const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {htmlTagObjectToString} = require('html-webpack-plugin/lib/html-tags');
@@ -266,20 +266,19 @@ class PrerenderPlugin {
 						}
 
 						return postProcessHtml(
-								applyToRoot(appHtml.prerender),
-								{},
-								{headTags: appHtml.head, bodyTags: body},
-								htmlPluginData.plugin.options
-							)
-							.then(html => {
-								if (locales.length === 1) {
-									// Only 1 locale, so just output as the default root index.html
-									htmlPluginData.html = html;
-								} else {
-									// Multiple locales, so output as locale-specific html file.
-									emitAsset(compilation, 'index.' + loc + '.html', html);
-								}
-							});
+							applyToRoot(appHtml.prerender),
+							{},
+							{headTags: appHtml.head, bodyTags: body},
+							htmlPluginData.plugin.options
+						).then(html => {
+							if (locales.length === 1) {
+								// Only 1 locale, so just output as the default root index.html
+								htmlPluginData.html = html;
+							} else {
+								// Multiple locales, so output as locale-specific html file.
+								emitAsset(compilation, 'index.' + loc + '.html', html);
+							}
+						});
 					})
 				)
 					.then(() => {
@@ -336,10 +335,7 @@ class PrerenderPlugin {
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
-	return (
-		compiler.outputFileSystem &&
-		JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs)
-	);
+	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 // Determine the desired target locales based of option content.
@@ -544,12 +540,12 @@ function parsePrerender(html) {
 }
 
 // Injects assets into html
-function injectAssetsIntoHtml (html, assets, assetTags, options) {
+function injectAssetsIntoHtml(html, assets, assetTags, options) {
 	const htmlRegExp = /(<html[^>]*>)/i;
 	const headRegExp = /(<\/head\s*>)/i;
 	const bodyRegExp = /(<\/body\s*>)/i;
-	const body = assetTags.bodyTags.map((assetTagObject) => htmlTagObjectToString(assetTagObject, options.xhtml));
-	const head = assetTags.headTags.map((assetTagObject) => htmlTagObjectToString(assetTagObject, options.xhtml));
+	const body = assetTags.bodyTags.map(assetTagObject => htmlTagObjectToString(assetTagObject, options.xhtml));
+	const head = assetTags.headTags.map(assetTagObject => htmlTagObjectToString(assetTagObject, options.xhtml));
 
 	if (body.length) {
 		if (bodyRegExp.test(html)) {
@@ -582,7 +578,7 @@ function injectAssetsIntoHtml (html, assets, assetTags, options) {
 }
 
 // Minifies html
-function minifyHtml (html, options) {
+function minifyHtml(html, options) {
 	if (typeof options.minify !== 'object') {
 		return html;
 	}
@@ -591,7 +587,8 @@ function minifyHtml (html, options) {
 	} catch (e) {
 		const isParseError = String(e.message).indexOf('Parse Error') === 0;
 		if (isParseError) {
-			e.message = 'html-webpack-plugin could not minify the generated output.\n' +
+			e.message =
+				'html-webpack-plugin could not minify the generated output.\n' +
 				'In production mode the html minifcation is enabled by default.\n' +
 				'If you are not generating a valid html output please disable it manually.\n' +
 				'You can do so by adding the following setting to your HtmlWebpackPlugin config:\n|\n|' +
@@ -599,20 +596,19 @@ function minifyHtml (html, options) {
 				'See https://github.com/jantimon/html-webpack-plugin#options for details.\n\n' +
 				'For parser dedicated bugs please create an issue here:\n' +
 				'https://danielruf.github.io/html-minifier-terser/' +
-				'\n' + e.message;
+				'\n' +
+				e.message;
 		}
 		throw e;
 	}
 }
 
 // Injects assets and minify the html
-function postProcessHtml (html, assets, assetTags, options) {
+function postProcessHtml(html, assets, assetTags, options) {
 	if (typeof html !== 'string') {
 		return Promise.reject(new Error('Expected html to be a string but got ' + JSON.stringify(html)));
 	}
-	const htmlAfterInjection = options.inject
-		? injectAssetsIntoHtml(html, assets, assetTags, options)
-		: html;
+	const htmlAfterInjection = options.inject ? injectAssetsIntoHtml(html, assets, assetTags, options) : html;
 	const htmlAfterMinification = minifyHtml(htmlAfterInjection, options);
 	return Promise.resolve(htmlAfterMinification);
 }

@@ -1,6 +1,6 @@
 const fs = require('fs');
-const gracefulFs = require('graceful-fs');
 const path = require('path');
+const gracefulFs = require('graceful-fs');
 const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
 const DelegatedModule = require('webpack/lib/DelegatedModule');
 const ExternalsPlugin = require('webpack/lib/ExternalsPlugin');
@@ -73,10 +73,7 @@ function normalizePath(dir, file, compiler) {
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
-	return (
-		compiler.outputFileSystem &&
-		JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs)
-	);
+	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 // Reference plugin to handle rewiring the external Enact framework requests

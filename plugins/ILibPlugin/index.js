@@ -30,10 +30,7 @@ function packageSearch(dir, pkg) {
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
-	return (
-		compiler.outputFileSystem &&
-		JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs)
-	);
+	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs);
 }
 
 // Normalize a filepath to be relative to the webpack context, using forward-slashes, and

@@ -1,7 +1,7 @@
 const cp = require('child_process');
 const fs = require('fs');
-const gracefulFs = require('graceful-fs');
 const path = require('path');
+const gracefulFs = require('graceful-fs');
 const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {IgnorePlugin} = require('webpack');
@@ -10,10 +10,7 @@ const helper = require('../../config-helper');
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
-	return (
-		compiler.outputFileSystem &&
-		JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs)
-	);
+	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 function getBlobName(args) {
@@ -146,7 +143,17 @@ class SnapshotPlugin {
 				}
 
 				if (err) {
-					console.log(chalk.red('Snapshot blob generation "' + opts.exec + ' ' + opts.args.join(' ') + '" in "' + compiler.outputPath + '" directory failed:"'));
+					console.log(
+						chalk.red(
+							'Snapshot blob generation "' +
+								opts.exec +
+								' ' +
+								opts.args.join(' ') +
+								'" in "' +
+								compiler.outputPath +
+								'" directory failed:"'
+						)
+					);
 				}
 
 				callback(err);
