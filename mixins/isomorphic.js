@@ -39,6 +39,7 @@ module.exports = {
 
 		// Include plugin to prerender the html into the index.html
 		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
+		const webOSMetaPluginInstance = helper.getPluginByName(config, 'WebOSMetaPlugin');
 		config.plugins.push(
 			new PrerenderPlugin({
 				server: reactDOMServer,
@@ -49,7 +50,8 @@ module.exports = {
 				fontGenerator: app.fontGenerator,
 				externalStartup: app.externalStartup,
 				mapfile: opts.mapfile,
-				htmlPlugin: htmlPluginInstance && htmlPluginInstance.constructor
+				htmlPlugin: htmlPluginInstance && htmlPluginInstance.constructor,
+				webOSMetaPlugin: webOSMetaPluginInstance && webOSMetaPluginInstance.constructor
 			})
 		);
 
@@ -63,7 +65,8 @@ module.exports = {
 			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
 			config.plugins.push(
 				new SnapshotPlugin({
-					target: 'main.js'
+					target: 'main.js',
+					webOSMetaPlugin: webOSMetaPluginInstance && webOSMetaPluginInstance.constructor
 				})
 			);
 		}
