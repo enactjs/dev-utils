@@ -1,9 +1,32 @@
 const fs = require('fs');
 const path = require('path');
+const gracefulFs = require('graceful-fs');
 const chalk = require('chalk');
 const {SyncHook} = require('tapable');
+const {htmlTagObjectToString} = require('html-webpack-plugin/lib/html-tags');
 const templates = require('./templates');
 const vdomServer = require('./vdom-server-render');
+
+const prerenderPluginHooksMap = new WeakMap();
+
+function getPrerenderPluginHooks(compilation) {
+	let hooks = prerenderPluginHooksMap.get(compilation);
+
+	// Setup the hooks only once
+	if (hooks === undefined) {
+		hooks = createPrerenderPluginHooks();
+		prerenderPluginHooksMap.set(compilation, hooks);
+	}
+
+	return hooks;
+}
+
+function createPrerenderPluginHooks() {
+	return {
+		prerenderChunk: new SyncHook(['details']),
+		prerenderLocale: new SyncHook(['details'])
+	};
+}
 
 class PrerenderPlugin {
 	constructor(options = {}) {
@@ -25,15 +48,12 @@ class PrerenderPlugin {
 
 		compiler.hooks.compilation.tap('PrerenderPlugin', compilation => {
 			const htmlPluginHooks = opts.htmlPlugin.getHooks(compilation);
+			const webOSMetaPluginHooks = opts.webOSMetaPlugin.getHooks(compilation);
 			const appInfoOptimize = {groups: {}, coverage: []};
 			let jsAssets = [];
 
 			// Do nothing when run in virtual or custom output FS
 			if (!isNodeOutputFS(compiler)) return;
-
-			// Define compilation hooks
-			compilation.hooks.prerenderChunk = new SyncHook(['details']);
-			compilation.hooks.prerenderLocale = new SyncHook(['details']);
 
 			// Determine the target locales and load up the startup scripts.
 			locales = parseLocales(compiler.context, opts.locales);
@@ -46,7 +66,7 @@ class PrerenderPlugin {
 			// Prerender each locale desired and output an error on failure.
 			compilation.hooks.chunkAsset.tap('PrerenderPlugin', (chunk, file) => {
 				if (file === opts.chunk) {
-					compilation.hooks.prerenderChunk.call({chunk: opts.chunk, locales: locales});
+					getPrerenderPluginHooks(compilation).prerenderChunk.call({chunk: opts.chunk, locales: locales});
 					vdomServer.stage(compilation.assets[opts.chunk].source(), opts);
 					for (let i = 0; i < locales.length; i++) {
 						try {
@@ -57,7 +77,7 @@ class PrerenderPlugin {
 								externals: opts.externals,
 								fontGenerator: opts.fontGenerator
 							};
-							compilation.hooks.prerenderLocale.call({
+							getPrerenderPluginHooks(compilation).prerenderLocale.call({
 								chunk: opts.chunk,
 								opts: renderOpts
 							});
@@ -94,7 +114,7 @@ class PrerenderPlugin {
 			});
 
 			// For any target locales that don't already have appinfo files, dynamically generate new ones.
-			compilation.hooks.webosMetaListLocalized.tap('PrerenderPlugin', locList => {
+			webOSMetaPluginHooks.webosMetaListLocalized.tap('PrerenderPlugin', locList => {
 				// No need to process localized appinfo files on error or a singular locale.
 				if (!status.err && locales.length > 1) {
 					for (let i = 0; i < locales.length; i++) {
@@ -136,7 +156,7 @@ class PrerenderPlugin {
 
 			// Update any root appinfo to tag as using prerendering to avoid webOS splash screen.
 			// Temporary root value used until webOS parsing of localized appinfo.json boolean values is fixed.
-			compilation.hooks.webosMetaRootAppinfo.tap('PrerenderPlugin', meta => {
+			webOSMetaPluginHooks.webosMetaRootAppinfo.tap('PrerenderPlugin', meta => {
 				if (typeof meta.usePrerendering === 'undefined' && locales.length > 0) {
 					meta.usePrerendering = true;
 				}
@@ -144,7 +164,7 @@ class PrerenderPlugin {
 			});
 
 			// For each prerendered target locale's appinfo, update the 'main' value.
-			compilation.hooks.webosMetaLocalizedAppinfo.tap('PrerenderPlugin', (meta, info) => {
+			webOSMetaPluginHooks.webosMetaLocalizedAppinfo.tap('PrerenderPlugin', (meta, info) => {
 				let loc = info.locale;
 				// Exclude appinfo entries covered by appinfo optimization groups.
 				if (appInfoOptimize.coverage.indexOf(loc) === -1) {
@@ -217,7 +237,7 @@ class PrerenderPlugin {
 							);
 						}
 
-						// Handle updating of  locales for multi-locale prerenders, along with deeplinking.
+						// Handle updating of locales for multi-locale prerenders, along with deeplinking.
 						const appHtml = parsePrerender(status.prerender[i]);
 						const updater = templates.update(mapping, opts.deep, appHtml.prerender);
 						if (opts.deep) appHtml.prerender = '';
@@ -244,21 +264,21 @@ class PrerenderPlugin {
 							// Preserve any React15 HTML comment nodes
 							htmlPluginData.plugin.options.minify.removeComments = false;
 						}
-						return htmlPluginData.plugin
-							.postProcessHtml(
-								applyToRoot(appHtml.prerender),
-								{},
-								{headTags: appHtml.head, bodyTags: body}
-							)
-							.then(html => {
-								if (locales.length === 1) {
-									// Only 1 locale, so just output as the default root index.html
-									htmlPluginData.html = html;
-								} else {
-									// Multiple locales, so output as locale-specific html file.
-									emitAsset(compilation, 'index.' + loc + '.html', html);
-								}
-							});
+
+						return postProcessHtml(
+							applyToRoot(appHtml.prerender),
+							{},
+							{headTags: appHtml.head, bodyTags: body},
+							htmlPluginData.plugin.options
+						).then(html => {
+							if (locales.length === 1) {
+								// Only 1 locale, so just output as the default root index.html
+								htmlPluginData.html = html;
+							} else {
+								// Multiple locales, so output as locale-specific html file.
+								emitAsset(compilation, 'index.' + loc + '.html', html);
+							}
+						});
 					})
 				)
 					.then(() => {
@@ -313,13 +333,9 @@ class PrerenderPlugin {
 }
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
+// The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
-	return (
-		compiler.outputFileSystem &&
-		compiler.outputFileSystem.constructor &&
-		compiler.outputFileSystem.constructor.name &&
-		compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem'
-	);
+	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 // Determine the desired target locales based of option content.
@@ -523,6 +539,80 @@ function parsePrerender(html) {
 	return {head, prerender};
 }
 
+// Injects assets into html
+function injectAssetsIntoHtml(html, assets, assetTags, options) {
+	const htmlRegExp = /(<html[^>]*>)/i;
+	const headRegExp = /(<\/head\s*>)/i;
+	const bodyRegExp = /(<\/body\s*>)/i;
+	const body = assetTags.bodyTags.map(assetTagObject => htmlTagObjectToString(assetTagObject, options.xhtml));
+	const head = assetTags.headTags.map(assetTagObject => htmlTagObjectToString(assetTagObject, options.xhtml));
+
+	if (body.length) {
+		if (bodyRegExp.test(html)) {
+			html = html.replace(bodyRegExp, match => body.join('') + match);
+		} else {
+			html += body.join('');
+		}
+	}
+
+	if (head.length) {
+		if (!headRegExp.test(html)) {
+			if (!htmlRegExp.test(html)) {
+				html = '<head></head>' + html;
+			} else {
+				html = html.replace(htmlRegExp, match => match + '<head></head>');
+			}
+		}
+
+		html = html.replace(headRegExp, match => head.join('') + match);
+	}
+	if (assets.manifest) {
+		html = html.replace(/(<html[^>]*)(>)/i, (match, start, end) => {
+			if (/\smanifest\s*=/.test(match)) {
+				return match;
+			}
+			return start + ' manifest="' + assets.manifest + '"' + end;
+		});
+	}
+	return html;
+}
+
+// Minifies html
+function minifyHtml(html, options) {
+	if (typeof options.minify !== 'object') {
+		return html;
+	}
+	try {
+		return require('html-minifier-terser').minify(html, options.minify);
+	} catch (e) {
+		const isParseError = String(e.message).indexOf('Parse Error') === 0;
+		if (isParseError) {
+			e.message =
+				'html-webpack-plugin could not minify the generated output.\n' +
+				'In production mode the html minifcation is enabled by default.\n' +
+				'If you are not generating a valid html output please disable it manually.\n' +
+				'You can do so by adding the following setting to your HtmlWebpackPlugin config:\n|\n|' +
+				'    minify: false\n|\n' +
+				'See https://github.com/jantimon/html-webpack-plugin#options for details.\n\n' +
+				'For parser dedicated bugs please create an issue here:\n' +
+				'https://danielruf.github.io/html-minifier-terser/' +
+				'\n' +
+				e.message;
+		}
+		throw e;
+	}
+}
+
+// Injects assets and minify the html
+function postProcessHtml(html, assets, assetTags, options) {
+	if (typeof html !== 'string') {
+		return Promise.reject(new Error('Expected html to be a string but got ' + JSON.stringify(html)));
+	}
+	const htmlAfterInjection = options.inject ? injectAssetsIntoHtml(html, assets, assetTags, options) : html;
+	const htmlAfterMinification = minifyHtml(htmlAfterInjection, options);
+	return Promise.resolve(htmlAfterMinification);
+}
+
 // Adds a file entry with data to be emitted as an asset.
 function emitAsset(compilation, file, data) {
 	compilation.assets[file] = {
@@ -540,5 +630,9 @@ function emitAsset(compilation, file, data) {
 		}
 	};
 }
+
+// A static helper to get the hooks for this plugin
+// Usage: PrerenderPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
+PrerenderPlugin.getHooks = getPrerenderPluginHooks;
 
 module.exports = PrerenderPlugin;
