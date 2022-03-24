@@ -147,6 +147,28 @@ function emitAsset(name, assets, data) {
 	};
 }
 
+const webOSMetaPluginHooksMap = new WeakMap();
+
+function getWebOSMetaPluginHooks(compilation) {
+	let hooks = webOSMetaPluginHooksMap.get(compilation);
+
+	// Setup the hooks only once
+	if (hooks === undefined) {
+		hooks = createWebOSMetaPluginHooks();
+		webOSMetaPluginHooksMap.set(compilation, hooks);
+	}
+
+	return hooks;
+}
+
+function createWebOSMetaPluginHooks() {
+	return {
+		webosMetaRootAppinfo: new SyncWaterfallHook(['appinfo', 'details']),
+		webosMetaListLocalized: new SyncWaterfallHook(['list']),
+		webosMetaLocalizedAppinfo: new SyncWaterfallHook(['appinfo', 'details'])
+	};
+}
+
 class WebOSMetaPlugin {
 	constructor(options = {}) {
 		this.options = options;
@@ -157,11 +179,6 @@ class WebOSMetaPlugin {
 		const context = this.options.context || compiler.context;
 
 		compiler.hooks.compilation.tap('WebOSMetaPlugin', compilation => {
-			// Define compilation hooks
-			compilation.hooks.webosMetaRootAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
-			compilation.hooks.webosMetaListLocalized = new SyncWaterfallHook(['list']);
-			compilation.hooks.webosMetaLocalizedAppinfo = new SyncWaterfallHook(['appinfo', 'details']);
-
 			// Hook into html-webpack-plugin to dynamically set page title
 			if (this.options.htmlPlugin) {
 				const htmlPluginHooks = this.options.htmlPlugin.getHooks(compilation);
@@ -186,7 +203,7 @@ class WebOSMetaPlugin {
 			// Add the root appinfo.json as well as its relative assets to the compilation.
 			const meta = rootAppInfo(context, scan);
 			if (meta && meta.obj) {
-				meta.obj = compilation.hooks.webosMetaRootAppinfo.call(meta.obj, {
+				meta.obj = getWebOSMetaPluginHooks(compilation).webosMetaRootAppinfo.call(meta.obj, {
 					path: meta.path
 				});
 				handleSysAssetPath(context, meta.obj);
@@ -199,7 +216,7 @@ class WebOSMetaPlugin {
 				cwd: context,
 				onlyFiles: true
 			});
-			loc = compilation.hooks.webosMetaListLocalized.call(loc);
+			loc = getWebOSMetaPluginHooks(compilation).webosMetaListLocalized.call(loc);
 			// Add each locale-specific appinfo.json and its relative assets to the compilation.
 			let locFile, locRel, locMeta, locCode;
 			for (let i = 0; i < loc.length; i++) {
@@ -215,7 +232,7 @@ class WebOSMetaPlugin {
 				if (locMeta) {
 					locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile));
 					locCode = locCode.replace(/[\\/]+/g, '-');
-					locMeta = compilation.hooks.webosMetaLocalizedAppinfo.call(locMeta, {
+					locMeta = getWebOSMetaPluginHooks(compilation).webosMetaLocalizedAppinfo.call(locMeta, {
 						path: locFile,
 						locale: locCode
 					});
@@ -228,5 +245,9 @@ class WebOSMetaPlugin {
 		});
 	}
 }
+
+// A static helper to get the hooks for this plugin
+// Usage: WebOSMetaPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
+WebOSMetaPlugin.getHooks = getWebOSMetaPluginHooks;
 
 module.exports = WebOSMetaPlugin;
