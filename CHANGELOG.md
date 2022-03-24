@@ -5,6 +5,7 @@
 * `IlibPlugin`:
   * Added `ILIB_ADDITIONAL_RESOURCES_PATH` to defined constants if provided.
   * Added `publicPath` option to specify webpack public path.
+* Replaced deprecated `babel-eslint` with `@babel/eslint-parser`
 
 # 4.1.4 (February 18, 2022)
 
