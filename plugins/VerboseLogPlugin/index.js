@@ -2,7 +2,6 @@
 
 const path = require('path');
 const {Instance: Chalk} = require('chalk');
-const {ProgressPlugin} = require('webpack');
 
 class VerboseLogPlugin {
 	constructor(options = {}) {
@@ -12,6 +11,7 @@ class VerboseLogPlugin {
 
 	apply(compiler) {
 		const opts = this.options;
+		const {ProgressPlugin} = opts;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
 		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
 		let active;
