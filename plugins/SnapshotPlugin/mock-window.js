@@ -2,7 +2,7 @@
 /*
  *  mock-window.js
  *
- *  A helper utility meant to simulate a basic window object for ReactDOM usage during snapshot execution.
+ *  A helper utility meant to simulate a basic window object for ReactDOMClient usage during snapshot execution.
  */
 
 var orig = {}, listeners = [], nop = function() {};

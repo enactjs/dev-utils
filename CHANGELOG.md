@@ -5,6 +5,7 @@
 * `IlibPlugin`:
   * Added `ILIB_ADDITIONAL_RESOURCES_PATH` to defined constants if provided.
   * Added `publicPath` option to specify webpack public path.
+* `PrerenderPlugin`: Added React18 support for `ReactDOMClient.hydrateRoot` instead of `ReactDOMClient.createRoot` for prerendered apps.
 
 # 4.1.4 (February 18, 2022)
 

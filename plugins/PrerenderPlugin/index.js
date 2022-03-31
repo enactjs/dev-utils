@@ -320,10 +320,15 @@ class PrerenderPlugin {
 		});
 
 		compiler.hooks.emit.tapAsync('PrerenderPlugin', (compilation, callback) => {
-			// Replace ReactDOM.render to ReactDOM.hydrate from main.js
+			// Replace ReactDOMClient.createRoot to ReactDOMClient.hydrateRoot from main.js
 			const data = compilation.assets[opts.chunk].source();
-			const regex = /render(?=(?:(?!render|getElementById).)*getElementById\(('|")root)/;
-			const replacedData = data.replace(regex, 'hydrate');
+			const createRootRegex = /createRoot\)(\(container|\(document\.getElementById\(('|")root('|")\))/;
+			const hydrateRootData = data.replace(
+				createRootRegex,
+				`hydrateRoot)(document.getElementById(\'root\'), appElement`
+			);
+			const renderRegex = /root.render\(appElement\);/;
+			const replacedData = hydrateRootData.replace(renderRegex, '');
 
 			emitAsset(compilation, opts.chunk, replacedData);
 
