@@ -86,7 +86,7 @@ class SnapshotPlugin {
 		compiler.hooks.normalModuleFactory.tap('SnapshotPlugin', factory => {
 			factory.hooks.beforeResolve.tap('SnapshotPlugin', result => {
 				if (!result) return;
-				if (result.request === 'react-dom') {
+				if (result.request === 'react-dom/client') {
 					// When the request originates from the injected helper, point to real 'react-dom'
 					if (result.contextInfo.issuer === SnapshotPlugin.helperJS) {
 						result.request = reactDOMClient;
