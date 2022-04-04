@@ -65,7 +65,7 @@ class SnapshotPlugin {
 	apply(compiler) {
 		const opts = this.options;
 		const app = helper.appRoot();
-		const reactDOM = path.resolve(path.join(app, 'node_modules', 'react-dom'));
+		const reactDOMClient = path.resolve(path.join(app, 'node_modules', 'react-dom/client'));
 		opts.blob = getBlobName(opts.args);
 
 		// Ignore packages that don't exists so snapshot helper can skip them
@@ -86,10 +86,10 @@ class SnapshotPlugin {
 		compiler.hooks.normalModuleFactory.tap('SnapshotPlugin', factory => {
 			factory.hooks.beforeResolve.tap('SnapshotPlugin', result => {
 				if (!result) return;
-				if (result.request === 'react-dom') {
+				if (result.request === 'react-dom/client') {
 					// When the request originates from the injected helper, point to real 'react-dom'
 					if (result.contextInfo.issuer === SnapshotPlugin.helperJS) {
-						result.request = reactDOM;
+						result.request = reactDOMClient;
 					} else {
 						result.request = SnapshotPlugin.helperJS;
 					}
