@@ -6,10 +6,7 @@ const RuntimeGlobals = require('webpack/lib/RuntimeGlobals');
 const {RawSource} = require('webpack-sources');
 const app = require('../../option-parser');
 
-const RUNTIME_REQUIREMENTS = new Set([
-	RuntimeGlobals.require,
-	RuntimeGlobals.module
-]);
+const RUNTIME_REQUIREMENTS = new Set([RuntimeGlobals.require, RuntimeGlobals.module]);
 
 const pkgCache = {};
 const checkPkgMain = function (dir) {
@@ -96,10 +93,8 @@ DllModule.prototype.codeGeneration = function () {
 		}
 		header += '};\n';
 	}
-	sources.set(
-		"javascript",
-		new RawSource(header + 'module.exports = __webpack_require__;')
-	);
+	sources.set('javascript', new RawSource(header + 'module.exports = __webpack_require__;'));
+
 	return {
 		sources,
 		runtimeRequirements: RUNTIME_REQUIREMENTS
