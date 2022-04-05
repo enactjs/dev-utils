@@ -30,33 +30,34 @@ class DelegatedEnactFactoryPlugin {
 		const libReg = new RegExp('^(' + libraries.join('|') + ')(?=[\\\\\\/]|$)');
 		const ignReg =
 			ignore && new RegExp('^(' + ignore.map(p => p.replace('/', '[\\\\\\/]')).join('|') + ')(?=[\\\\\\/]|$)');
-		normalModuleFactory.hooks.factory.tap('DelegatedEnactFactoryPlugin', factory => {
-			return function (data, callback) {
-				const dependency = data.dependencies[0];
-				const request = dependency.request;
-				const context = dependency.originModule && dependency.originModule.context;
 
-				if (request === polyfill) {
-					const polyID = '@enact/polyfills';
-					return callback(null, new DelegatedModule(name, {id: polyID}, 'require', polyID, polyID));
-				} else if (local && request && context && request.startsWith('.')) {
-					let resource = path.join(context, request);
-					if (
-						resource.startsWith(app.context) &&
-						!/[\\/]tests[\\/]/.test('./' + path.relative(app.context, resource)) &&
-						(!ignReg || !ignReg.test(resource.replace(/^(.*[\\/]node_modules[\\/])+/, '')))
-					) {
-						const parent = findParentMain(path.dirname(resource));
-						if (parent.pointsTo === resource) resource = parent.path;
-						const localID = resource.replace(app.context, app.name).replace(/\\/g, '/');
-						return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
-					}
+		console.log(ignReg);
+		normalModuleFactory.hooks.factorize.tapAsync('DelegatedEnactFactoryPlugin', (data, callback) => {
+			const dependency = data.dependencies[0];
+			const {request} = dependency;
+			const context = dependency.originModule && dependency.originModule.context;
+
+			if (request === polyfill) {
+				const polyID = '@enact/polyfills';
+				return callback(null, new DelegatedModule(name, {id: polyID}, 'require', polyID, polyID));
+			} else if (local && request && context && request.startsWith('.')) {
+				let resource = path.join(context, request);
+				if (
+					resource.startsWith(app.context) &&
+					!/[\\/]tests[\\/]/.test('./' + path.relative(app.context, resource)) &&
+					(!ignReg || !ignReg.test(resource.replace(/^(.*[\\/]node_modules[\\/])+/, '')))
+				) {
+					const parent = findParentMain(path.dirname(resource));
+					if (parent.pointsTo === resource) resource = parent.path;
+					const localID = resource.replace(app.context, app.name).replace(/\\/g, '/');
+					return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
 				}
-				if (request && libReg.test(request) && (!ignReg || !ignReg.test(request))) {
-					return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
-				}
-				return factory(data, callback);
-			};
+			}
+			if (request && libReg.test(request) && (!ignReg || !ignReg.test(request))) {
+				return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
+			}
+
+			return callback();
 		});
 	}
 }
@@ -111,15 +112,17 @@ class EnactFrameworkRefPlugin {
 	}
 
 	apply(compiler) {
-		const {name, libraries, ignore, external, polyfill, htmlPlugin} = this.options;
+		const {name, libraries, ignore, external, polyfill, htmlPlugin, webOSMetaPlugin} = this.options;
 
 		// Declare enact_framework as an external dependency
 		const externals = {};
 		externals[this.options.name] = this.options.name;
+		console.log(externals);
 		new ExternalsPlugin(this.options.libraryTarget || 'var', externals).apply(compiler);
 
 		compiler.hooks.compilation.tap('EnactFrameworkRefPlugin', (compilation, {normalModuleFactory}) => {
 			const htmlPluginHooks = htmlPlugin.getHooks(compilation);
+			const webOSMetaPluginHooks = webOSMetaPlugin.getHooks(compilation);
 
 			compilation.dependencyFactories.set(DelegatedSourceDependency, normalModuleFactory);
 
@@ -133,8 +136,8 @@ class EnactFrameworkRefPlugin {
 				callback(null, htmlPluginData);
 			});
 
-			if (external.snapshot && isNodeOutputFS(compiler) && compilation.hooks.webosMetaRootAppinfo) {
-				compilation.hooks.webosMetaRootAppinfo.tap('EnactFrameworkRefPlugin', meta => {
+			if (external.snapshot && isNodeOutputFS(compiler) && webOSMetaPluginHooks.webosMetaRootAppinfo) {
+				webOSMetaPluginHooks.webosMetaRootAppinfo.tap('EnactFrameworkRefPlugin', meta => {
 					const relSnap = normalizePath(external.publicPath, 'snapshot_blob.bin', compiler);
 					meta.v8SnapshotFile = relSnap.replace(/\\+/g, '/');
 					return meta;

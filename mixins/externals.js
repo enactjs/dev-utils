@@ -11,6 +11,7 @@ module.exports = {
 
 		// Include plugin to hook into its events
 		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
+		const webOSMetaPluginInstance = helper.getPluginByName(config, 'WebOSMetaPlugin');
 
 		const libraries = ['@enact', 'react', 'react-dom', 'ilib'];
 
@@ -32,7 +33,8 @@ module.exports = {
 					publicPath: opts['externals-public'] || opts.externalsPublic || opts.externals,
 					snapshot: opts.snapshot
 				},
-				htmlPlugin: htmlPluginInstance && htmlPluginInstance.constructor
+				htmlPlugin: htmlPluginInstance && htmlPluginInstance.constructor,
+				webOSMetaPlugin: webOSMetaPluginInstance && webOSMetaPluginInstance.constructor
 			})
 		);
 
