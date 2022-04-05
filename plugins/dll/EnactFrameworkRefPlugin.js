@@ -31,11 +31,10 @@ class DelegatedEnactFactoryPlugin {
 		const ignReg =
 			ignore && new RegExp('^(' + ignore.map(p => p.replace('/', '[\\\\\\/]')).join('|') + ')(?=[\\\\\\/]|$)');
 
-		console.log(ignReg);
 		normalModuleFactory.hooks.factorize.tapAsync('DelegatedEnactFactoryPlugin', (data, callback) => {
 			const dependency = data.dependencies[0];
+			const {context} = data;
 			const {request} = dependency;
-			const context = dependency.originModule && dependency.originModule.context;
 
 			if (request === polyfill) {
 				const polyID = '@enact/polyfills';
@@ -117,7 +116,6 @@ class EnactFrameworkRefPlugin {
 		// Declare enact_framework as an external dependency
 		const externals = {};
 		externals[this.options.name] = this.options.name;
-		console.log(externals);
 		new ExternalsPlugin(this.options.libraryTarget || 'var', externals).apply(compiler);
 
 		compiler.hooks.compilation.tap('EnactFrameworkRefPlugin', (compilation, {normalModuleFactory}) => {
