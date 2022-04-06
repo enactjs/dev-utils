@@ -100,10 +100,12 @@ class SnapshotPlugin {
 		// Record the v8 blob file in the root appinfo if applicable
 		compiler.hooks.compilation.tap('SnapshotPlugin', compilation => {
 			const webOSMetaPluginHooks = opts.webOSMetaPlugin.getHooks(compilation);
-			webOSMetaPluginHooks.webosMetaRootAppinfo.tap('SnapshotPlugin', meta => {
-				meta.v8SnapshotFile = opts.blob;
-				return meta;
-			});
+			if (webOSMetaPluginHooks) {
+				webOSMetaPluginHooks.webosMetaRootAppinfo.tap('SnapshotPlugin', meta => {
+					meta.v8SnapshotFile = opts.blob;
+					return meta;
+				});
+			}
 		});
 
 		compiler.hooks.afterEmit.tapAsync('SnapshotPlugin', (compilation, callback) => {

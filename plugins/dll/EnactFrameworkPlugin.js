@@ -2,8 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const DllEntryPlugin = require('webpack/lib/DllEntryPlugin');
 const DllModule = require('webpack/lib/DllModule');
+const RuntimeGlobals = require('webpack/lib/RuntimeGlobals');
 const {RawSource} = require('webpack-sources');
 const app = require('../../option-parser');
+
+const RUNTIME_REQUIREMENTS = new Set([RuntimeGlobals.require, RuntimeGlobals.module]);
 
 const pkgCache = {};
 const checkPkgMain = function (dir) {
@@ -79,7 +82,8 @@ function normalizeModuleID(id, polyfill) {
 	return id;
 }
 
-DllModule.prototype.source = function () {
+DllModule.prototype.codeGeneration = function () {
+	const sources = new Map();
 	let header = '';
 	if (DllModule.entries[this.name]) {
 		header += '__webpack_require__.load = function(loader) {\n';
@@ -89,7 +93,12 @@ DllModule.prototype.source = function () {
 		}
 		header += '};\n';
 	}
-	return new RawSource(header + 'module.exports = __webpack_require__;');
+	sources.set('javascript', new RawSource(header + 'module.exports = __webpack_require__;'));
+
+	return {
+		sources,
+		runtimeRequirements: RUNTIME_REQUIREMENTS
+	};
 };
 
 class EnactFrameworkPlugin {
@@ -110,13 +119,13 @@ class EnactFrameworkPlugin {
 						const prefix = item[i].startsWith('.') ? '' : './node_modules/';
 						DllModule.entries[name].push(normalizeModuleID(prefix + item[i], poly));
 					}
-					return new DllEntryPlugin(context, item, name);
+					return new DllEntryPlugin(context, item, {name});
 				} else {
 					throw new Error('EnactFrameworkPlugin: supply an Array as entry');
 				}
 			}
 			if (typeof entry === 'object') {
-				Object.keys(entry).forEach(name => itemToPlugin(entry[name], name).apply(compiler));
+				Object.keys(entry).forEach(name => itemToPlugin(entry[name].import, name).apply(compiler));
 			} else {
 				itemToPlugin(entry, 'main').apply(compiler);
 			}
@@ -126,12 +135,13 @@ class EnactFrameworkPlugin {
 		// Format the internal module ID to a usable named descriptor
 		compiler.hooks.compilation.tap('EnactFrameworkPlugin', compilation => {
 			compilation.hooks.beforeModuleIds.tap('EnactFrameworkPlugin', modules => {
+				const chunkGraph = compilation.chunkGraph;
 				modules.forEach(m => {
-					if (m.id === null && m.libIdent) {
-						m.id = m.libIdent({
-							context: this.options.context || compiler.options.context
-						});
-						m.id = normalizeModuleID(m.id, poly);
+					const ident = m.libIdent({
+						context: this.options.context || compiler.options.context
+					});
+					if (ident && chunkGraph.getModuleId(m) === null) {
+						chunkGraph.setModuleId(m, normalizeModuleID(ident, poly));
 					}
 				}, this);
 			});
