@@ -48,7 +48,11 @@ class DelegatedEnactFactoryPlugin {
 				) {
 					const parent = findParentMain(path.dirname(resource));
 					if (parent.pointsTo === resource) resource = parent.path;
-					const localID = resource.replace(app.context, app.name).replace(/\\/g, '/');
+					let localID = resource
+						.replace(app.context, app.name)
+						.replace(/\.js$/, '')
+						.replace(/\\/g, '/')
+						.replace(app.name + '/node_modules/', '');
 					return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
 				}
 			}
