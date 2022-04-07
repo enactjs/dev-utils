@@ -52,7 +52,8 @@ class DelegatedEnactFactoryPlugin {
 						.replace(app.context, app.name)
 						.replace(/\.js$/, '')
 						.replace(/\\/g, '/')
-						.replace(app.name + '/node_modules/', '');
+						.replace(app.name + '/node_modules/', '')
+						.replace(/[\\/]$/, '');
 					return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
 				}
 			}
@@ -90,7 +91,8 @@ class EnactFrameworkRefPlugin {
 			'@enact/dev-utils',
 			'@enact/storybook-utils',
 			'@enact/ui-test-utils',
-			'@enact/screenshot-test-utils'
+			'@enact/screenshot-test-utils',
+			'readable-stream'
 		];
 		this.options.external = this.options.external || {};
 		this.options.external.publicPath =
