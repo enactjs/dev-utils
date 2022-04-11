@@ -58,8 +58,8 @@ const startup = (screenTypes, jsAssets) => `
 			if(typeof updateEnvironment === 'function') {
 				updateEnvironment();
 			}
-			if(typeof App === 'object' && (typeof ReactDOM === 'object')) {
-				ReactDOM.hydrate(App['default'] || App, document.getElementById('root'));
+			if(typeof App === 'object' && (typeof ReactDOMClient === 'object')) {
+				ReactDOMClient.hydrateRoot(App['default'] || App, document.getElementById('root'));
 			} else {
 				console.log('ERROR: Snapshot app not found');
 			}

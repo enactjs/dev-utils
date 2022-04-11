@@ -199,7 +199,7 @@ Object.defineProperty(config, 'environment', {
 			} else if (targets.every(b => !b.startsWith('not') && b.includes('node'))) {
 				return 'node';
 			} else {
-				return 'web';
+				return 'browserslist';
 			}
 		} else {
 			return 'web';

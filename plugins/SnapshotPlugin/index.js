@@ -1,19 +1,16 @@
 const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const gracefulFs = require('graceful-fs');
 const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {IgnorePlugin} = require('webpack');
 const helper = require('../../config-helper');
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
+// The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
-	return (
-		compiler.outputFileSystem &&
-		compiler.outputFileSystem.constructor &&
-		compiler.outputFileSystem.constructor.name &&
-		compiler.outputFileSystem.constructor.name === 'NodeOutputFileSystem'
-	);
+	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 function getBlobName(args) {
@@ -23,6 +20,26 @@ function getBlobName(args) {
 		}
 	}
 	return 'snapshot_blob.bin';
+}
+
+const snapshotPluginHooksMap = new WeakMap();
+
+function getSnapshotPluginHooks(compilation) {
+	let hooks = snapshotPluginHooksMap.get(compilation);
+
+	// Setup the hooks only once
+	if (hooks === undefined) {
+		hooks = createSnapshotPluginHooks();
+		snapshotPluginHooksMap.set(compilation, hooks);
+	}
+
+	return hooks;
+}
+
+function createSnapshotPluginHooks() {
+	return {
+		v8Snapshot: new SyncHook([])
+	};
 }
 
 class SnapshotPlugin {
@@ -48,11 +65,8 @@ class SnapshotPlugin {
 	apply(compiler) {
 		const opts = this.options;
 		const app = helper.appRoot();
-		const reactDOM = path.resolve(path.join(app, 'node_modules', 'react-dom'));
+		const reactDOMClient = path.resolve(path.join(app, 'node_modules', 'react-dom/client'));
 		opts.blob = getBlobName(opts.args);
-
-		// Define compilation hooks
-		compiler.hooks.v8Snapshot = new SyncHook([]);
 
 		// Ignore packages that don't exists so snapshot helper can skip them
 		const ignoreContext = path.dirname(SnapshotPlugin.helperJS);
@@ -72,30 +86,32 @@ class SnapshotPlugin {
 		compiler.hooks.normalModuleFactory.tap('SnapshotPlugin', factory => {
 			factory.hooks.beforeResolve.tap('SnapshotPlugin', result => {
 				if (!result) return;
-				if (result.request === 'react-dom') {
+				if (result.request === 'react-dom/client') {
 					// When the request originates from the injected helper, point to real 'react-dom'
 					if (result.contextInfo.issuer === SnapshotPlugin.helperJS) {
-						result.request = reactDOM;
+						result.request = reactDOMClient;
 					} else {
 						result.request = SnapshotPlugin.helperJS;
 					}
 				}
-				return result;
 			});
 		});
 
 		// Record the v8 blob file in the root appinfo if applicable
 		compiler.hooks.compilation.tap('SnapshotPlugin', compilation => {
-			compilation.hooks.webosMetaRootAppinfo.tap('SnapshotPlugin', meta => {
-				meta.v8SnapshotFile = opts.blob;
-				return meta;
-			});
+			const webOSMetaPluginHooks = opts.webOSMetaPlugin.getHooks(compilation);
+			if (webOSMetaPluginHooks) {
+				webOSMetaPluginHooks.webosMetaRootAppinfo.tap('SnapshotPlugin', meta => {
+					meta.v8SnapshotFile = opts.blob;
+					return meta;
+				});
+			}
 		});
 
 		compiler.hooks.afterEmit.tapAsync('SnapshotPlugin', (compilation, callback) => {
 			if (isNodeOutputFS(compiler) && opts.exec) {
 				// Notify v8 snapshot is taking place
-				compiler.hooks.v8Snapshot.call(opts);
+				getSnapshotPluginHooks(compilation).v8Snapshot.call(opts);
 
 				// Run mksnapshot utility
 				let err;
@@ -129,7 +145,17 @@ class SnapshotPlugin {
 				}
 
 				if (err) {
-					console.log(chalk.red('Snapshot blob generation failed.'));
+					console.log(
+						chalk.red(
+							'Snapshot blob generation "' +
+								opts.exec +
+								' ' +
+								opts.args.join(' ') +
+								'" in "' +
+								compiler.outputPath +
+								'" directory failed:"'
+						)
+					);
 				}
 
 				callback(err);
@@ -139,5 +165,9 @@ class SnapshotPlugin {
 		});
 	}
 }
+
+// A static helper to get the hooks for this plugin
+// Usage: SnapshotPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
+SnapshotPlugin.getHooks = getSnapshotPluginHooks;
 
 module.exports = SnapshotPlugin;

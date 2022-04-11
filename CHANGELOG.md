@@ -1,3 +1,12 @@
+# 5.0.0-alpha.1 (April 11, 2022)
+
+* Updated all dependencies, with webpack peer dependency restricted to >=5.0.0.
+* Updated all webpack plugins to use WeakMap since `compilation.hooks` became frozen.
+* `IlibPlugin`:
+  * Added `ILIB_ADDITIONAL_RESOURCES_PATH` to defined constants if provided.
+  * Added `publicPath` option to specify webpack public path.
+* `PrerenderPlugin`: Added React18 support for `ReactDOMClient.hydrateRoot` instead of `ReactDOMClient.createRoot` for prerendered apps.
+
 # 4.1.4 (February 18, 2022)
 
 * `option-parser`: Added `additionalModulePaths` to specify paths to check when resolving modules.
