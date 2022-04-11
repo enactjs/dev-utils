@@ -1,4 +1,4 @@
-# unreleased
+# 5.0.0-alpha.1 (April 11, 2022)
 
 * Updated all dependencies, with webpack peer dependency restricted to >=5.0.0.
 * Updated all webpack plugins to use WeakMap since `compilation.hooks` became frozen.
