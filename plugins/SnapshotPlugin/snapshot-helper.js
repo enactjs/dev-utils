@@ -76,8 +76,8 @@ if (typeof window == 'undefined'
 	ExecutionEnvironment.canUseEventListeners = true;
 	ExecutionEnvironment.canUseViewport = true;
 	ExecutionEnvironment.isInWorker = false;
-	module.exports = global.ReactDOM = require('react-dom');
+	module.exports = global.ReactDOMClient = require('react-dom/client');
 	mockWindow.deactivate();
 } else {
-	module.exports = global.ReactDOM = require('react-dom');
+	module.exports = global.ReactDOMClient = require('react-dom/client');
 }
