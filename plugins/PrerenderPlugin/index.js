@@ -327,7 +327,7 @@ class PrerenderPlugin {
 				createRootRegex,
 				`hydrateRoot)(document.getElementById(\'root\'), appElement`
 			);
-			const renderRegex = /root.render\(appElement\);/;
+			const renderRegex = /root\.render\(appElement\);/;
 			const replacedData = hydrateRootData.replace(renderRegex, '');
 
 			emitAsset(compilation, opts.chunk, replacedData);
