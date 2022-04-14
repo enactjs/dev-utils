@@ -1,3 +1,7 @@
+# unreleased
+
+* Removed `EnzymeAdapterPlugin` and related modules
+
 # 5.0.0-alpha.1 (April 11, 2022)
 
 * Updated all dependencies, with webpack peer dependency restricted to >=5.0.0.
