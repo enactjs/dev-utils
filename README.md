@@ -15,7 +15,6 @@ npm install --save-dev @enact/dev-utils
 #### Plugins
 
 - [EnactFrameworkPlugin & EnactFrameworkRefPlugin](./plugins/dll/README.md)
-- [EnzymeAdapterPlugin](./plugins/EnzymeAdapterPlugin/README.md)
 - [GracefulFsPlugin](./plugins/GracefulFsPlugin/README.md)
 - [ILibPlugin](./plugins/ILibPlugin/README.md)
 - [PrerenderPlugin](./plugins/PrerenderPlugin/README.md)
