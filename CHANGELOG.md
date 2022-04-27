@@ -1,6 +1,6 @@
 # unreleased
 
-* * `PrerenderPlugin`: Fixed `hydrateRoot` related error after snapshot build.
+* `PrerenderPlugin`: Fixed `hydrateRoot` related error after snapshot build.
 
 # 5.0.0-alpha.1 (April 11, 2022)
 
