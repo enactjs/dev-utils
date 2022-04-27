@@ -1,3 +1,7 @@
+# unreleased
+
+* * `PrerenderPlugin`: Fixed `hydrateRoot` related error after snapshot build.
+
 # 5.0.0-alpha.1 (April 11, 2022)
 
 * Updated all dependencies, with webpack peer dependency restricted to >=5.0.0.
