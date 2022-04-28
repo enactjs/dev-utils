@@ -26,7 +26,6 @@
     "arrowParens": "avoid"
   },
   "eslintIgnore": [
-    "plugins/EnzymeAdapterPlugin/enzyme-proxy.js",
     "plugins/SnapshotPlugin/snapshot-helper.js",
     "plugins/SnapshotPlugin/mock-window.js"
   ],

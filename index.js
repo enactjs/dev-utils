@@ -21,7 +21,6 @@ exportOnDemand({
 exportOnDemand({
 	EnactFrameworkPlugin: () => require('./plugins/dll/EnactFrameworkPlugin'),
 	EnactFrameworkRefPlugin: () => require('./plugins/dll/EnactFrameworkRefPlugin'),
-	EnzymeAdapterPlugin: () => require('./plugins/EnzymeAdapterPlugin'),
 	GracefulFsPlugin: () => require('./plugins/GracefulFsPlugin'),
 	ILibPlugin: () => require('./plugins/ILibPlugin'),
 	PrerenderPlugin: () => require('./plugins/PrerenderPlugin'),
