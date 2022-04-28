@@ -1,4 +1,4 @@
-# unreleased
+# 5.0.0-alpha.2 (April 28, 2022)
 
 * `PrerenderPlugin`: Fixed `hydrateRoot` related error after snapshot build.
 * Removed `EnzymeAdapterPlugin`.
