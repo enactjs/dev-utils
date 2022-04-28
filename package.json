@@ -1,6 +1,6 @@
 {
   "name": "@enact/dev-utils",
-  "version": "5.0.0-alpha.1",
+  "version": "5.0.0-alpha.2",
   "description": "A collection of development utilities for Enact apps.",
   "main": "index.js",
   "author": "Jason Robitaille <jason.robitaille@lge.com>",
@@ -26,7 +26,6 @@
     "arrowParens": "avoid"
   },
   "eslintIgnore": [
-    "plugins/EnzymeAdapterPlugin/enzyme-proxy.js",
     "plugins/SnapshotPlugin/snapshot-helper.js",
     "plugins/SnapshotPlugin/mock-window.js"
   ],

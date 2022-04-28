@@ -1,3 +1,8 @@
+# 5.0.0-alpha.2 (April 28, 2022)
+
+* `PrerenderPlugin`: Fixed `hydrateRoot` related error after snapshot build.
+* Removed `EnzymeAdapterPlugin`.
+
 # 5.0.0-alpha.1 (April 11, 2022)
 
 * Updated all dependencies, with webpack peer dependency restricted to >=5.0.0.
