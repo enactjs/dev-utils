@@ -92,7 +92,8 @@ class EnactFrameworkRefPlugin {
 			'@enact/storybook-utils',
 			'@enact/ui-test-utils',
 			'@enact/screenshot-test-utils',
-			'readable-stream'
+			'readable-stream', // ignore for screenshot test build
+			'react-is' // ignore for ui test build
 		];
 		this.options.external = this.options.external || {};
 		this.options.external.publicPath =

@@ -1,3 +1,9 @@
+# unreleased
+
+* `externals` and `framework` mixins, `EnactFrameworkRefPlugin`:
+  * Fixed moonstone package is not built as framework.
+  * Fixed moonstone ui test build fail.
+
 # 5.0.0-alpha.2 (April 28, 2022)
 
 * `PrerenderPlugin`: Fixed `hydrateRoot` related error after snapshot build.
