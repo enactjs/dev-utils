@@ -3572,7 +3572,7 @@
     },
     "node_modules/eslint-config-enact": {
       "version": "4.1.0",
-      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#d518d081bcba57fe1a8e65141d037824d25a07a3",
+      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#38066042f84fe6849dc4fe02ea2567115b850c88",
       "dev": true,
       "license": "Apache-2.0",
       "dependencies": {
@@ -9148,7 +9148,7 @@
       }
     },
     "eslint-config-enact": {
-      "version": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#d518d081bcba57fe1a8e65141d037824d25a07a3",
+      "version": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#38066042f84fe6849dc4fe02ea2567115b850c88",
       "dev": true,
       "from": "eslint-config-enact@github:enactjs/eslint-config-enact#feature/WRO-3879",
       "requires": {
