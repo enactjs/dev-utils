@@ -62,7 +62,8 @@ You can pass configuration settings to `EnactFrameworkRefPlugin`.
 Allowed values are as follows:
 
 - `name`: Global-exposed name of enact library bundle. Defaults to `'enact_framework'`.
-- `libraries`: Packages or package scopes to reference from the external library bundle. Defaults to `['@enact', 'react', 'react-dom']`.
+- `libraries`: Packages or package scopes to reference from the external library bundle. Defaults to
+  `['@enact', 'react', 'react-dom', 'react-dom/client', 'react-dom/server']`.
 - `polyfill`: Filepath to a polyfill module to delegate out as `@enact/polyfill`.
 - `externals`: Object containing external properties. Supports
   - `publicPath`: Public path the externals will be found at during runtime.

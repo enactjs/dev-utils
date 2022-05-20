@@ -52,7 +52,7 @@ module.exports = {
 						followSymbolicLinks: true
 					})
 				)
-				.concat(['react', 'react-dom'])
+				.concat(['react', 'react-dom', 'react-dom/client', 'react-dom/server'])
 		};
 		if (
 			app.meta.name.startsWith('@enact/') &&
