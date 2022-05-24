@@ -1,6 +1,6 @@
 # unreleased
 
-* Added support Optional webpack resolve configuration via parsing `resolveBuiltins` Enact project option.
+* Added support Optional webpack resolve configuration via parsing `resolveFallbackBuiltins` Enact project option.
 
 * `externals` and `framework` mixins, `EnactFrameworkRefPlugin`:
   * Fixed moonstone package is not built as framework.
