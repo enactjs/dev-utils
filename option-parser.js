@@ -128,6 +128,8 @@ const config = {
 		config.alias = computed('alias', enact, config.alias);
 		// Optional webpack node configuration value (see https://webpack.js.org/configuration/node/).
 		config.nodeBuiltins = computed('nodeBuiltins', enact, config.theme);
+		// Optional webpack resolve configuration value (see https://webpack.js.org/configuration/resolve/).
+		config.resolveBuiltins = computed('resolveBuiltins', enact, config.theme);
 		// Optional property to specify a version of NodeJS to target required polyfills.
 		// True or 'current' will use active version of Node, otherwise will use a specified version number.
 		config.node = computed('node', enact, config.theme);
