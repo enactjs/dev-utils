@@ -1,5 +1,6 @@
 # unreleased
 
+* `option-parser`: Added `resolveFallback` to redirect module requests when normal resolving fails.
 * `externals` and `framework` mixins, `EnactFrameworkRefPlugin`:
   * Fixed moonstone package is not built as framework.
   * Fixed moonstone ui test build fail.
