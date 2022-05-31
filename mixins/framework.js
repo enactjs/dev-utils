@@ -52,11 +52,13 @@ module.exports = {
 						followSymbolicLinks: true
 					})
 				)
-				.concat(['react', 'react-dom'])
+				.concat(['react', 'react-dom', 'react-dom/client', 'react-dom/server'])
 		};
 		if (
 			app.meta.name.startsWith('@enact/') &&
-			(fs.existsSync(path.join(app.path, 'ThemeDecorator')) || app.meta.name === '@enact/i18n')
+			(fs.existsSync(path.join(app.path, 'MoonstoneDecorator')) ||
+				fs.existsSync(path.join(app.path, 'ThemeDecorator')) ||
+				app.meta.name === '@enact/i18n')
 		) {
 			config.entry.enact = config.entry.enact.concat(
 				fastGlob
