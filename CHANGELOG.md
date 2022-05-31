@@ -1,5 +1,6 @@
 # unreleased
 
+* Updated the `lockfileVersion` of npm-shrinkwrap file to v2.
 * `externals` and `framework` mixins, `EnactFrameworkRefPlugin`:
   * Fixed moonstone package is not built as framework.
   * Fixed moonstone ui test build fail.
