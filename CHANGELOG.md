@@ -1,9 +1,11 @@
 # unreleased
 
 * Updated the `lockfileVersion` of npm-shrinkwrap file to v2.
+* `option-parser`: Added `resolveFallback` to redirect module requests when normal resolving fails.
 * `externals` and `framework` mixins, `EnactFrameworkRefPlugin`:
   * Fixed moonstone package is not built as framework.
   * Fixed moonstone ui test build fail.
+  * Added `react-dom/client` and `react-dom/server` to the default framework bundle.
 
 # 5.0.0-alpha.2 (April 28, 2022)
 

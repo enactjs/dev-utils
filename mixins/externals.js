@@ -13,7 +13,7 @@ module.exports = {
 		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
 		const webOSMetaPluginInstance = helper.getPluginByName(config, 'WebOSMetaPlugin');
 
-		const libraries = ['@enact', 'react', 'react-dom', 'ilib'];
+		const libraries = ['@enact', 'react', 'react-dom', 'react-dom/client', 'react-dom/server', 'ilib'];
 
 		const app = packageRoot();
 		if (

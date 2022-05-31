@@ -86,7 +86,14 @@ class EnactFrameworkRefPlugin {
 	constructor(options = {}) {
 		this.options = options;
 		this.options.name = this.options.name || 'enact_framework';
-		this.options.libraries = this.options.libraries || ['@enact', 'react', 'react-dom', 'ilib'];
+		this.options.libraries = this.options.libraries || [
+			'@enact',
+			'react',
+			'react-dom',
+			'react-dom/client',
+			'react-dom/server',
+			'ilib'
+		];
 		this.options.ignore = this.options.ignore || [
 			'@enact/dev-utils',
 			'@enact/storybook-utils',
