@@ -1,6 +1,6 @@
 # unreleased
 
-* Added `sass|scss` expansion at fileIdentPattern in `css-module-ident` module.
+* `css-module-ident`: Added `sass` and `scss` file extension to `fileIdentPattern`.
 
 # 5.0.0-alpha.3 (May 31, 2022)
 
