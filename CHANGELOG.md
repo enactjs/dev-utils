@@ -1,3 +1,7 @@
+# unreleased
+
+* `css-module-ident`: Added `sass` and `scss` file extension to `fileIdentPattern`.
+
 # 5.0.0-alpha.3 (May 31, 2022)
 
 * Updated the `lockfileVersion` of npm-shrinkwrap file to v2.

@@ -3,10 +3,10 @@ const path = require('path');
 const app = require('./option-parser');
 const packageRoot = require('./package-root');
 
-const fileIdentPattern = /(?:@(enact[/\\].*?)|^((?:(?!@enact).)*?))\.(?:module\.)?(?:less|css)/;
+const fileIdentPattern = /(?:@(enact[/\\].*?)|^((?:(?!@enact).)*?))\.(?:module\.)?(?:less|css|sass|scss)/;
 
 // A simplified development-focused `getLocalIdent` function for webpack CSS loader
-// Outputs similar to `[path][name]_[local]`, except with `.module.(css|less)` extension
+// Outputs similar to `[path][name]_[local]`, except with `.module.(css|less|sass|scss)` extension
 // filtering and using underscores for separators and condensed `@enact/*` naming.
 module.exports = function (context, localIdentName, localName) {
 	let rel = path.relative(app.context, context.resourcePath);
