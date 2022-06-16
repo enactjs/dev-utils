@@ -80,7 +80,7 @@ if (typeof window == 'undefined'
 	try {
 		module.exports = global.ReactRedux = require('react-redux');
 	} catch (ex) {
-		// We allow 'Cannot find module' errors, which throw when the module is not used in the app.
+		// We allow 'Module not found' errors, which throw when the module is not used in the app.
 	}
 	mockWindow.deactivate();
 } else {
@@ -88,6 +88,6 @@ if (typeof window == 'undefined'
 	try {
 		module.exports = global.ReactRedux = require('react-redux');
 	} catch (ex) {
-		// We allow 'Cannot find module' errors, which throw when the module is not used in the app.
+		// We allow 'Module not found' errors, which throw when the module is not used in the app.
 	}
 }
