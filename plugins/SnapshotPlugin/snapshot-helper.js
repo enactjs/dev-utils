@@ -77,9 +77,15 @@ if (typeof window == 'undefined'
 	ExecutionEnvironment.canUseViewport = true;
 	ExecutionEnvironment.isInWorker = false;
 	module.exports = global.ReactDOMClient = require('react-dom/client');
-	module.exports = global.ReactRedux = require('react-redux');
+	try {
+		module.exports = global.ReactRedux = require('react-redux');
+	} catch (ex) {
+	}
 	mockWindow.deactivate();
 } else {
 	module.exports = global.ReactDOMClient = require('react-dom/client');
-	module.exports = global.ReactRedux = require('react-redux');
+	try {
+		module.exports = global.ReactRedux = require('react-redux');
+	}  catch (ex) {
+	}
 }
