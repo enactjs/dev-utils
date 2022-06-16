@@ -321,6 +321,7 @@ class PrerenderPlugin {
 
 		compiler.hooks.emit.tapAsync('PrerenderPlugin', (compilation, callback) => {
 			// Replace ReactDOMClient.createRoot to ReactDOMClient.hydrateRoot from minified main.js
+			// Temporarily commented out, needs to be fixed soon.
 			/*const data = compilation.assets[opts.chunk].source();
 			const createRootRegex = /createRoot\)\(document\.getElementById\(('|")root('|")\)\)\.render\(/;
 			const replacedData = data.replace(createRootRegex, `hydrateRoot)(document.getElementById(\'root\'), `);
