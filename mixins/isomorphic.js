@@ -61,6 +61,7 @@ module.exports = {
 
 			// Inject snapshot helper for the transition from v8 snapshot into the window
 			helper.injectEntry(config, SnapshotPlugin.helperJS);
+			helper.injectEntry(config, SnapshotPlugin.helperReduxJS);
 
 			// Include plugin to attempt generation of v8 snapshot binary if V8_MKSNAPSHOT env var is set
 			config.plugins.push(

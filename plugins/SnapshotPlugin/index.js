@@ -47,6 +47,10 @@ class SnapshotPlugin {
 		return require.resolve('./snapshot-helper');
 	}
 
+	static get helperReduxJS() {
+		return require.resolve('./snapshot-redux-helper');
+	}
+
 	constructor(options = {}) {
 		this.options = options;
 		this.options.exec = this.options.exec || process.env.V8_MKSNAPSHOT;
@@ -89,12 +93,20 @@ class SnapshotPlugin {
 		compiler.hooks.normalModuleFactory.tap('SnapshotPlugin', factory => {
 			factory.hooks.beforeResolve.tap('SnapshotPlugin', result => {
 				if (!result) return;
-				if (result.request === 'react-dom/client' || (usingRedux && result.request === 'react-redux')) {
-					// When the request originates from the injected helper, point to real 'react-dom' / 'react-redux'
+				if (result.request === 'react-dom/client') {
+					// When the request originates from the injected helper, point to real 'react-dom'
 					if (result.contextInfo.issuer === SnapshotPlugin.helperJS) {
-						result.request = result.request === 'react-dom/client' ? reactDOMClient : reactRedux;
+						result.request = reactDOMClient;
 					} else {
 						result.request = SnapshotPlugin.helperJS;
+					}
+				}
+				if (usingRedux && result.request === 'react-redux') {
+					// When the request originates from the injected helper, point to real 'react-redux'
+					if (result.contextInfo.issuer === SnapshotPlugin.helperReduxJS) {
+						result.request = reactRedux;
+					} else {
+						result.request = SnapshotPlugin.helperReduxJS;
 					}
 				}
 			});
