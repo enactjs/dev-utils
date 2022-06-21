@@ -318,22 +318,6 @@ class PrerenderPlugin {
 				callback();
 			}
 		});
-
-		compiler.hooks.emit.tapAsync('PrerenderPlugin', (compilation, callback) => {
-			// Replace ReactDOMClient.createRoot to ReactDOMClient.hydrateRoot from main.js
-			const data = compilation.assets[opts.chunk].source();
-			const createRootRegex = /createRoot\)(\(container|\(document\.getElementById\(('|")root('|")\))/;
-			const hydrateRootData = data.replace(
-				createRootRegex,
-				`hydrateRoot)(document.getElementById(\'root\'), appElement`
-			);
-			const renderRegex = /root\.render\(appElement\);/;
-			const replacedData = hydrateRootData.replace(renderRegex, '');
-
-			emitAsset(compilation, opts.chunk, replacedData);
-
-			callback();
-		});
 	}
 }
 

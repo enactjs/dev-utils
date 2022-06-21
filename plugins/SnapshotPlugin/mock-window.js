@@ -57,7 +57,7 @@ var mock = {
 		protocol: 'http:'
 	},
 	navigator: {
-		userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
+		userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.128 Safari/537.36'
 	},
 	setTimeout: defer('setTimeout'),
 	clearTimeout: defer('clearTimeout'),
