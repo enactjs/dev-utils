@@ -71,8 +71,7 @@ class SnapshotPlugin {
 		const app = helper.appRoot();
 		const reactDOMClient = path.resolve(path.join(app, 'node_modules', 'react-dom/client'));
 		const reduxPath = path.join(app, 'node_modules', 'react-redux');
-		const usingRedux = fs.existsSync(reduxPath);
-		const reactRedux = usingRedux ? path.resolve(path.join(app, 'node_modules', 'react-redux')) : null;
+		const reactRedux = fs.existsSync(reduxPath) ? path.resolve(reduxPath) : null;
 		opts.blob = getBlobName(opts.args);
 
 		// Ignore packages that don't exists so snapshot helper can skip them
@@ -101,7 +100,7 @@ class SnapshotPlugin {
 						result.request = SnapshotPlugin.helperJS;
 					}
 				}
-				if (usingRedux && result.request === 'react-redux') {
+				if (reactRedux && result.request === 'react-redux') {
 					// When the request originates from the injected helper, point to real 'react-redux'
 					if (result.contextInfo.issuer === SnapshotPlugin.helperReduxJS) {
 						result.request = reactRedux;
