@@ -4,6 +4,7 @@ const gracefulFs = require('graceful-fs');
 const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {htmlTagObjectToString} = require('html-webpack-plugin/lib/html-tags');
+const {DefinePlugin} = require('webpack');
 const templates = require('./templates');
 const vdomServer = require('./vdom-server-render');
 
@@ -45,6 +46,10 @@ class PrerenderPlugin {
 		const opts = this.options;
 		const status = {prerender: [], attr: [], alias: []};
 		let locales;
+
+		// Define ENACT_PACK_ISOMORPHIC global variable to determine to use
+		// `hydrateRoot` for isomorphic build and `createRoot` for non-isomorphic build by app.
+		new DefinePlugin({ENACT_PACK_ISOMORPHIC: true}).apply(compiler);
 
 		compiler.hooks.compilation.tap('PrerenderPlugin', compilation => {
 			const htmlPluginHooks = opts.htmlPlugin.getHooks(compilation);
