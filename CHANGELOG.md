@@ -1,4 +1,4 @@
-# unreleased
+# 5.0.0-rc.1 (June 23, 2022)
 
 * `PrerenderPlugin`: Reverted replacement of `ReactDOMClient.hydrateRoot` instead of `ReactDOMClient.createRoot` due to issue.
 * `SnapshotPlugin`: Fixed `react-redux` not updating state issue by mocking window object while snapshot building.
