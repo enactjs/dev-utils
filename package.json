@@ -33,7 +33,7 @@
     "browserslist": "^4.20.2",
     "chalk": "^4.1.2",
     "console.mute": "^0.3.0",
-    "core-js": "^3.21.1",
+    "core-js": "3.22.8",
     "fast-glob": "^3.2.11",
     "fbjs": "^3.0.4",
     "find-cache-dir": "^3.3.2",
@@ -72,6 +72,6 @@
     "html-webpack-plugin": "^5.3.2",
     "prettier": "^2.6.0",
     "react": "^18.0.0",
-    "webpack": "5.64.4"
+    "webpack": "^5.73.0"
   }
 }
