@@ -39,7 +39,7 @@
         "html-webpack-plugin": "^5.5.0",
         "prettier": "^2.7.1",
         "react": "^18.2.0",
-        "webpack": "^5.73.0"
+        "webpack": "5.73.0"
       },
       "engines": {
         "node": ">=10.13.0"
