@@ -2,7 +2,7 @@ const path = require('path');
 const glob = require('fast-glob');
 const fs = require('graceful-fs');
 const {SyncWaterfallHook} = require('tapable');
-const {ContextReplacementPlugin, DefinePlugin, Template} = require('webpack');
+const {ContextReplacementPlugin, Compilation, DefinePlugin, Template, sources} = require('webpack');
 const app = require('../../option-parser');
 
 function packageName(file) {
@@ -160,20 +160,7 @@ function shouldEmit(compiler, file, cache) {
 
 // Add a given asset's data to the compilation array in a webpack-compatible source object.
 function emitAsset(compilation, name, data) {
-	compilation.assets[name] = {
-		size: function () {
-			return data.length;
-		},
-		source: function () {
-			return data;
-		},
-		updateHash: function (hash) {
-			return hash.update(data);
-		},
-		map: function () {
-			return null;
-		}
-	};
+	compilation.emitAsset(name, new sources.RawSource(data));
 }
 
 const iLibPluginHooksMap = new WeakMap();
@@ -312,6 +299,28 @@ class ILibPlugin {
 					buf.push('__webpack_require__.ilib_cache_id = ' + JSON.stringify('' + new Date().getTime()) + ';');
 					return Template.asString(buf);
 				});
+
+				// Emit all bundles as applicable.
+				compilation.hooks.processAssets.tapAsync(
+					{
+						name: 'IlibPlugin',
+						stage: Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE
+					},
+					(assets, callback) => {
+						for (let j = 0; j < created.length; j++) {
+							compilation.warnings.push(
+								new Error(
+									'iLibPlugin: Localization resource manifest not found. Created ' +
+										created[j] +
+										' to prevent future errors.'
+								)
+							);
+						}
+
+						manifests = getILibPluginHooks(compilation).ilibManifestList.call(manifests);
+						handleBundles(compilation, manifests, opts, callback);
+					}
+				);
 			});
 
 			// Prepare manifest list for usage.
@@ -347,21 +356,6 @@ class ILibPlugin {
 					}
 				}
 			}
-
-			// Emit all bundles as applicable.
-			compiler.hooks.emit.tapAsync('ILibPlugin', (compilation, callback) => {
-				for (let j = 0; j < created.length; j++) {
-					compilation.warnings.push(
-						new Error(
-							'iLibPlugin: Localization resource manifest not found. Created ' +
-								created[j] +
-								' to prevent future errors.'
-						)
-					);
-				}
-				manifests = getILibPluginHooks(compilation).ilibManifestList.call(manifests);
-				handleBundles(compilation, manifests, opts, callback);
-			});
 		}
 	}
 }
