@@ -132,7 +132,11 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 
 // Add a given asset's data to the compilation array in a webpack-compatible source object.
 function emitAsset(compilation, name, data) {
-	compilation.emitAsset(name, new sources.RawSource(data));
+	if (compilation.getAsset(name)) {
+		compilation.updateAsset(name, new sources.RawSource(data));
+	} else {
+		compilation.emitAsset(name, new sources.RawSource(data));
+	}
 }
 
 const webOSMetaPluginHooksMap = new WeakMap();
@@ -232,13 +236,7 @@ class WebOSMetaPlugin {
 							});
 							handleSysAssetPath(context, locMeta);
 							addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
-							if (compilation.getAsset(locRel)) {
-								console.log("locRel is there ", locRel);
-								compilation.updateAsset(locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
-							} else {
-								console.log("locRel is new, emit asset", locRel);
-								emitAsset(compilation, locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
-							}
+							emitAsset(compilation, locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
 						}
 					}
 					callback();
