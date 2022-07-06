@@ -232,7 +232,13 @@ class WebOSMetaPlugin {
 							});
 							handleSysAssetPath(context, locMeta);
 							addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
-							emitAsset(compilation, locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
+							if (compilation.getAsset(locRel)) {
+								console.log("locRel is there ", locRel);
+								compilation.updateAsset(locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
+							} else {
+								console.log("locRel is new, emit asset", locRel);
+								emitAsset(compilation, locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
+							}
 						}
 					}
 					callback();
