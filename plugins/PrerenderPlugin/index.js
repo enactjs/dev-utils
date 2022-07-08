@@ -4,6 +4,7 @@ const gracefulFs = require('graceful-fs');
 const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {htmlTagObjectToString} = require('html-webpack-plugin/lib/html-tags');
+const {Compilation, sources} = require('webpack');
 const templates = require('./templates');
 const vdomServer = require('./vdom-server-render');
 
@@ -292,31 +293,43 @@ class PrerenderPlugin {
 			});
 		});
 
-		// Report any failed locale prerenders at the compiler level to fail the build,
-		// otherwise generate optional locale map asset.
-		compiler.hooks.afterCompile.tapAsync('PrerenderPlugin', (compilation, callback) => {
-			if (status.err) {
-				// @TODO: pretty-print error details
-				let message =
-					chalk.red(
-						chalk.bold('Unable to generate prerender of app state HTML for ' + status.err.locale + ':')
-					) + '\n';
-				message += status.err.result.stack || status.err.result.message || status.err.result;
-				callback(new Error(message));
-			} else {
-				// Generate a JSON file that maps the locales to their HTML files.
-				if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {
-					const mapper = (m, c, i) =>
-						status.alias.includes(c) ? m : Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
-					const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
-					let out = 'locale-map.json';
-					if (typeof opts.mapfile === 'string') {
-						out = opts.mapfile;
+		compiler.hooks.thisCompilation.tap('PrerenderPlugin', compilation => {
+			// Report any failed locale prerenders at the compiler level to fail the build,
+			// otherwise generate optional locale map asset.
+			compilation.hooks.processAssets.tapAsync(
+				{
+					name: 'PrerenderPlugin',
+					stage: Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE
+				},
+				(assets, callback) => {
+					if (status.err) {
+						// @TODO: pretty-print error details
+						let message =
+							chalk.red(
+								chalk.bold(
+									'Unable to generate prerender of app state HTML for ' + status.err.locale + ':'
+								)
+							) + '\n';
+						message += status.err.result.stack || status.err.result.message || status.err.result;
+						callback(new Error(message));
+					} else {
+						// Generate a JSON file that maps the locales to their HTML files.
+						if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {
+							const mapper = (m, c, i) =>
+								status.alias.includes(c)
+									? m
+									: Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
+							const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
+							let out = 'locale-map.json';
+							if (typeof opts.mapfile === 'string') {
+								out = opts.mapfile;
+							}
+							emitAsset(compilation, out, JSON.stringify(mapping, null, '\t'));
+						}
+						callback();
 					}
-					emitAsset(compilation, out, JSON.stringify(mapping, null, '\t'));
 				}
-				callback();
-			}
+			);
 		});
 	}
 }
@@ -603,21 +616,8 @@ function postProcessHtml(html, assets, assetTags, options) {
 }
 
 // Adds a file entry with data to be emitted as an asset.
-function emitAsset(compilation, file, data) {
-	compilation.assets[file] = {
-		size: function () {
-			return data.length;
-		},
-		source: function () {
-			return data;
-		},
-		updateHash: function (hash) {
-			return hash.update(data);
-		},
-		map: function () {
-			return null;
-		}
-	};
+function emitAsset(compilation, name, data) {
+	compilation.emitAsset(name, new sources.RawSource(data));
 }
 
 // A static helper to get the hooks for this plugin
