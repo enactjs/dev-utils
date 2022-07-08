@@ -11,7 +11,6 @@ class VerboseLogPlugin {
 
 	apply(compiler) {
 		const opts = this.options;
-		const {ProgressPlugin} = opts;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
 		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
 		let active;
@@ -47,7 +46,7 @@ class VerboseLogPlugin {
 			return file;
 		};
 
-		new ProgressPlugin((percent, message, details, extra, idx) => {
+		new compiler.webpack.ProgressPlugin((percent, message, details, extra, idx) => {
 			let file;
 			if (idx) file = ' ' + sanitizeName(idx);
 			update({percent, message, details, file});

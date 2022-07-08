@@ -1,3 +1,7 @@
+# 5.0.0 (July 8, 2022)
+
+* Updated dependencies.
+
 # 5.0.0-rc.1 (June 23, 2022)
 
 * `PrerenderPlugin`: Reverted replacement of `ReactDOMClient.hydrateRoot` instead of `ReactDOMClient.createRoot` due to issue.
