@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const glob = require('fast-glob');
 const {SyncWaterfallHook} = require('tapable');
+const {Compilation, sources} = require('webpack');
 
 // List of asset-pointing appinfo properties.
 const props = [
@@ -117,7 +118,7 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 				if (!compilation.assets[assetPathCache[abs]]) {
 					try {
 						const data = fs.readFileSync(abs);
-						emitAsset(assetPathCache[abs], compilation.assets, data);
+						emitAsset(compilation, assetPathCache[abs], data);
 					} catch (e) {
 						compilation.warnings.push(
 							new Error('WebOSMetaPlugin: Unable to read/emit appinfo asset at ' + abs)
@@ -129,22 +130,13 @@ function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 	}
 }
 
-function emitAsset(name, assets, data) {
-	// Add a given asset's data to the compilation array in a webpack-compatible source object.
-	assets[name] = {
-		size: function () {
-			return data.length;
-		},
-		source: function () {
-			return data;
-		},
-		updateHash: function (hash) {
-			return hash.update(data);
-		},
-		map: function () {
-			return null;
-		}
-	};
+// Add a given asset's data to the compilation array in a webpack-compatible source object.
+function emitAsset(compilation, name, data) {
+	if (compilation.getAsset(name)) {
+		compilation.updateAsset(name, new sources.RawSource(data));
+	} else {
+		compilation.emitAsset(name, new sources.RawSource(data));
+	}
 }
 
 const webOSMetaPluginHooksMap = new WeakMap();
@@ -199,49 +191,57 @@ class WebOSMetaPlugin {
 			}
 		});
 
-		compiler.hooks.emit.tapAsync('WebOSMetaPlugin', (compilation, callback) => {
-			// Add the root appinfo.json as well as its relative assets to the compilation.
-			const meta = rootAppInfo(context, scan);
-			if (meta && meta.obj) {
-				meta.obj = getWebOSMetaPluginHooks(compilation).webosMetaRootAppinfo.call(meta.obj, {
-					path: meta.path
-				});
-				handleSysAssetPath(context, meta.obj);
-				addMetaAssets(meta.path, '', meta.obj, compilation);
-				emitAsset('appinfo.json', compilation.assets, Buffer.from(JSON.stringify(meta.obj, null, '\t')));
-			}
+		compiler.hooks.thisCompilation.tap('WebOSMetaPlugin', compilation => {
+			compilation.hooks.processAssets.tapAsync(
+				{
+					name: 'WebOSMetaPlugin',
+					stage: Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE
+				},
+				(assets, callback) => {
+					// Add the root appinfo.json as well as its relative assets to the compilation.
+					const meta = rootAppInfo(context, scan);
+					if (meta && meta.obj) {
+						meta.obj = getWebOSMetaPluginHooks(compilation).webosMetaRootAppinfo.call(meta.obj, {
+							path: meta.path
+						});
+						handleSysAssetPath(context, meta.obj);
+						addMetaAssets(meta.path, '', meta.obj, compilation);
+						emitAsset(compilation, 'appinfo.json', Buffer.from(JSON.stringify(meta.obj, null, '\t')));
+					}
 
-			// Scan for all localized appinfo.json files in the "resources" directory.
-			let loc = glob.sync('resources/**/appinfo.json', {
-				cwd: context,
-				onlyFiles: true
-			});
-			loc = getWebOSMetaPluginHooks(compilation).webosMetaListLocalized.call(loc);
-			// Add each locale-specific appinfo.json and its relative assets to the compilation.
-			let locFile, locRel, locMeta, locCode;
-			for (let i = 0; i < loc.length; i++) {
-				if (typeof loc[i] === 'string') {
-					locFile = path.join(context, loc[i]);
-					locRel = loc[i];
-					locMeta = readAppInfo(locFile);
-				} else {
-					locFile = path.join(context, loc[i].generate);
-					locRel = loc[i].generate;
-					locMeta = loc[i].value || {};
-				}
-				if (locMeta) {
-					locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile));
-					locCode = locCode.replace(/[\\/]+/g, '-');
-					locMeta = getWebOSMetaPluginHooks(compilation).webosMetaLocalizedAppinfo.call(locMeta, {
-						path: locFile,
-						locale: locCode
+					// Scan for all localized appinfo.json files in the "resources" directory.
+					let loc = glob.sync('resources/**/appinfo.json', {
+						cwd: context,
+						onlyFiles: true
 					});
-					handleSysAssetPath(context, locMeta);
-					addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
-					emitAsset(locRel, compilation.assets, Buffer.from(JSON.stringify(locMeta, null, '\t')));
+					loc = getWebOSMetaPluginHooks(compilation).webosMetaListLocalized.call(loc);
+					// Add each locale-specific appinfo.json and its relative assets to the compilation.
+					let locFile, locRel, locMeta, locCode;
+					for (let i = 0; i < loc.length; i++) {
+						if (typeof loc[i] === 'string') {
+							locFile = path.join(context, loc[i]);
+							locRel = loc[i];
+							locMeta = readAppInfo(locFile);
+						} else {
+							locFile = path.join(context, loc[i].generate);
+							locRel = loc[i].generate;
+							locMeta = loc[i].value || {};
+						}
+						if (locMeta) {
+							locCode = path.relative(path.join(context, 'resources'), path.dirname(locFile));
+							locCode = locCode.replace(/[\\/]+/g, '-');
+							locMeta = getWebOSMetaPluginHooks(compilation).webosMetaLocalizedAppinfo.call(locMeta, {
+								path: locFile,
+								locale: locCode
+							});
+							handleSysAssetPath(context, locMeta);
+							addMetaAssets(path.dirname(locFile), path.dirname(locRel), locMeta, compilation);
+							emitAsset(compilation, locRel, Buffer.from(JSON.stringify(locMeta, null, '\t')));
+						}
+					}
+					callback();
 				}
-			}
-			callback();
+			);
 		});
 	}
 }
