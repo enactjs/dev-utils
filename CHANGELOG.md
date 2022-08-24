@@ -1,6 +1,6 @@
 # unreleased
 
-* `PrerenderPlugin`: Updated locale preset json format with the latest language list.
+* `PrerenderPlugin`: Updated locale preset with the latest language list.
 
 # 5.0.0 (July 8, 2022)
 
