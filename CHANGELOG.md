@@ -1,4 +1,4 @@
-# unreleased
+# 4.1.5 (August 29, 2022)
 
 * `PrerenderPlugin`: Updated locale preset with the latest language list.
 
