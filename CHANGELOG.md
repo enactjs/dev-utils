@@ -1,3 +1,7 @@
+# 5.0.1 (August 29, 2022)
+
+* `PrerenderPlugin`: Updated locale preset with the latest language list.
+
 # 5.0.0 (July 8, 2022)
 
 * Updated dependencies.
