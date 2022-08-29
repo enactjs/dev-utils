@@ -1,3 +1,7 @@
+# unreleased
+
+* `PrerenderPlugin`: Updated locale preset with the latest language list.
+
 # 4.1.4 (February 18, 2022)
 
 * `option-parser`: Added `additionalModulePaths` to specify paths to check when resolving modules.
