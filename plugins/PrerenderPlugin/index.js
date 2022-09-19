@@ -357,7 +357,7 @@ function parseLocales(context, target) {
 	} else if (target === 'used') {
 		return detectLocales(path.join(context, 'resources', 'ilibmanifest.json'));
 	} else if (target === 'all') {
-		return detectLocales(path.join('node_modules', '@enact', 'i18n', 'ilib', 'locale', 'ilibmanifest.json'), true);
+		return detectLocales(path.join('node_modules', 'ilib', 'locale', 'ilibmanifest.json'), true);
 	} else if (/\.json$/i.test(target)) {
 		return JSON.parse(fs.readFileSync(target, {encoding: 'utf8'})).locales;
 	} else {
