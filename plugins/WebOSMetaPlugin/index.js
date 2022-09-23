@@ -174,16 +174,14 @@ class WebOSMetaPlugin {
 			// Hook into html-webpack-plugin to dynamically set page title
 			if (this.options.htmlPlugin) {
 				const htmlPluginHooks = this.options.htmlPlugin.getHooks(compilation);
-				htmlPluginHooks.beforeAssetTagGeneration.tapAsync('WebOSMetaPlugin', (htmlPluginData, callback) => {
+				htmlPluginHooks.beforeEmit.tapAsync('WebOSMetaPlugin', (htmlPluginData, callback) => {
 					const appinfo = rootAppInfo(context, scan);
 					if (appinfo) {
 						// When no explicit HTML document title is provided, automically use the root appinfo's title value.
-						if (
-							appinfo.obj.title &&
-							(!htmlPluginData.plugin.options.title ||
-								htmlPluginData.plugin.options.title === 'Webpack App')
-						) {
-							htmlPluginData.plugin.options.title = appinfo.obj.title;
+						let titleSubstring = htmlPluginData.html.match(/<title>.*<\/title>/g)[0];
+						let title = titleSubstring.substring(7, titleSubstring.length - 8);
+						if (appinfo.obj.title && (!title || title === 'Webpack App')) {
+							htmlPluginData.html = htmlPluginData.html.replace(titleSubstring, '<title>' + appinfo.obj.title + '</title>');
 						}
 					}
 					callback(null, htmlPluginData);
