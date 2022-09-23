@@ -181,7 +181,10 @@ class WebOSMetaPlugin {
 						let titleSubstring = htmlPluginData.html.match(/<title>.*<\/title>/g)[0];
 						let title = titleSubstring.substring(7, titleSubstring.length - 8);
 						if (appinfo.obj.title && (!title || title === 'Webpack App')) {
-							htmlPluginData.html = htmlPluginData.html.replace(titleSubstring, '<title>' + appinfo.obj.title + '</title>');
+							htmlPluginData.html = htmlPluginData.html.replace(
+								titleSubstring,
+								'<title>' + appinfo.obj.title + '</title>'
+							);
 						}
 					}
 					callback(null, htmlPluginData);
