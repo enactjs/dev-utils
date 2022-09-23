@@ -1,6 +1,6 @@
 # unreleased
 
-* `PrerenderPlugin`: Redirect ilib localedata directory.
+* `PrerenderPlugin`: Fixed wrong ilib path when `locales` option is `all`.
 
 # 5.0.2 (September 16, 2022)
 
