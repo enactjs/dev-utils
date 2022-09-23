@@ -1,3 +1,7 @@
+# unreleased
+
+* `PrerenderPlugin`: Redirect ilib localedata directory.
+
 # 5.0.2 (September 16, 2022)
 
 * Pinned versions of dependencies as same as 5.0.0.
