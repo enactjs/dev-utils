@@ -1,5 +1,6 @@
 # unreleased
 
+* `ILibPlugin`: Fixed to resolve ilib and resources paths properly when `publicPath` is given.
 * `WebOSMetaPlugin`: Fixed to insert a title into the output HTML.
 * `PrerenderPlugin`: Fixed wrong ilib path when `locales` option is `all`.
 
