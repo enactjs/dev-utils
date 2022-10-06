@@ -37,7 +37,6 @@ class PrerenderPlugin {
 		if (this.options.locales === undefined) this.options.locales = 'en-US';
 		if (this.options.mapfile === undefined || this.options.mapfile === true)
 			this.options.mapfile = 'locale-map.json';
-		// eslint-disable-next-line
 		if (!this.options.server) this.options.server = require.resolve('react-dom/server');
 		if (!this.options.htmlPlugin) this.options.htmlPlugin = require('html-webpack-plugin');
 	}
