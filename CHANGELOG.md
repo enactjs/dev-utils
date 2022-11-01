@@ -1,3 +1,10 @@
+# 5.1.0 (November 1, 2022)
+
+* Unpinned versions of dependencies.
+* `ILibPlugin`: Fixed to resolve ilib and resources paths properly when `publicPath` is given.
+* `WebOSMetaPlugin`: Fixed to insert a title into the output HTML.
+* `PrerenderPlugin`: Fixed wrong ilib path when `locales` option is `all`.
+
 # 5.0.2 (September 16, 2022)
 
 * Pinned versions of dependencies as same as 5.0.0.

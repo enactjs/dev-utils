@@ -69,7 +69,7 @@ function resolveBundle({dir, context, symlinks, relative, publicPath}) {
 		if (relative) {
 			bundle.resolved = JSON.stringify(transformPath(context, bundle.path));
 		} else {
-			bundle.resolved = publicPath + JSON.stringify(transformPath(context, bundle.path));
+			bundle.resolved = JSON.stringify(path.join(publicPath, transformPath(context, bundle.path)));
 		}
 	}
 	return bundle;
