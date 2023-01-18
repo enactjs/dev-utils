@@ -30,11 +30,11 @@
     "plugins/SnapshotPlugin/mock-window.js"
   ],
   "dependencies": {
-    "browserslist": "^4.21.1",
+    "browserslist": "^4.21.4",
     "chalk": "^4.1.2",
     "console.mute": "^0.3.0",
     "core-js": "3.22.8",
-    "fast-glob": "^3.2.11",
+    "fast-glob": "^3.2.12",
     "fbjs": "^3.0.4",
     "find-cache-dir": "^3.3.2",
     "graceful-fs": "^4.2.10",
@@ -42,7 +42,7 @@
     "mock-require": "^3.0.3",
     "resolve": "^1.22.1",
     "tapable": "^2.2.1",
-    "webpack-bundle-analyzer": "^4.5.0",
+    "webpack-bundle-analyzer": "^4.7.0",
     "webpack-sources": "^3.2.3"
   },
   "peerDependencies": {
@@ -58,20 +58,20 @@
     }
   },
   "devDependencies": {
-    "@babel/eslint-plugin": "^7.17.7",
-    "eslint": "^8.20.0",
+    "@babel/eslint-plugin": "^7.19.1",
+    "eslint": "^8.32.0",
     "eslint-config-enact": "^4.1.2",
-    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-enact": "^1.0.1",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jest": "^26.6.0",
-    "eslint-plugin-jsx-a11y": "^6.6.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react": "7.31.11",
     "eslint-plugin-react-hooks": "^4.6.0",
     "html-webpack-plugin": "^5.5.0",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.3",
     "react": "^18.2.0",
-    "webpack": "^5.73.0"
+    "webpack": "^5.75.0"
   }
 }
