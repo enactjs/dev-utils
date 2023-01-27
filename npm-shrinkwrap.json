@@ -3005,7 +3005,7 @@
     },
     "node_modules/babel-preset-enact": {
       "version": "0.1.0",
-      "resolved": "git+ssh://git@github.com/enactjs/babel-preset-enact.git#ae166c6707c76fb7c59099780b495c3197cf90c4",
+      "resolved": "git+ssh://git@github.com/enactjs/babel-preset-enact.git#b47d61341513b4c2fe753aa4a98451dc565ef3c3",
       "dev": true,
       "license": "Apache-2.0",
       "dependencies": {
@@ -3691,7 +3691,7 @@
     },
     "node_modules/eslint-config-enact": {
       "version": "4.1.2",
-      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#d857467f5a8816480e093a0812742a8674d5eeaa",
+      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#d8fd3f5cf1123d1f8246592f5e644244c6f89a36",
       "dev": true,
       "license": "Apache-2.0",
       "dependencies": {
@@ -11256,7 +11256,7 @@
       "dev": true
     },
     "babel-preset-enact": {
-      "version": "git+ssh://git@github.com/enactjs/babel-preset-enact.git#ae166c6707c76fb7c59099780b495c3197cf90c4",
+      "version": "git+ssh://git@github.com/enactjs/babel-preset-enact.git#b47d61341513b4c2fe753aa4a98451dc565ef3c3",
       "dev": true,
       "from": "babel-preset-enact@github:enactjs/babel-preset-enact#feature/WRO-697",
       "requires": {
@@ -11810,7 +11810,7 @@
       }
     },
     "eslint-config-enact": {
-      "version": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#d857467f5a8816480e093a0812742a8674d5eeaa",
+      "version": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#d8fd3f5cf1123d1f8246592f5e644244c6f89a36",
       "dev": true,
       "from": "eslint-config-enact@github:enactjs/eslint-config-enact#feature/WRO-697",
       "requires": {
