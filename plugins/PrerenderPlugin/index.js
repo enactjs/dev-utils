@@ -10,7 +10,7 @@ const vdomServer = require('./vdom-server-render');
 
 const prerenderPluginHooksMap = new WeakMap();
 
-function getPrerenderPluginHooks(compilation) {
+function getPrerenderPluginHooks (compilation) {
 	let hooks = prerenderPluginHooksMap.get(compilation);
 
 	// Setup the hooks only once
@@ -22,7 +22,7 @@ function getPrerenderPluginHooks(compilation) {
 	return hooks;
 }
 
-function createPrerenderPluginHooks() {
+function createPrerenderPluginHooks () {
 	return {
 		prerenderChunk: new SyncHook(['details']),
 		prerenderLocale: new SyncHook(['details'])
@@ -30,18 +30,19 @@ function createPrerenderPluginHooks() {
 }
 
 class PrerenderPlugin {
-	constructor(options = {}) {
+	constructor (options = {}) {
 		this.options = options;
 		this.options.chunk = this.options.chunk || 'main.js';
 		if (!this.options.chunk.endsWith('.js')) this.options.chunk += '.js';
 		if (this.options.locales === undefined) this.options.locales = 'en-US';
-		if (this.options.mapfile === undefined || this.options.mapfile === true)
+		if (this.options.mapfile === undefined || this.options.mapfile === true) {
 			this.options.mapfile = 'locale-map.json';
+		}
 		if (!this.options.server) this.options.server = require.resolve('react-dom/server');
 		if (!this.options.htmlPlugin) this.options.htmlPlugin = require('html-webpack-plugin');
 	}
 
-	apply(compiler) {
+	apply (compiler) {
 		const opts = this.options;
 		const status = {prerender: [], attr: [], alias: []};
 		let locales;
@@ -315,9 +316,9 @@ class PrerenderPlugin {
 						// Generate a JSON file that maps the locales to their HTML files.
 						if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {
 							const mapper = (m, c, i) =>
-								status.alias.includes(c)
-									? m
-									: Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
+								status.alias.includes(c) ?
+									m :
+									Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
 							const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
 							let out = 'locale-map.json';
 							if (typeof opts.mapfile === 'string') {
@@ -335,14 +336,14 @@ class PrerenderPlugin {
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
-function isNodeOutputFS(compiler) {
+function isNodeOutputFS (compiler) {
 	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 // Determine the desired target locales based of option content.
 // Can be a preset like 'tv' or 'signage', 'used' for all used app-level locales, 'all' for
 // all locales supported by ilib, a custom json file input, or a comma-separated lists
-function parseLocales(context, target) {
+function parseLocales (context, target) {
 	if (!target || target === 'none') {
 		return [];
 	} else if (Array.isArray(target)) {
@@ -365,7 +366,7 @@ function parseLocales(context, target) {
 }
 
 // Scan an ilib manifest and detect all locales that it uses.
-function detectLocales(manifest, deepestOnly) {
+function detectLocales (manifest, deepestOnly) {
 	try {
 		const meta = JSON.parse(fs.readFileSync(manifest, {encoding: 'utf8'}));
 		const locales = [];
@@ -403,7 +404,7 @@ function detectLocales(manifest, deepestOnly) {
 }
 
 // Simplifies and groups the locales and aliases to ensure minimal output needed.
-function simplifyAliases(locales, status) {
+function simplifyAliases (locales, status) {
 	const links = {};
 	const sharedCSS = {};
 	const common = (a, b) => a.filter(b.includes.bind(b));
@@ -484,12 +485,12 @@ function simplifyAliases(locales, status) {
 }
 
 // Extracts a valid language string from a locale.
-function language(locale) {
+function language (locale) {
 	const matchLang = locale.match(/\b([a-z]{2})\b/);
 	return matchLang && matchLang[1];
 }
 
-function rootInjection(html) {
+function rootInjection (html) {
 	const rootDiv = findRootDiv(html);
 	return function (prerender) {
 		if (rootDiv) {
@@ -504,7 +505,7 @@ function rootInjection(html) {
 
 // Find the location of the root div (can be empty or with contents) and return the
 // contents of the HTML before and after it.
-function findRootDiv(html, start, end) {
+function findRootDiv (html, start, end) {
 	if (/^<div[^>]+id="root"/i.test(html.substring(start, end + 7))) {
 		return {before: html.substring(0, start), after: html.substring(end + 6)};
 	}
@@ -516,7 +517,7 @@ function findRootDiv(html, start, end) {
 }
 
 // Parse the prerendered HTML to extract any header elements
-function parsePrerender(html) {
+function parsePrerender (html) {
 	const elementParse = /<([^/][^>]*)\/*>([^<]*)/g;
 	const head = [];
 	const prerender = html.replace(/<!-- head append start -->([\s\S]*)<!-- head append end -->/, (m, content) => {
@@ -530,9 +531,9 @@ function parsePrerender(html) {
 					const [, key, value] = curr.replace(/[/]$/, '').match(/^([^=]*)(?:="(.*)")*/);
 					return Object.assign(result, {[key]: value !== undefined ? value : 'true'});
 				}, {}),
-				innerHTML: match[1].endsWith('/')
-					? ''
-					: '\n\t\t' + match[2].replace(/^\s+|\s+$/g, '').replace(/\n/g, '\n\t\t') + '\n\t'
+				innerHTML: match[1].endsWith('/') ?
+					'' :
+					'\n\t\t' + match[2].replace(/^\s+|\s+$/g, '').replace(/\n/g, '\n\t\t') + '\n\t'
 			});
 		}
 		return '';
@@ -541,7 +542,7 @@ function parsePrerender(html) {
 }
 
 // Injects assets into html
-function injectAssetsIntoHtml(html, assets, assetTags, options) {
+function injectAssetsIntoHtml (html, assets, assetTags, options) {
 	const htmlRegExp = /(<html[^>]*>)/i;
 	const headRegExp = /(<\/head\s*>)/i;
 	const bodyRegExp = /(<\/body\s*>)/i;
@@ -579,7 +580,7 @@ function injectAssetsIntoHtml(html, assets, assetTags, options) {
 }
 
 // Minifies html
-function minifyHtml(html, options) {
+function minifyHtml (html, options) {
 	if (typeof options.minify !== 'object') {
 		return html;
 	}
@@ -605,7 +606,7 @@ function minifyHtml(html, options) {
 }
 
 // Injects assets and minify the html
-function postProcessHtml(html, assets, assetTags, options) {
+function postProcessHtml (html, assets, assetTags, options) {
 	if (typeof html !== 'string') {
 		return Promise.reject(new Error('Expected html to be a string but got ' + JSON.stringify(html)));
 	}
@@ -615,7 +616,7 @@ function postProcessHtml(html, assets, assetTags, options) {
 }
 
 // Adds a file entry with data to be emitted as an asset.
-function emitAsset(compilation, name, data) {
+function emitAsset (compilation, name, data) {
 	compilation.emitAsset(name, new sources.RawSource(data));
 }
 

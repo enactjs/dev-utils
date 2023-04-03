@@ -39,7 +39,7 @@ const findParent = function (dir) {
 	}
 };
 
-function normalizeModuleID(id, polyfill) {
+function normalizeModuleID (id, polyfill) {
 	const dir = fs.existsSync(id) && fs.statSync(id).isDirectory() ? id : path.dirname(id);
 	parentCache[dir] = findParent(dir);
 	if (parentCache[dir]) {
@@ -102,17 +102,17 @@ DllModule.prototype.codeGeneration = function () {
 };
 
 class EnactFrameworkPlugin {
-	constructor(options = {}) {
+	constructor (options = {}) {
 		this.options = options;
 	}
 
-	apply(compiler) {
+	apply (compiler) {
 		const poly = this.options.polyfill;
 
 		// Map entries to the DLLEntryPlugin
 		DllModule.entries = {};
 		compiler.hooks.entryOption.tap('EnactFrameworkPlugin', (context, entry) => {
-			function itemToPlugin(item, name) {
+			function itemToPlugin (item, name) {
 				if (Array.isArray(item)) {
 					DllModule.entries[name] = [];
 					for (let i = 0; i < item.length; i++) {

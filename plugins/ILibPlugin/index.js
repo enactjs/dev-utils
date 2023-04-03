@@ -5,7 +5,7 @@ const {SyncWaterfallHook} = require('tapable');
 const {ContextReplacementPlugin, Compilation, DefinePlugin, Template, sources} = require('webpack');
 const app = require('../../option-parser');
 
-function packageName(file) {
+function packageName (file) {
 	try {
 		return JSON.parse(fs.readFileSync(file, {encoding: 'utf8'})).name || '';
 	} catch (e) {
@@ -13,7 +13,7 @@ function packageName(file) {
 	}
 }
 
-function packageSearch(dir, pkg) {
+function packageSearch (dir, pkg) {
 	let pkgPath;
 	if (!path.isAbsolute(dir)) dir = path.join(process.cwd(), dir);
 	while (dir.length > 0 && dir !== path.dirname(dir) && !pkgPath) {
@@ -29,20 +29,20 @@ function packageSearch(dir, pkg) {
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
-function isNodeOutputFS(compiler) {
+function isNodeOutputFS (compiler) {
 	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs);
 }
 
 // Normalize a filepath to be relative to the webpack context, using forward-slashes, and
 // replace each '..' with '_', keeping in line with the file-loader and other webpack standards.
-function transformPath(context, file) {
+function transformPath (context, file) {
 	return path
 		.relative(context, file)
 		.replace(/\\/g, '/')
 		.replace(/\.\.(\/)?/g, '_$1');
 }
 
-function bundleConst(name) {
+function bundleConst (name) {
 	return (
 		'ILIB_' +
 		path
@@ -53,7 +53,7 @@ function bundleConst(name) {
 	);
 }
 
-function resolveBundle({dir, context, symlinks, relative, publicPath}) {
+function resolveBundle ({dir, context, symlinks, relative, publicPath}) {
 	const bundle = {resolved: dir, path: dir, emit: true};
 	if (path.isAbsolute(bundle.path)) {
 		bundle.emit = false;
@@ -77,7 +77,7 @@ function resolveBundle({dir, context, symlinks, relative, publicPath}) {
 
 // Read a manifest (creating a new one dynamically as applicable) and emit it,
 // returning its contents.
-function readManifest(compilation, manifest, opts) {
+function readManifest (compilation, manifest, opts) {
 	let data;
 	let files = [];
 	if (typeof manifest === 'string') {
@@ -98,7 +98,7 @@ function readManifest(compilation, manifest, opts) {
 }
 
 // Read each manifest and process their contents.
-function handleBundles(compilation, manifests, opts, callback) {
+function handleBundles (compilation, manifests, opts, callback) {
 	if (manifests.length === 0) {
 		callback();
 	} else {
@@ -121,7 +121,7 @@ function handleBundles(compilation, manifests, opts, callback) {
 }
 
 // Read and emit all the assets in a particular manifest.
-function handleManifestFiles(compilation, dir, files, opts, callback) {
+function handleManifestFiles (compilation, dir, files, opts, callback) {
 	if (files.length === 0) {
 		callback();
 	} else {
@@ -142,7 +142,7 @@ function handleManifestFiles(compilation, dir, files, opts, callback) {
 }
 
 // Determine if the output file exists and if its newer to determine if it should be emitted.
-function shouldEmit(compiler, file, cache) {
+function shouldEmit (compiler, file, cache) {
 	if (isNodeOutputFS(compiler)) {
 		try {
 			const src = fs.statSync(file);
@@ -159,13 +159,13 @@ function shouldEmit(compiler, file, cache) {
 }
 
 // Add a given asset's data to the compilation array in a webpack-compatible source object.
-function emitAsset(compilation, name, data) {
+function emitAsset (compilation, name, data) {
 	compilation.emitAsset(name, new sources.RawSource(data));
 }
 
 const iLibPluginHooksMap = new WeakMap();
 
-function getILibPluginHooks(compilation) {
+function getILibPluginHooks (compilation) {
 	let hooks = iLibPluginHooksMap.get(compilation);
 
 	// Setup the hooks only once
@@ -177,14 +177,14 @@ function getILibPluginHooks(compilation) {
 	return hooks;
 }
 
-function createILibPluginHooks() {
+function createILibPluginHooks () {
 	return {
 		ilibManifestList: new SyncWaterfallHook(['manifests'])
 	};
 }
 
 class ILibPlugin {
-	constructor(options = {}) {
+	constructor (options = {}) {
 		this.options = options;
 		this.options.ilib = this.options.ilib || process.env.ILIB_BASE_PATH;
 		const pkgName = packageName('./package.json');
@@ -200,7 +200,7 @@ class ILibPlugin {
 					packageSearch(process.cwd(), 'ilib') ||
 					(pkgName === '@enact/i18n' && fs.existsSync(path.join(process.cwd(), 'ilib')) && 'ilib');
 			} catch (e) {
-				console.error('ERROR: iLib locale not detected. Please ensure "ilib" is installed.');
+				console.error('ERROR: iLib locale not detected. Please ensure "ilib" is installed.'); // eslint-disable-line no-console
 				process.exit(1);
 			}
 		}
@@ -210,17 +210,17 @@ class ILibPlugin {
 
 		this.options.cache = typeof this.options.cache !== 'boolean' || this.options.cache;
 		this.options.create =
-			typeof process.env.ILIB_ASSET_CREATE !== 'undefined'
-				? process.env.ILIB_ASSET_CREATE === 'true'
-				: typeof this.options.create !== 'boolean' || this.options.create;
+			typeof process.env.ILIB_ASSET_CREATE !== 'undefined' ?
+				process.env.ILIB_ASSET_CREATE === 'true' :
+				typeof this.options.create !== 'boolean' || this.options.create;
 		this.options.emit =
-			typeof process.env.ILIB_ASSET_EMIT !== 'undefined'
-				? process.env.ILIB_ASSET_EMIT === 'true'
-				: typeof this.options.emit !== 'boolean' || this.options.emit;
+			typeof process.env.ILIB_ASSET_EMIT !== 'undefined' ?
+				process.env.ILIB_ASSET_EMIT === 'true' :
+				typeof this.options.emit !== 'boolean' || this.options.emit;
 		this.options.symlinks = typeof this.options.symlinks !== 'boolean' || this.options.symlinks;
 	}
 
-	apply(compiler) {
+	apply (compiler) {
 		const opts = this.options;
 		const created = [];
 		let manifests = [];
@@ -236,7 +236,7 @@ class ILibPlugin {
 					if (pkgDir) {
 						opts.bundles[t.name] = path.join(pkgDir, 'resources');
 					} else {
-						console.warn('WARNING: Unable to location theme package ' + t.name);
+						console.warn('WARNING: Unable to location theme package ' + t.name); // eslint-disable-line no-console
 					}
 				}
 			}

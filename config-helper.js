@@ -2,11 +2,11 @@ const pkgRoot = require('./package-root');
 
 let rootCache;
 
-function isNamed(name) {
+function isNamed (name) {
 	return fn => name && fn && fn.constructor && fn.constructor.name && fn.constructor.name === name;
 }
 
-function isPolyfill(file) {
+function isPolyfill (file) {
 	return /[\\/]polyfills\.(js|jsx|mjs|ts|tsx)$/.test(file);
 }
 

@@ -9,11 +9,11 @@ const helper = require('../../config-helper');
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
-function isNodeOutputFS(compiler) {
+function isNodeOutputFS (compiler) {
 	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
-function getBlobName(args) {
+function getBlobName (args) {
 	for (let i = 0; i < args.length; i++) {
 		if (args[i].indexOf('--startup-blob=') === 0) {
 			return args[i].replace('--startup-blob=', '');
@@ -24,7 +24,7 @@ function getBlobName(args) {
 
 const snapshotPluginHooksMap = new WeakMap();
 
-function getSnapshotPluginHooks(compilation) {
+function getSnapshotPluginHooks (compilation) {
 	let hooks = snapshotPluginHooksMap.get(compilation);
 
 	// Setup the hooks only once
@@ -36,22 +36,22 @@ function getSnapshotPluginHooks(compilation) {
 	return hooks;
 }
 
-function createSnapshotPluginHooks() {
+function createSnapshotPluginHooks () {
 	return {
 		v8Snapshot: new SyncHook([])
 	};
 }
 
 class SnapshotPlugin {
-	static get helperJS() {
+	static get helperJS () {
 		return require.resolve('./snapshot-helper');
 	}
 
-	static get helperReduxJS() {
+	static get helperReduxJS () {
 		return require.resolve('./snapshot-redux-helper');
 	}
 
-	constructor(options = {}) {
+	constructor (options = {}) {
 		this.options = options;
 		this.options.exec = this.options.exec || process.env.V8_MKSNAPSHOT;
 		this.options.args = this.options.args || [
@@ -66,7 +66,7 @@ class SnapshotPlugin {
 		this.options.args.push(this.options.target || 'main.js');
 	}
 
-	apply(compiler) {
+	apply (compiler) {
 		const opts = this.options;
 		const app = helper.appRoot();
 		const reactDOMClient = path.resolve(path.join(app, 'node_modules', 'react-dom/client'));
@@ -159,7 +159,7 @@ class SnapshotPlugin {
 				}
 
 				if (err) {
-					console.log(
+					console.log( // eslint-disable-line no-console
 						chalk.red(
 							'Snapshot blob generation "' +
 								opts.exec +

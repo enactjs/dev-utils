@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-function findPackageJSON(curr) {
+function findPackageJSON (curr) {
 	const parent = path.dirname(curr);
 	if (parent === curr || curr.length === 0) {
 		return null;
@@ -15,7 +15,7 @@ function findPackageJSON(curr) {
 	}
 }
 
-function findRoot(curr) {
+function findRoot (curr) {
 	const pkg = findPackageJSON(curr);
 	if (pkg) {
 		try {

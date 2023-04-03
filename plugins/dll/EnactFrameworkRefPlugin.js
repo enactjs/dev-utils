@@ -19,13 +19,13 @@ const findParentMain = function (dir) {
 // Custom DelegateFactoryPlugin designed to redirect Enact framework require() calls
 // to the external framework
 class DelegatedEnactFactoryPlugin {
-	constructor(options = {}) {
+	constructor (options = {}) {
 		this.options = options;
 		this.options.local = this.options.libraries.includes('.');
 		if (this.options.local) this.options.libraries.splice(this.options.libraries.indexOf('.'), 1);
 	}
 
-	apply(normalModuleFactory) {
+	apply (normalModuleFactory) {
 		const {name, libraries, ignore, local, polyfill} = this.options;
 		const libReg = new RegExp('^(' + libraries.join('|') + ')(?=[\\\\\\/]|$)');
 		const ignReg =
@@ -67,7 +67,7 @@ class DelegatedEnactFactoryPlugin {
 }
 
 // Form a correct filepath that can be used within the build's output directory
-function normalizePath(dir, file, compiler) {
+function normalizePath (dir, file, compiler) {
 	if (path.isAbsolute(dir)) {
 		return path.join(dir, file);
 	} else {
@@ -77,13 +77,13 @@ function normalizePath(dir, file, compiler) {
 
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
-function isNodeOutputFS(compiler) {
+function isNodeOutputFS (compiler) {
 	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(gracefulFs);
 }
 
 // Reference plugin to handle rewiring the external Enact framework requests
 class EnactFrameworkRefPlugin {
-	constructor(options = {}) {
+	constructor (options = {}) {
 		this.options = options;
 		this.options.name = this.options.name || 'enact_framework';
 		this.options.libraries = this.options.libraries || [
@@ -124,7 +124,7 @@ class EnactFrameworkRefPlugin {
 		}
 	}
 
-	apply(compiler) {
+	apply (compiler) {
 		const {name, libraries, ignore, external, polyfill, htmlPlugin, webOSMetaPlugin} = this.options;
 
 		// Declare enact_framework as an external dependency

@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-function FileXHR() {}
+function FileXHR () {}
 
 FileXHR.prototype.open = function (method, uri, async) {
 	this.method = method;
