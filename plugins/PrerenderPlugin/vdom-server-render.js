@@ -80,7 +80,7 @@ module.exports = {
 		}
 
 		try {
-			console.mute(); // eslint-disable-line no-console
+			console.mute();
 
 			try {
 				const generator = require(path.resolve(opts.fontGenerator));
@@ -127,9 +127,9 @@ module.exports = {
 			// If --expose-gc is used in NodeJS, force garbage collect after prerender for minimal memory usage.
 			if (global.gc) global.gc();
 
-			console.resume(); // eslint-disable-line no-console
+			console.resume();
 		} catch (e) {
-			console.resume(); // eslint-disable-line no-console
+			console.resume();
 			throw e;
 		}
 		return rendered;

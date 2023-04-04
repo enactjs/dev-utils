@@ -4,12 +4,12 @@ const path = require('path');
 const {Instance: Chalk} = require('chalk');
 
 class VerboseLogPlugin {
-	constructor (options = {}) {
+	constructor(options = {}) {
 		this.options = options;
 		this.options.stream = this.options.stream || process.stdout;
 	}
 
-	apply (compiler) {
+	apply(compiler) {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
 		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});

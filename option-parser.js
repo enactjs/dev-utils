@@ -156,19 +156,19 @@ const config = {
 
 		// Resolve the resolution independence settings from explicit settings or the resolved screenTypes definitions.
 		const riConfig = computed('ri', enact, config.theme);
-		config.ri = valid(riConfig) ?
-			riConfig :
-			config.screenTypes.reduce((r, s) => (s.base && {baseSize: s.pxPerRem}) || r, undefined);
+		config.ri = valid(riConfig)
+			? riConfig
+			: config.screenTypes.reduce((r, s) => (s.base && {baseSize: s.pxPerRem}) || r, undefined);
 
 		// Resolved filepath to fontGenerator. When not found, falls back to any theme preset or sandstone.
 		const fontGenerator = computed('fontGenerator', enact, config.theme);
 		config.fontGenerator =
 			fontGenerator &&
-			(path.isAbsolute(fontGenerator) ?
-				fontGenerator :
-				[path.join(pkg.path, fontGenerator), path.join(pkg.path, 'node_modules', fontGenerator)].find(
-					fs.existsSync
-				));
+			(path.isAbsolute(fontGenerator)
+				? fontGenerator
+				: [path.join(pkg.path, fontGenerator), path.join(pkg.path, 'node_modules', fontGenerator)].find(
+						fs.existsSync
+				  ));
 
 		// Override theme's accent LESS variable value if desired. Private option; may be removed in future.
 		// When used, creates a LESS variable override map, overriding '@moon-accent' and/or '@<theme>-accent'

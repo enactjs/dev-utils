@@ -25,19 +25,19 @@ let variableSysPaths = null;
 // share assets.
 const assetPathCache = {};
 
-function readAppInfo (file) {
+function readAppInfo(file) {
 	// Read and parse appinfo.json file if it exists.
 	if (fs.existsSync(file)) {
 		try {
 			const meta = JSON.parse(fs.readFileSync(file, {encoding: 'utf8'}));
 			return meta;
 		} catch (e) {
-			console.log('ERROR: unable to read/parse appinfo.json at ' + file); // eslint-disable-line no-console
+			console.log('ERROR: unable to read/parse appinfo.json at ' + file);
 		}
 	}
 }
 
-function handleSysAssetPath (context, appinfo) {
+function handleSysAssetPath(context, appinfo) {
 	// If the sysAsset base is specified, override the default one
 	if (appinfo.sysAssetsBasePath && appinfo.sysAssetsBasePath !== sysAssetsPath) {
 		sysAssetsPath = appinfo.sysAssetsBasePath;
@@ -59,7 +59,7 @@ function handleSysAssetPath (context, appinfo) {
 	}
 }
 
-function detectSysAssets (name) {
+function detectSysAssets(name) {
 	// find all assets with the name given in the available sysAsset paths
 	const result = [];
 	const trueName = name.substring(1);
@@ -72,7 +72,7 @@ function detectSysAssets (name) {
 	return result;
 }
 
-function rootAppInfo (context, specific) {
+function rootAppInfo(context, specific) {
 	// The accepted root locations to search for the appinfo.json and its relative
 	// assets are project root or ./webos-meta.
 	const rootDir = [context, path.join(context, './webos-meta')];
@@ -94,16 +94,16 @@ function rootAppInfo (context, specific) {
 	}
 }
 
-function addMetaAssets (metaDir, outDir, appinfo, compilation) {
+function addMetaAssets(metaDir, outDir, appinfo, compilation) {
 	// For each appinfo.json property that contains a webos meta asset, resolve that asset,
 	// and add its data to the compilation assets array.
 	for (let i = 0; i < props.length; i++) {
 		const p = props[i];
 		if (appinfo[p]) {
 			const assets =
-				appinfo[p].charAt(0) === '$' ?
-					detectSysAssets(appinfo[p]) :
-					[path.resolve(path.join(metaDir, appinfo[p]))];
+				appinfo[p].charAt(0) === '$'
+					? detectSysAssets(appinfo[p])
+					: [path.resolve(path.join(metaDir, appinfo[p]))];
 			for (let j = 0; j < assets.length; j++) {
 				const abs = assets[j];
 				if (appinfo[p].charAt(0) === '$') {
@@ -131,7 +131,7 @@ function addMetaAssets (metaDir, outDir, appinfo, compilation) {
 }
 
 // Add a given asset's data to the compilation array in a webpack-compatible source object.
-function emitAsset (compilation, name, data) {
+function emitAsset(compilation, name, data) {
 	if (compilation.getAsset(name)) {
 		compilation.updateAsset(name, new sources.RawSource(data));
 	} else {
@@ -141,7 +141,7 @@ function emitAsset (compilation, name, data) {
 
 const webOSMetaPluginHooksMap = new WeakMap();
 
-function getWebOSMetaPluginHooks (compilation) {
+function getWebOSMetaPluginHooks(compilation) {
 	let hooks = webOSMetaPluginHooksMap.get(compilation);
 
 	// Setup the hooks only once
@@ -153,7 +153,7 @@ function getWebOSMetaPluginHooks (compilation) {
 	return hooks;
 }
 
-function createWebOSMetaPluginHooks () {
+function createWebOSMetaPluginHooks() {
 	return {
 		webosMetaRootAppinfo: new SyncWaterfallHook(['appinfo', 'details']),
 		webosMetaListLocalized: new SyncWaterfallHook(['list']),
@@ -162,11 +162,11 @@ function createWebOSMetaPluginHooks () {
 }
 
 class WebOSMetaPlugin {
-	constructor (options = {}) {
+	constructor(options = {}) {
 		this.options = options;
 	}
 
-	apply (compiler) {
+	apply(compiler) {
 		const scan = this.options.path;
 		const context = this.options.context || compiler.context;
 
