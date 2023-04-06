@@ -1,4 +1,4 @@
-# 5.1.2 (April 4, 2023)
+# 5.1.2 (April 6, 2023)
 
 * Updated dependencies.
 
