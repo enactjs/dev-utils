@@ -1,6 +1,6 @@
 ## unreleased
 
-* Updated all dependencies to the latest including eslint-plugin-jest 27.
+* Updated all dependencies to the latest.
 * Updated `eslint-plugin-react` version to `^7.32.2`.
 
 # 5.1.2 (April 6, 2023)
