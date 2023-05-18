@@ -1,3 +1,9 @@
+## 6.0.0 (May 18, 2023)
+
+* Updated all dependencies to the latest.
+* Updated the minimum version of Node to `14.15.0` and dropped the support for Node 12 and 17.
+* Updated `eslint-plugin-react` version to `^7.32.2`.
+
 # 5.1.2 (April 6, 2023)
 
 * Updated dependencies.
