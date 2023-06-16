@@ -58,9 +58,8 @@
     }
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.3.2",
     "eslint": "^8.39.0",
-    "eslint-config-enact": "^4.1.5",
+    "eslint-config-enact": "github:enactjs/eslint-config-enact#feature/WRP-6904",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
