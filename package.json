@@ -36,7 +36,7 @@
     "core-js": "3.22.8",
     "fast-glob": "^3.2.12",
     "fbjs": "^3.0.4",
-    "find-cache-dir": "^3.3.2",
+    "find-cache-dir": "^4.0.0",
     "graceful-fs": "^4.2.11",
     "import-fresh": "^3.3.0",
     "mock-require": "^3.0.3",

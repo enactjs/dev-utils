@@ -14,16 +14,20 @@ const FileXHR = require('./FileXHR');
 
 require('console.mute');
 
-const prerenderCache = path.join(
-	findCacheDir({
-		name: 'enact-dev',
-		create: true
-	}),
-	'prerender'
-);
 let chunkTarget;
+let prerenderCache;
 
-if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
+import('find-cache-dir').then(({default: findCacheDirectory}) => {
+	prerenderCache = path.join(
+		findCacheDirectory({
+			name: 'enact-dev',
+			create: true
+		}),
+		'prerender'
+	);
+
+	if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
+});
 
 // Skip using the polyfills embedded within the bundle and instead use a local core-js,
 // since the bundle's target may differ in compatibility from the active Node process
