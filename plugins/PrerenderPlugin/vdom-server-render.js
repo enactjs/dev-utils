@@ -7,7 +7,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const findCacheDir = require('find-cache-dir');
 const requireUncached = require('import-fresh');
 const reroute = require('mock-require');
 const FileXHR = require('./FileXHR');
