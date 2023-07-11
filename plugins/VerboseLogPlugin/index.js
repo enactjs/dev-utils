@@ -11,7 +11,7 @@ class VerboseLogPlugin {
 	apply(compiler) {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
-		const chalk = new this.options.chalkInstance({enabled: !!this.options.stream.isTTY});
+		const chalk = new this.options.ChalkInstance({enabled: !!this.options.stream.isTTY});
 		let active;
 		const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
 
