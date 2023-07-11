@@ -11,7 +11,7 @@ module.exports = {
 				new VerboseLogPlugin({
 					prerenderPlugin: prerenderInstance && prerenderInstance.constructor,
 					snapshotPlugin: snapshotPluginInstance && snapshotPluginInstance.constructor,
-					ChalkInstance: Chalk
+					chalkInstance: Chalk
 				})
 			);
 		});
