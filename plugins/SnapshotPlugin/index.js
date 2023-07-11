@@ -2,7 +2,6 @@ const cp = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
-const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {IgnorePlugin} = require('webpack');
 const helper = require('../../config-helper');
@@ -159,17 +158,19 @@ class SnapshotPlugin {
 				}
 
 				if (err) {
-					console.log(
-						chalk.red(
-							'Snapshot blob generation "' +
-								opts.exec +
-								' ' +
-								opts.args.join(' ') +
-								'" in "' +
-								compiler.outputPath +
-								'" directory failed:"'
-						)
-					);
+					import('chalk').then(({default: chalk}) => {
+						console.log(
+							chalk.red(
+								'Snapshot blob generation "' +
+									opts.exec +
+									' ' +
+									opts.args.join(' ') +
+									'" in "' +
+									compiler.outputPath +
+									'" directory failed:"'
+							)
+						);
+					});
 				}
 
 				callback(err);

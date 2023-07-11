@@ -10,7 +10,7 @@
       "license": "Apache-2.0",
       "dependencies": {
         "browserslist": "^4.21.5",
-        "chalk": "^4.1.2",
+        "chalk": "^5.3.0",
         "console.mute": "^0.3.0",
         "core-js": "3.22.8",
         "fast-glob": "^3.2.12",
@@ -1482,15 +1482,11 @@
       ]
     },
     "node_modules/chalk": {
-      "version": "4.1.2",
-      "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
-      "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
-      "dependencies": {
-        "ansi-styles": "^4.1.0",
-        "supports-color": "^7.1.0"
-      },
+      "version": "5.3.0",
+      "resolved": "https://registry.npmjs.org/chalk/-/chalk-5.3.0.tgz",
+      "integrity": "sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==",
       "engines": {
-        "node": ">=10"
+        "node": "^12.17.0 || ^14.13 || >=16.0.0"
       },
       "funding": {
         "url": "https://github.com/chalk/chalk?sponsor=1"
@@ -15885,6 +15881,22 @@
         "node": ">=10"
       }
     },
+    "node_modules/eslint/node_modules/chalk": {
+      "version": "4.1.2",
+      "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
+      "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
+      "dev": true,
+      "dependencies": {
+        "ansi-styles": "^4.1.0",
+        "supports-color": "^7.1.0"
+      },
+      "engines": {
+        "node": ">=10"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/chalk?sponsor=1"
+      }
+    },
     "node_modules/eslint/node_modules/eslint-scope": {
       "version": "7.2.0",
       "resolved": "https://registry.npmjs.org/eslint-scope/-/eslint-scope-7.2.0.tgz",
@@ -18513,6 +18525,21 @@
         "node": ">= 10.13.0"
       }
     },
+    "node_modules/webpack-bundle-analyzer/node_modules/chalk": {
+      "version": "4.1.2",
+      "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
+      "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
+      "dependencies": {
+        "ansi-styles": "^4.1.0",
+        "supports-color": "^7.1.0"
+      },
+      "engines": {
+        "node": ">=10"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/chalk?sponsor=1"
+      }
+    },
     "node_modules/webpack-bundle-analyzer/node_modules/commander": {
       "version": "7.2.0",
       "resolved": "https://registry.npmjs.org/commander/-/commander-7.2.0.tgz",
@@ -19763,13 +19790,9 @@
       "integrity": "sha512-83564Z3yWGqXsh2vaH/mhXfEM0wX+NlBCm1jYHOb97TrTWJEmPTccZgeLTPBUUb0PNVo+oomb7wkimZBIERClA=="
     },
     "chalk": {
-      "version": "4.1.2",
-      "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
-      "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
-      "requires": {
-        "ansi-styles": "^4.1.0",
-        "supports-color": "^7.1.0"
-      }
+      "version": "5.3.0",
+      "resolved": "https://registry.npmjs.org/chalk/-/chalk-5.3.0.tgz",
+      "integrity": "sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w=="
     },
     "chrome-trace-event": {
       "version": "1.0.3",
@@ -20189,6 +20212,16 @@
         "text-table": "^0.2.0"
       },
       "dependencies": {
+        "chalk": {
+          "version": "4.1.2",
+          "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
+          "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
+          "dev": true,
+          "requires": {
+            "ansi-styles": "^4.1.0",
+            "supports-color": "^7.1.0"
+          }
+        },
         "eslint-scope": {
           "version": "7.2.0",
           "resolved": "https://registry.npmjs.org/eslint-scope/-/eslint-scope-7.2.0.tgz",
@@ -32001,6 +32034,15 @@
         "ws": "^7.3.1"
       },
       "dependencies": {
+        "chalk": {
+          "version": "4.1.2",
+          "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
+          "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
+          "requires": {
+            "ansi-styles": "^4.1.0",
+            "supports-color": "^7.1.0"
+          }
+        },
         "commander": {
           "version": "7.2.0",
           "resolved": "https://registry.npmjs.org/commander/-/commander-7.2.0.tgz",
