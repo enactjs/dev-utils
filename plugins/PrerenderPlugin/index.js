@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
-const chalk = require('chalk');
 const {SyncHook} = require('tapable');
 const {htmlTagObjectToString} = require('html-webpack-plugin/lib/html-tags');
 const {Compilation, sources} = require('webpack');
@@ -302,15 +301,15 @@ class PrerenderPlugin {
 				},
 				(assets, callback) => {
 					if (status.err) {
-						// @TODO: pretty-print error details
-						let message =
-							chalk.red(
-								chalk.bold(
+						import('chalk').then(({default: chalk}) => {
+							// @TODO: pretty-print error details
+							let message =
+								chalk.red.bold(
 									'Unable to generate prerender of app state HTML for ' + status.err.locale + ':'
-								)
-							) + '\n';
-						message += status.err.result.stack || status.err.result.message || status.err.result;
-						callback(new Error(message));
+								) + '\n';
+							message += status.err.result.stack || status.err.result.message || status.err.result;
+							callback(new Error(message));
+						});
 					} else {
 						// Generate a JSON file that maps the locales to their HTML files.
 						if (opts.mapfile && locales.length > 1 && isNodeOutputFS(compiler)) {

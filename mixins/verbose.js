@@ -6,11 +6,14 @@ module.exports = {
 		const prerenderInstance = helper.getPluginByName(config, 'PrerenderPlugin');
 		const snapshotPluginInstance = helper.getPluginByName(config, 'SnapshotPlugin');
 
-		return config.plugins.push(
-			new VerboseLogPlugin({
-				prerenderPlugin: prerenderInstance && prerenderInstance.constructor,
-				snapshotPlugin: snapshotPluginInstance && snapshotPluginInstance.constructor
-			})
-		);
+		import('chalk').then(({default: chalk}) => {
+			return config.plugins.push(
+				new VerboseLogPlugin({
+					prerenderPlugin: prerenderInstance && prerenderInstance.constructor,
+					snapshotPlugin: snapshotPluginInstance && snapshotPluginInstance.constructor,
+					chalkInstance: chalk.Instance
+				})
+			);
+		});
 	}
 };

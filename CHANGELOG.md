@@ -1,4 +1,9 @@
-## 6.0.0 (May 18, 2023)
+# unreleased
+
+* Updated `chalk` version to `^5.3.0`.
+* Updated `find-cache-dir` version to `^4.0.0`.
+
+# 6.0.0 (May 18, 2023)
 
 * Updated all dependencies to the latest.
 * Updated the minimum version of Node to `14.15.0` and dropped the support for Node 12 and 17.
