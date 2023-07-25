@@ -1,4 +1,4 @@
-# unreleased
+# 6.0.1 (July 25, 2023)
 
 * Updated `chalk` version to `^5.3.0`.
 * Updated `find-cache-dir` version to `^4.0.0`.
