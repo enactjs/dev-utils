@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const {Instance: Chalk} = require('chalk');
 
 class VerboseLogPlugin {
 	constructor(options = {}) {
@@ -12,6 +11,7 @@ class VerboseLogPlugin {
 	apply(compiler) {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
+		const Chalk = this.options.chalkInstance;
 		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
 		let active;
 		const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
