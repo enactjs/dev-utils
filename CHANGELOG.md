@@ -1,3 +1,7 @@
+# unreleased
+
+* Updated `prettier` version to `^3.0.1` and `eslint-plugin-prettier` version to `^5.0.0`.
+
 # 6.0.1 (July 25, 2023)
 
 * Updated `chalk` version to `^5.3.0`.
