@@ -1,18 +1,20 @@
 'use strict';
 
 const path = require('path');
+let chalk;
 
 class VerboseLogPlugin {
 	constructor(options = {}) {
 		this.options = options;
 		this.options.stream = this.options.stream || process.stdout;
+		import('chalk').then(({Chalk}) => {
+			chalk = new Chalk({level: !!this.options.stream.isTTY ? 1 : 0});
+		});
 	}
 
 	apply(compiler) {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
-		const Chalk = this.options.chalkInstance;
-		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
 		let active;
 		const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
 
@@ -25,14 +27,20 @@ class VerboseLogPlugin {
 			}
 		};
 
+		let isStart = false;
 		const update = ({percent, message, details, file}) => {
 			if (active !== file || !file) {
-				const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
-				let output = append('', message, columns && columns - 5);
-				if (details) output = append(output, details, columns && columns - 5);
-				if (file) output = append(output, file, columns && columns - 5, chalk.gray);
-				this.options.stream.write(prefix + output + '\n');
-				active = file;
+				if (chalk) {
+					if (!isStart) isStart = !percent;
+					const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
+					let output = append('', message, columns && columns - 5);
+					if (details) output = append(output, details, columns && columns - 5);
+					if (file) output = append(output, file, columns && columns - 5, chalk.gray);
+					if (isStart) this.options.stream.write(prefix + output + '\n');
+					active = file;
+				} else {
+					setTimeout(() => update({percent, message, details, file}), 1000);
+				}
 			}
 		};
 
