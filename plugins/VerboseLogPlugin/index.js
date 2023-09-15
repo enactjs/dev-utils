@@ -28,19 +28,17 @@ class VerboseLogPlugin {
 			}
 		};
 
-		let isStart = false;
 		const update = ({percent, message, details, file}) => {
 			if (active !== file || !file) {
 				if (chalk) {
-					if (!isStart) isStart = !percent;
 					const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
 					let output = append('', message, columns && columns - 5);
 					if (details) output = append(output, details, columns && columns - 5);
 					if (file) output = append(output, file, columns && columns - 5, chalk.gray);
-					if (isStart) this.options.stream.write(prefix + output + '\n');
+					this.options.stream.write(prefix + output + '\n');
 					active = file;
 				} else {
-					setTimeout(() => update({percent, message, details, file}), 1000);
+					setTimeout(() => update({percent, message, details, file}), 0);
 				}
 			}
 		};
