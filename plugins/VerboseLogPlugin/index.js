@@ -64,7 +64,7 @@ class VerboseLogPlugin {
 				const prerenderPluginHooks = opts.prerenderPlugin.getHooks(compilation);
 				prerenderPluginHooks.prerenderChunk.tap('VerboseLogPlugin', () => {
 					update({
-						percent: 0.885,
+						percent: 0.92,
 						message: 'prerendering chunk to HTML'
 					});
 				});
@@ -73,7 +73,7 @@ class VerboseLogPlugin {
 				const snapshotPluginHooks = opts.snapshotPlugin.getHooks(compilation);
 				snapshotPluginHooks.v8Snapshot.tap('VerboseLogPlugin', () => {
 					update({
-						percent: 0.97,
+						percent: 0.98,
 						message: 'generating v8 snapshot blob'
 					});
 				});
