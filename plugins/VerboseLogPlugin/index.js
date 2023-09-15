@@ -30,16 +30,16 @@ class VerboseLogPlugin {
 
 		const update = ({percent, message, details, file}) => {
 			if (active !== file || !file) {
-				if (chalk) {
-					const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
-					let output = append('', message, columns && columns - 5);
-					if (details) output = append(output, details, columns && columns - 5);
-					if (file) output = append(output, file, columns && columns - 5, chalk.gray);
-					this.options.stream.write(prefix + output + '\n');
-					active = file;
-				} else {
-					setTimeout(() => update({percent, message, details, file}), 0);
+				if (!chalk) {
+					// The function will be called recursively until chalk is imported.
+					update({percent, message, details, file});
 				}
+				const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
+				let output = append('', message, columns && columns - 5);
+				if (details) output = append(output, details, columns && columns - 5);
+				if (file) output = append(output, file, columns && columns - 5, chalk.gray);
+				this.options.stream.write(prefix + output + '\n');
+				active = file;
 			}
 		};
 
