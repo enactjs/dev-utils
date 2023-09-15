@@ -2,20 +2,19 @@
 
 const path = require('path');
 
-let chalk;
-
 class VerboseLogPlugin {
 	constructor(options = {}) {
 		this.options = options;
 		this.options.stream = this.options.stream || process.stdout;
-		import('chalk').then(({Chalk}) => {
-			chalk = new Chalk({level: this.options.stream.isTTY ? 1 : 0});
-		});
 	}
 
 	apply(compiler) {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
+		let chalk;
+		import('chalk').then(({Chalk}) => {
+			chalk = new Chalk({level: this.options.stream.isTTY ? 1 : 0});
+		});
 		let active;
 		const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
 
