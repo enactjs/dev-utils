@@ -12,9 +12,14 @@ class VerboseLogPlugin {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
 		let chalk;
-		import('chalk').then(({Chalk}) => {
-			chalk = new Chalk({level: this.options.stream.isTTY ? 1 : 0});
-		});
+		import('chalk')
+			.then(({Chalk}) => {
+				chalk = new Chalk({level: this.options.stream.isTTY ? 1 : 0});
+			})
+			.catch(err => {
+				console.error('ERROR: ' + err.message);
+				process.exit(1);
+			});
 		let active;
 		const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
 
