@@ -1,6 +1,8 @@
 # unreleased
 
-* `VerboseLogPlugin`: Fixed no detailed log outputs when using `enact pack --verbose`.
+* `VerboseLogPlugin`:
+  * Fixed no detailed log outputs when using `enact pack --verbose`.
+  * Added an exception handling for preventing infinite loop.
 * Updated `prettier` version to `^3.0.1` and `eslint-plugin-prettier` version to `^5.0.0`.
 
 # 6.0.1 (July 25, 2023)
