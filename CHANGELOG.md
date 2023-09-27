@@ -1,4 +1,4 @@
-# unreleased
+# 6.0.2 (September 27, 2023)
 
 * `VerboseLogPlugin`:
   * Fixed no detailed log outputs when using `enact pack --verbose`.
