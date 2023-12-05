@@ -12,6 +12,7 @@ const exportOnDemand = obj => {
 exportOnDemand({
 	configHelper: () => require('./config-helper'),
 	cssModuleIdent: () => require('./css-module-ident'),
+	cssModuleIdentWithHash: () => require('./css-module-ident-with-hash'),
 	mixins: () => require('./mixins'),
 	optionParser: () => require('./option-parser'),
 	packageRoot: () => require('./package-root')
