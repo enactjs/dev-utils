@@ -1,3 +1,7 @@
+# unreleased
+
+* `css-module-ident`: Added own hash constructor function.
+
 # 6.0.2 (September 27, 2023)
 
 * `VerboseLogPlugin`:
