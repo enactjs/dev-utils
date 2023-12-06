@@ -28,7 +28,7 @@ module.exports = function (context, localIdentName, localName) {
 
 	// Create a hash based on a the file location and class name. Will be unique across a project, and close to globally unique.
 	let hash = '';
-	if (process.env.SIMPLE_CSS_IDENT === 'true') {
+	if (process.env.SIMPLE_CSS_IDENT !== 'true') {
 		hash =
 			'__' +
 			loaderUtils.getHashDigest(
