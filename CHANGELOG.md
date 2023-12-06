@@ -1,6 +1,6 @@
 # unreleased
 
-* `css-module-ident`: Added own hash constructor function.
+* `css-module-ident`: Added own hash generate function.
 
 # 6.0.2 (September 27, 2023)
 
