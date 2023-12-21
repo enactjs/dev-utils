@@ -60,9 +60,9 @@
   "devDependencies": {
     "@babel/eslint-plugin": "^7.22.10",
     "eslint": "^8.53.0",
-    "eslint-config-enact": "^4.1.7",
+    "eslint-config-enact": "^4.1.8",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-enact": "^1.0.5",
+    "eslint-plugin-enact": "^1.0.6",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jest": "^27.6.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
