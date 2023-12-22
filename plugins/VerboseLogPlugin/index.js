@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const {Instance: Chalk} = require('chalk');
 
 class VerboseLogPlugin {
 	constructor(options = {}) {
@@ -12,7 +11,15 @@ class VerboseLogPlugin {
 	apply(compiler) {
 		const opts = this.options;
 		const columns = this.options.stream.isTTY && this.options.stream.columns;
-		const chalk = new Chalk({enabled: !!this.options.stream.isTTY});
+		let chalk;
+		import('chalk')
+			.then(({Chalk}) => {
+				chalk = new Chalk({level: this.options.stream.isTTY ? 1 : 0});
+			})
+			.catch(err => {
+				console.error('ERROR: ' + err.message);
+				process.exit(1);
+			});
 		let active;
 		const padPercent = val => val + '%' + ' '.repeat(val.length - 3);
 
@@ -27,12 +34,16 @@ class VerboseLogPlugin {
 
 		const update = ({percent, message, details, file}) => {
 			if (active !== file || !file) {
-				const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
-				let output = append('', message, columns && columns - 5);
-				if (details) output = append(output, details, columns && columns - 5);
-				if (file) output = append(output, file, columns && columns - 5, chalk.gray);
-				this.options.stream.write(prefix + output + '\n');
-				active = file;
+				if (chalk) {
+					const prefix = chalk.magenta(padPercent(Math.round(percent * 100))) + ' ';
+					let output = append('', message, columns && columns - 5);
+					if (details) output = append(output, details, columns && columns - 5);
+					if (file) output = append(output, file, columns && columns - 5, chalk.gray);
+					this.options.stream.write(prefix + output + '\n');
+					active = file;
+				} else {
+					setTimeout(() => update({percent, message, details, file}), 0);
+				}
 			}
 		};
 
@@ -57,7 +68,7 @@ class VerboseLogPlugin {
 				const prerenderPluginHooks = opts.prerenderPlugin.getHooks(compilation);
 				prerenderPluginHooks.prerenderChunk.tap('VerboseLogPlugin', () => {
 					update({
-						percent: 0.885,
+						percent: 0.92,
 						message: 'prerendering chunk to HTML'
 					});
 				});
@@ -66,7 +77,7 @@ class VerboseLogPlugin {
 				const snapshotPluginHooks = opts.snapshotPlugin.getHooks(compilation);
 				snapshotPluginHooks.v8Snapshot.tap('VerboseLogPlugin', () => {
 					update({
-						percent: 0.97,
+						percent: 0.98,
 						message: 'generating v8 snapshot blob'
 					});
 				});
