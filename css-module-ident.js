@@ -34,7 +34,7 @@ module.exports = function (context, localIdentName, localName) {
 			loaderUtils.getHashDigest(
 				path.posix.relative(context.rootContext, context.resourcePath) + localName,
 				'md5',
-				'base64url',
+				'base62',
 				5
 			);
 	}
