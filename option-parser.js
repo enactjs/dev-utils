@@ -168,7 +168,7 @@ const config = {
 				? fontGenerator
 				: [path.join(pkg.path, fontGenerator), path.join(pkg.path, 'node_modules', fontGenerator)].find(
 						fs.existsSync
-				  ));
+					));
 
 		// Override theme's accent LESS variable value if desired. Private option; may be removed in future.
 		// When used, creates a LESS variable override map, overriding '@moon-accent' and/or '@<theme>-accent'

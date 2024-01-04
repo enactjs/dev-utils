@@ -1,3 +1,7 @@
+# unreleased
+
+* Removed eslint related modules.
+
 # 6.0.3 (December 21, 2023)
 
 * Updated dependencies.
