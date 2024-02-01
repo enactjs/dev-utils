@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const loaderUtils = require('loader-utils');
 const app = require('./option-parser');
 const packageRoot = require('./package-root');
 
@@ -24,5 +25,19 @@ module.exports = function (context, localIdentName, localName) {
 	}
 	const fileMatch = rel.match(fileIdentPattern);
 	const identFile = (fileMatch && (fileMatch[1] || fileMatch[2])) || 'unknown';
-	return identFile.replace(/[/\\]+/g, '_') + '_' + localName;
+
+	// Create a hash based on a the file location and class name. Will be unique across a project, and close to globally unique.
+	let hash = '';
+	if (process.env.SIMPLE_CSS_IDENT !== 'true') {
+		hash =
+			'__' +
+			loaderUtils.getHashDigest(
+				path.posix.relative(context.rootContext, context.resourcePath) + localName,
+				'md5',
+				'base62',
+				5
+			);
+	}
+
+	return identFile.replace(/[/\\]+/g, '_') + '_' + localName + hash;
 };
