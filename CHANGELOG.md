@@ -1,4 +1,4 @@
-# unreleased
+# 6.1.0 (February 20, 2024)
 
 * `css-module-ident`: Added own hash generate function.
 * Removed eslint related modules.
