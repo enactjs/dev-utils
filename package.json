@@ -33,7 +33,7 @@
     "browserslist": "^4.23.1",
     "chalk": "^5.3.0",
     "console.mute": "^0.3.0",
-    "core-js": "3.37.1",
+    "core-js": "3.22.8",
     "fast-glob": "^3.3.2",
     "fbjs": "^3.0.5",
     "find-cache-dir": "^5.0.0",
