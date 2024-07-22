@@ -1,6 +1,9 @@
 # 7.0.0-alpha.1 (July 22, 2024)
 
 * Updated the minimum version of Node to `18.18.0`.
+
+# 6.1.0 (February 20, 2024)
+
 * `css-module-ident`: Added own hash generate function.
 * Removed eslint related modules.
 
