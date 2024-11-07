@@ -47,7 +47,13 @@ module.exports = {
 		} else if (Array.isArray(config.entry)) {
 			config.entry[config.entry.length - 1] = replacement;
 		} else if (typeof config.entry === 'object') {
-			this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
+			if (typeof replacement === 'string') {
+				this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
+			} else {
+				config.entry = {...config.entry, ...replacement}
+				config.optimization?.splitChunks ? config.optimization.splitChunks?.chunks ? config.optimization.splitChunks.chunks = 'all' : config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'} : config.optimization = {...config.optimization, splitChunks: {chunks: 'all'}} 
+				config.plugins.forEach(plugin => { if (plugin?.options?.ignoreOrder !== undefined) plugin.options.ignoreOrder = true})
+			}
 		}
 	},
 	polyfillFile: function ({entry} = {}) {
