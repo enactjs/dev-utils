@@ -47,26 +47,34 @@ module.exports = {
 		} else if (Array.isArray(config.entry)) {
 			config.entry[config.entry.length - 1] = replacement;
 		} else if (typeof config.entry === 'object') {
+			this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
+		}
+	},
+	replaceEntry: function (config, replacement, opts = {}) {
+		if (typeof replacement === 'string') {
 			try {
 				replacement = JSON.parse(replacement);
 			} catch (e) {
 				replacement = JSON.parse('{"main": "' + replacement + '"}');
 			}
-			if (replacement?.main !== undefined) {
-				this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement.main, opts);
-				delete replacement.main;
+		}
+		const {main: mainEntry, ...restEntries} = replacement;
+
+		if (mainEntry !== undefined) this.replaceMain(config, mainEntry, opts);
+
+		if (Object.keys(restEntries).length !== 0) {
+			config.entry = {...config.entry, ...restEntries};
+			if (config.optimization.splitChunks?.chunks !== undefined) {
+				config.optimization.splitChunks.chunks = 'all';
+			} else {
+				config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'};
 			}
-			if (Object.keys(replacement).length !== 0) {
-				config.entry = {...config.entry, ...replacement};
-				if (config.optimization.splitChunks?.chunks !== undefined) {
-					config.optimization.splitChunks.chunks = 'all';
-				} else {
-					config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'};
+			config.plugins.some(plugin => {
+				if (plugin?.options?.ignoreOrder !== undefined) {
+					plugin.options.ignoreOrder = true;
+					return true;
 				}
-				config.plugins.forEach(plugin => {
-					if (plugin?.options?.ignoreOrder !== undefined) plugin.options.ignoreOrder = true;
-				});
-			}
+			});
 		}
 	},
 	polyfillFile: function ({entry} = {}) {
