@@ -1,3 +1,4 @@
+const path = require('path');
 const pkgRoot = require('./package-root');
 
 let rootCache;
@@ -47,9 +48,16 @@ module.exports = {
 		} else if (Array.isArray(config.entry)) {
 			config.entry[config.entry.length - 1] = replacement;
 		} else if (typeof config.entry === 'object') {
-			if (typeof replacement === 'string') {
-				this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
-			} else {
+			try {
+				replacement = JSON.parse(replacement);
+			} catch (e) {
+				replacement = JSON.parse('{"main": "'+ replacement +'"}');
+			}
+			if (replacement?.main !== undefined) {
+				this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement.main, opts);
+				delete replacement.main;
+			}
+			if (Object.keys(replacement).length != 0) {
 				config.entry = {...config.entry, ...replacement};
 				if (config.optimization.splitChunks?.chunks !== undefined) {
 					config.optimization.splitChunks.chunks = 'all';
