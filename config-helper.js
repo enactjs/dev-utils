@@ -58,9 +58,9 @@ module.exports = {
 				replacement = JSON.parse('{"main": "' + replacement + '"}');
 			}
 		}
-		const {main: mainEntry, ...restEntries} = replacement;
+		const {main, ...restEntries} = replacement;
 
-		if (mainEntry !== undefined) this.replaceMain(config, mainEntry, opts);
+		if (main !== undefined) this.replaceMain(config, main, opts);
 
 		if (Object.keys(restEntries).length !== 0) {
 			config.entry = {...config.entry, ...restEntries};
