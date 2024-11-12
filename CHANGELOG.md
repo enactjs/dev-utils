@@ -1,6 +1,6 @@
 # unreleased
 
-* `config-helper`: Add `replaceEntry` function to support multiple entries.
+* `config-helper`: Added `replaceEntry` function to support multiple entries.
 * `option-parser`: Added `entry` to support multiple entries.
 
 # 7.0.0-alpha.1 (July 22, 2024)
