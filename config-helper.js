@@ -51,16 +51,17 @@ module.exports = {
 		}
 	},
 	replaceEntry: function (config, replacement, opts = {}) {
+		let entries = replacement;
 		if (typeof replacement === 'string') {
 			try {
-				replacement = JSON.parse(replacement);
+				entries = JSON.parse(replacement);
 			} catch (e) {
-				replacement = JSON.parse('{"main": "' + replacement + '"}');
+				entries = {main: replacement};
 			}
 		}
-		const {main, ...restEntries} = replacement;
+		const {main, ...restEntries} = entries;
 
-		if (main !== undefined) this.replaceMain(config, main, opts);
+		if (main) this.replaceMain(config, main, opts);
 
 		if (Object.keys(restEntries).length !== 0) {
 			config.entry = {...config.entry, ...restEntries};
@@ -69,12 +70,7 @@ module.exports = {
 			} else {
 				config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'};
 			}
-			config.plugins.some(plugin => {
-				if (plugin?.options?.ignoreOrder !== undefined) {
-					plugin.options.ignoreOrder = true;
-					return true;
-				}
-			});
+			this.getPluginByName(config, 'MiniCssExtractPlugin').options.ignoreOrder = true;
 		}
 	},
 	polyfillFile: function ({entry} = {}) {
