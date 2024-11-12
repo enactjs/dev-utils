@@ -65,11 +65,7 @@ module.exports = {
 
 		if (Object.keys(restEntries).length !== 0) {
 			config.entry = {...config.entry, ...restEntries};
-			if (config.optimization.splitChunks?.chunks !== undefined) {
-				config.optimization.splitChunks.chunks = 'all';
-			} else {
-				config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'};
-			}
+			config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'};
 			this.getPluginByName(config, 'MiniCssExtractPlugin').options.ignoreOrder = true;
 		}
 	},
