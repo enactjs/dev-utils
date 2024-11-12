@@ -1,3 +1,4 @@
+const path = require('path');
 const pkgRoot = require('./package-root');
 
 let rootCache;
@@ -59,6 +60,8 @@ module.exports = {
 				entries = {main: replacement};
 			}
 		}
+		Object.keys(entries).forEach(key => (entries[key] = path.resolve(entries[key])));
+
 		const {main, ...restEntries} = entries;
 
 		if (main) this.replaceMain(config, main, opts);
