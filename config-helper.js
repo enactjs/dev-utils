@@ -1,3 +1,4 @@
+const path = require('path');
 const pkgRoot = require('./package-root');
 
 let rootCache;
@@ -48,6 +49,27 @@ module.exports = {
 			config.entry[config.entry.length - 1] = replacement;
 		} else if (typeof config.entry === 'object') {
 			this.replaceMain({entry: config.entry[opts.chunk || 'main']}, replacement, opts);
+		}
+	},
+	replaceEntry: function (config, replacement, opts = {}) {
+		let entries = replacement;
+		if (typeof replacement === 'string') {
+			try {
+				entries = JSON.parse(replacement);
+			} catch (e) {
+				entries = {main: replacement};
+			}
+		}
+		Object.keys(entries).forEach(key => (entries[key] = path.resolve(entries[key])));
+
+		const {main, ...restEntries} = entries;
+
+		if (main) this.replaceMain(config, main, opts);
+
+		if (Object.keys(restEntries).length !== 0) {
+			config.entry = {...config.entry, ...restEntries};
+			config.optimization.splitChunks = {...config.optimization.splitChunks, chunks: 'all'};
+			this.getPluginByName(config, 'MiniCssExtractPlugin').options.ignoreOrder = true;
 		}
 	},
 	polyfillFile: function ({entry} = {}) {
