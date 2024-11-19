@@ -1,11 +1,11 @@
-const enactConfig = require('eslint-config-enact');
+// const enactConfig = require('eslint-config-enact');
 const eslintConfigPrettier = require('eslint-config-prettier');
 const eslintPluginImport = require('eslint-plugin-import');
 const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended');
 const globals = require('globals');
 
 module.exports = [
-	enactConfig,
+	// enactConfig,
 	eslintPluginPrettierRecommended,
 	eslintConfigPrettier,
 	{
@@ -15,8 +15,10 @@ module.exports = [
 			globals: {
 				...globals.node
 			},
-			ecmaFeatures: {
-				jsx: true
+			parserOptions: {
+				ecmaFeatures: {
+					jsx: true
+				}
 			}
 		},
 		plugins: {
