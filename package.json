@@ -60,7 +60,7 @@
     }
   },
   "devDependencies": {
-    "eslint": "^9.2.0",
+    "eslint": "^9.15.0",
     "eslint-config-enact": "github:enactjs/eslint-config-enact#feature/WRQ-19334",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
