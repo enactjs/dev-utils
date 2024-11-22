@@ -1,14 +1,13 @@
-// const enactConfig = require('eslint-config-enact');
-const eslintConfigPrettier = require('eslint-config-prettier');
-const eslintPluginImport = require('eslint-plugin-import');
-const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended');
+const enactConfig = require('eslint-config-enact');
+const prettierConfig = require('eslint-config-prettier');
+const importPlugin = require('eslint-plugin-import');
+const prettierPlugin = require('eslint-plugin-prettier');
 const globals = require('globals');
 
 module.exports = [
-	// enactConfig,
-	eslintPluginPrettierRecommended,
-	eslintConfigPrettier,
+	...enactConfig,
 	{
+		files: ['*/.js', '*/.jsx', '*/.ts', '*/.tsx'],
 		languageOptions: {
 			ecmaVersion: 'latest',
 			sourceType: 'module',
@@ -22,7 +21,13 @@ module.exports = [
 			}
 		},
 		plugins: {
-			import: eslintPluginImport
+			import: importPlugin,
+			prettier: prettierPlugin
+		}
+	},
+	{
+		plugins: {
+			import: importPlugin
 		},
 		rules: {
 			'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
@@ -38,6 +43,15 @@ module.exports = [
 					groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index']
 				}
 			]
+		}
+	},
+	{
+		plugins: {
+			prettier: prettierPlugin
+		},
+		rules: {
+			...prettierPlugin.configs.recommended.rules,
+			...prettierConfig.rules
 		}
 	}
 ];
