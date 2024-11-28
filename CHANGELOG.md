@@ -2,6 +2,7 @@
 
 * `config-helper`: Added `replaceEntry` function to support multiple entries.
 * `option-parser`: Added `entry` to support multiple entries.
+* Updated ESLint to `9.1.5` including updating eslint related modules
 
 # 7.0.0-alpha.1 (July 22, 2024)
 
