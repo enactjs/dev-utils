@@ -26,6 +26,7 @@
         "webpack-sources": "^3.2.3"
       },
       "devDependencies": {
+        "cross-env": "^7.0.3",
         "eslint": "^9.15.0",
         "eslint-config-enact": "enactjs/eslint-config-enact#feature/eslint9",
         "eslint-config-prettier": "^9.1.0",
@@ -1653,6 +1654,24 @@
       "funding": {
         "type": "opencollective",
         "url": "https://opencollective.com/core-js"
+      }
+    },
+    "node_modules/cross-env": {
+      "version": "7.0.3",
+      "resolved": "https://registry.npmjs.org/cross-env/-/cross-env-7.0.3.tgz",
+      "integrity": "sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==",
+      "dev": true,
+      "dependencies": {
+        "cross-spawn": "^7.0.1"
+      },
+      "bin": {
+        "cross-env": "src/bin/cross-env.js",
+        "cross-env-shell": "src/bin/cross-env-shell.js"
+      },
+      "engines": {
+        "node": ">=10.14",
+        "npm": ">=6",
+        "yarn": ">=1"
       }
     },
     "node_modules/cross-fetch": {
@@ -11929,6 +11948,15 @@
       "version": "3.22.8",
       "resolved": "https://registry.npmjs.org/core-js/-/core-js-3.22.8.tgz",
       "integrity": "sha512-UoGQ/cfzGYIuiq6Z7vWL1HfkE9U9IZ4Ub+0XSiJTCzvbZzgPA69oDF2f+lgJ6dFFLEdjW5O6svvoKzXX23xFkA=="
+    },
+    "cross-env": {
+      "version": "7.0.3",
+      "resolved": "https://registry.npmjs.org/cross-env/-/cross-env-7.0.3.tgz",
+      "integrity": "sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==",
+      "dev": true,
+      "requires": {
+        "cross-spawn": "^7.0.1"
+      }
     },
     "cross-fetch": {
       "version": "3.1.8",
