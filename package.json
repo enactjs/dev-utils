@@ -13,8 +13,8 @@
     "access": "public"
   },
   "scripts": {
-    "lint": "eslint .",
-    "fix": "eslint . --fix"
+    "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint .",
+    "fix": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint . --fix"
   },
   "prettier": {
     "printWidth": 120,
@@ -59,6 +59,7 @@
     }
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "eslint": "^9.15.0",
     "eslint-config-enact": "enactjs/eslint-config-enact#feature/eslint9",
     "eslint-config-prettier": "^9.1.0",
