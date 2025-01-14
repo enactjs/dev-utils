@@ -1,3 +1,7 @@
+# unreleased
+
+* Updated all dependencies to the latest including React 19.
+
 # 7.0.0-alpha.2 (December 6, 2024)
 
 * `config-helper`: Added `replaceEntry` function to support multiple entries.
