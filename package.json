@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "eslint": "^8.57.0",
-    "eslint-config-enact": "^5.0.0-alpha.2",
+    "eslint-config-enact": "^5.0.0-alpha.3",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.1",
