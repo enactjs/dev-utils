@@ -116,8 +116,8 @@
 
 # 4.1.0 (March 26, 2021)
 
-* `option-parser`: Set default theme config to `sandstone`.
-* `SnapshotPlugin`: Added `sandstone` support for clearing resource bundle.
+* `option-parser`: Set default theme config to `limestone`.
+* `SnapshotPlugin`: Added `limestone` support for clearing resource bundle.
 * `framework` mixin: Fixed the glob patterns for test files to ignore.
 
 # 4.0.0 (February 5, 2021)
