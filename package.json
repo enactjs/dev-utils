@@ -59,7 +59,7 @@
     }
   },
   "devDependencies": {
-    "eslint": "^9.18.0",
+    "eslint": "^9.19.0",
     "eslint-config-enact": "enactjs/eslint-config-enact#feature/WRR-12625",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",

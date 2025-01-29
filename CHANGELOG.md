@@ -1,6 +1,6 @@
 ## unreleased
 
-* Updated eslint configuration for eslint 9.
+* Updated `eslint` to `^9.19.0` and adopted flat config.
 
 # 7.0.0-alpha.3 (January 15, 2025)
 
