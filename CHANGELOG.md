@@ -1,6 +1,6 @@
 # unreleased
 
-* Updated ESLint to `9.1.5` including eslint related modules.
+* Updated ESLint to v9 including eslint related modules.
 
 # 7.0.0-alpha.3 (January 15, 2025)
 
