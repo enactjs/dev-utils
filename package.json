@@ -13,8 +13,8 @@
     "access": "public"
   },
   "scripts": {
-    "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint .",
-    "fix": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint . --fix"
+    "lint": "eslint .",
+    "fix": "eslint . --fix"
   },
   "prettier": {
     "printWidth": 120,
@@ -59,14 +59,14 @@
     }
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
-    "eslint": "^9.18.0",
-    "eslint-config-enact": "enactjs/eslint-config-enact#feature/eslint9",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint": "^9.20.0",
+    "eslint-config-enact": "enactjs/eslint-config-enact#feature/WRR-12625",
+    "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^15.14.0",
     "html-webpack-plugin": "^5.6.3",
-    "prettier": "^3.4.2",
+    "prettier": "^3.5.0",
     "react": "^19.0.0",
     "webpack": "^5.97.1"
   }

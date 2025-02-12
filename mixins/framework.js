@@ -20,7 +20,7 @@ module.exports = {
 					onlyFiles: true,
 					ignore: [
 						'**/webpack.config.js',
-						'**/.eslintrc.js',
+						'**/eslint.config.js',
 						'**/karma.conf.js',
 						'**/build/**/*.*',
 						'**/dist/**/*.*',
