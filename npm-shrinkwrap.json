@@ -27,7 +27,7 @@
       },
       "devDependencies": {
         "eslint": "^9.20.0",
-        "eslint-config-enact": "enactjs/eslint-config-enact#feature/WRR-12625",
+        "eslint-config-enact": "enactjs/eslint-config-enact#feature/eslint9",
         "eslint-config-prettier": "^10.0.1",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-prettier": "^5.2.3",
@@ -7347,7 +7347,7 @@
     },
     "node_modules/eslint-config-enact": {
       "version": "5.0.0-alpha.4",
-      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#e69d9eea1b3dac17acb347b29c3fdbb6fa9f45f1",
+      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#31cc8f451d9bfeb5f51dab095a70a090668affdd",
       "dev": true,
       "dependencies": {
         "@babel/eslint-parser": "^7.26.8",
