@@ -79,7 +79,7 @@ class SnapshotPlugin {
 		const filter = lib => (resource, context) => {
 			return resource.startsWith(lib) && context === ignoreContext;
 		};
-		['@enact/i18n', '@enact/moonstone', '@enact/sandstone', '@enact/core/snapshot'].filter(missing).forEach(p => {
+		['@enact/i18n', '@enact/moonstone', '@enact/sandstone', '@enact/limestone', '@enact/core/snapshot'].filter(missing).forEach(p => {
 			new IgnorePlugin({checkResource: filter(p)}).apply(compiler);
 		});
 		// ilib can be aliased to @enact/i18n/ilib, so verify both are missing before ignoring

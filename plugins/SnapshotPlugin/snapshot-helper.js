@@ -11,7 +11,7 @@ var ExecutionEnvironment = require('fbjs/lib/ExecutionEnvironment');
 
 function handleException(e) {
 	// We allow 'Cannot find module' errors, which throw when the libraries are not used in the app.
-	// @enact/i18n, @enact/moonstone, and @enact/sandstone are considered optional dependencies.
+	// @enact/i18n, @enact/moonstone, @enact/sandstone, and @enact/limestone are considered optional dependencies.
 	if (!e.code || e.code !== 'MODULE_NOT_FOUND') {
 		throw e;
 	}
@@ -47,8 +47,8 @@ global.updateEnvironment = function() {
 			handleException(moonEx);
 		}
 		try {
-			var sandstoneBundle = require('@enact/sandstone/internal/$L');
-			sandstoneBundle.clearResBundle();
+			var limestoneBundle = require('@enact/limestone/internal/$L');
+			limestoneBundle.clearResBundle();
 		} catch (sandEx) {
 			handleException(sandEx);
 		}
