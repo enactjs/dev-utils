@@ -1,6 +1,5 @@
 # unreleased
 
-* `option-parser`: Set default theme config to `limestone`.
 * `SnapshotPlugin`: Added `limestone` support for clearing resource bundle.
 
 ## 7.0.0-alpha.4 (February 21, 2025)
