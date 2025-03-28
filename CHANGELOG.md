@@ -1,3 +1,7 @@
+## 7.0.0-alpha.5 (March 28, 2025)
+
+* No significant changes.
+
 ## 7.0.0-alpha.4 (February 21, 2025)
 
 * Updated `eslint` to v9 and adopted flat config.
