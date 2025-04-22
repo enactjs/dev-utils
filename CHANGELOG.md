@@ -1,3 +1,7 @@
+## unreleased
+
+* `PrerenderPlugin`: Updated locale preset with the 2025 language list.
+
 ## 7.0.0-alpha.5 (March 28, 2025)
 
 * No significant changes.
