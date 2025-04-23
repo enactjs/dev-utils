@@ -1,3 +1,7 @@
+# unreleased
+
+* `PrerenderPlugin`: Updated locale preset with the 2025 language list.
+
 # 6.1.0 (February 20, 2024)
 
 * `css-module-ident`: Added own hash generate function.
