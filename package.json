@@ -25,10 +25,6 @@
     "trailingComma": "none",
     "arrowParens": "avoid"
   },
-  "eslintIgnore": [
-    "plugins/SnapshotPlugin/snapshot-helper.js",
-    "plugins/SnapshotPlugin/mock-window.js"
-  ],
   "dependencies": {
     "browserslist": "^4.24.4",
     "chalk": "^5.4.1",
