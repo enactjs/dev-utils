@@ -16,7 +16,7 @@ require('console.mute');
 let chunkTarget;
 let prerenderCache;
 
-import('find-cache-dir').then(({default: findCacheDirectory}) => {
+import('find-cache-directory').then(({default: findCacheDirectory}) => {
 	prerenderCache = path.join(
 		findCacheDirectory({
 			name: 'enact-dev',
