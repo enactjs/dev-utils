@@ -1,4 +1,4 @@
-## unreleased
+## 7.0.0-rc.1 (May 15, 2025)
 
 * `PrerenderPlugin`: Updated locale preset with the 2025 language list.
 
