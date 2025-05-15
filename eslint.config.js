@@ -23,6 +23,7 @@ module.exports = [
 			import: importPlugin,
 			prettier: prettierPlugin
 		},
+		ignores: ['plugins/SnapshotPlugin/snapshot-helper.js', 'plugins/SnapshotPlugin/mock-window.js'],
 		rules: {
 			// import plugin rules
 			'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
