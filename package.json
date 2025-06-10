@@ -1,6 +1,6 @@
 {
   "name": "@enact/dev-utils",
-  "version": "7.0.0-rc.1",
+  "version": "7.0.0",
   "description": "A collection of development utilities for Enact apps.",
   "main": "index.js",
   "author": "Jason Robitaille <jason.robitaille@lge.com>",
@@ -56,7 +56,7 @@
   },
   "devDependencies": {
     "eslint": "^9.26.0",
-    "eslint-config-enact": "^5.0.0-rc.1",
+    "eslint-config-enact": "^5.0.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.4.0",

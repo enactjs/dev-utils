@@ -1,12 +1,12 @@
 {
   "name": "@enact/dev-utils",
-  "version": "7.0.0-rc.1",
+  "version": "7.0.0",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "@enact/dev-utils",
-      "version": "7.0.0-rc.1",
+      "version": "7.0.0",
       "license": "Apache-2.0",
       "dependencies": {
         "browserslist": "^4.24.5",
@@ -27,7 +27,7 @@
       },
       "devDependencies": {
         "eslint": "^9.26.0",
-        "eslint-config-enact": "^5.0.0-rc.1",
+        "eslint-config-enact": "^5.0.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-prettier": "^5.4.0",
@@ -1894,9 +1894,9 @@
       }
     },
     "node_modules/eslint-config-enact": {
-      "version": "5.0.0-rc.1",
-      "resolved": "https://registry.npmjs.org/eslint-config-enact/-/eslint-config-enact-5.0.0-rc.1.tgz",
-      "integrity": "sha512-MtDmLkBqUjT37mWX2sfJ2e4AYzlrYAV6OY2qqq0mlmLJEX+Oh/dDQ9nTW+COPhRUx8P+dr9eDv0AFh8EvCVwNw==",
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/eslint-config-enact/-/eslint-config-enact-5.0.0.tgz",
+      "integrity": "sha512-dGv96nXjbS9Ay8hs2Dms3EuYnpot7jvqYFcjTuW3b0HXiDpi0lNYQRzRDZkH+NYupbo2fYmHUya1a/wJUZlaKg==",
       "dev": true,
       "hasShrinkwrap": true,
       "license": "Apache-2.0",
@@ -1908,7 +1908,7 @@
         "@typescript-eslint/parser": "^8.24.0",
         "babel-preset-enact": "^0.1.12",
         "eslint": "^9.20.0",
-        "eslint-plugin-enact": "^2.0.0-beta.1",
+        "eslint-plugin-enact": "^2.0.0",
         "eslint-plugin-jest": "^28.11.0",
         "eslint-plugin-jsx-a11y": "^6.10.2",
         "eslint-plugin-react": "^7.37.4",
@@ -5362,9 +5362,9 @@
       }
     },
     "node_modules/eslint-config-enact/node_modules/eslint-plugin-enact": {
-      "version": "2.0.0-beta.1",
-      "resolved": "https://registry.npmjs.org/eslint-plugin-enact/-/eslint-plugin-enact-2.0.0-beta.1.tgz",
-      "integrity": "sha512-TEba9YDbb8j286XBETlbclFFp5nFIrp2W2A+BAEfx5MDFSlYUQnS0LTCIA3J5NOsLQZq5ELjjkNZwKZaklMBSA==",
+      "version": "2.0.0",
+      "resolved": "https://registry.npmjs.org/eslint-plugin-enact/-/eslint-plugin-enact-2.0.0.tgz",
+      "integrity": "sha512-jFOgtwOuSAlQQAHvEwmqOe/7AY3reYfMZYhDXCAyOUHZjkmmr6xXgLTq3pGG37b7ip+hhnNU26kYPYJDpCMAdg==",
       "dev": true,
       "license": "Apache-2.0",
       "dependencies": {
