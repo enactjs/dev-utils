@@ -1,3 +1,7 @@
+# 7.0.0 (June 10, 2025)
+
+* Updated dependencies.
+
 ## 7.0.0-rc.1 (May 15, 2025)
 
 * `PrerenderPlugin`: Updated locale preset with the 2025 language list.
