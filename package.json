@@ -26,7 +26,7 @@
     "arrowParens": "avoid"
   },
   "dependencies": {
-    "browserslist": "^4.28.0",
+    "browserslist": "^4.28.1",
     "chalk": "^5.6.2",
     "console.mute": "^0.3.0",
     "core-js": "3.22.8",
@@ -39,7 +39,7 @@
     "mock-require": "^3.0.3",
     "resolve": "^1.22.11",
     "tapable": "^2.3.0",
-    "webpack-bundle-analyzer": "^4.10.2",
+    "webpack-bundle-analyzer": "^5.1.0",
     "webpack-sources": "^3.3.3"
   },
   "peerDependencies": {
@@ -55,15 +55,15 @@
     }
   },
   "devDependencies": {
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-config-enact": "^5.0.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.5.0",
     "html-webpack-plugin": "^5.6.5",
-    "prettier": "^3.6.2",
-    "react": "^19.2.0",
-    "webpack": "^5.103.0"
+    "prettier": "^3.7.4",
+    "react": "^19.2.3",
+    "webpack": "^5.104.0"
   }
 }
