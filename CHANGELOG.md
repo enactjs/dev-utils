@@ -1,3 +1,7 @@
+# 7.0.3 (January 13, 2026)
+
+* Updated dependencies.
+
 # 7.0.2 (November 13, 2025)
 
 * Updated dependencies.
