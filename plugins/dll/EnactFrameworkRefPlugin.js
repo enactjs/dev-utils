@@ -27,7 +27,11 @@ class DelegatedEnactFactoryPlugin {
 
 	apply(normalModuleFactory) {
 		const {name, libraries, ignore, local, polyfill} = this.options;
-		const libReg = new RegExp('^(' + libraries.join('|') + ')(?=[\\\\\\/]|$)');
+		// Filter out '.' (special flag for local handling) and escape special regex characters
+		const escapedLibraries = libraries
+			.filter(lib => lib !== '.')
+			.map(lib => lib.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\//g, '[\\\\\\/]'));
+		const libReg = new RegExp('^(' + escapedLibraries.join('|') + ')(?=[\\\\\\/]|$)');
 		const ignReg =
 			ignore && new RegExp('^(' + ignore.map(p => p.replace('/', '[\\\\\\/]')).join('|') + ')(?=[\\\\\\/]|$)');
 
@@ -42,11 +46,21 @@ class DelegatedEnactFactoryPlugin {
 			} else if (local && request && context && request.startsWith('.')) {
 				let resource = path.join(context, request);
 
-				// Check if the resource path contains any ignored package path
-				// This prevents externalizing internal imports from ignored packages
+				// Check if the import originates from OR resolves to an ignored package
+				// This prevents externalizing dependencies of ignored packages
 				if (ignReg) {
-					const pathSegments = resource.split(/[\\/]node_modules[\\/]/);
-					for (const segment of pathSegments) {
+					const resourceSegments = resource.split(/[\\/]node_modules[\\/]/);
+					const contextSegments = context.split(/[\\/]node_modules[\\/]/);
+
+					// Check if resource path contains an ignored package
+					for (const segment of resourceSegments) {
+						if (ignReg.test(segment)) {
+							return callback(); // Don't externalize - bundle it instead
+						}
+					}
+
+					// Check if context (import origin) is within an ignored package
+					for (const segment of contextSegments) {
 						if (ignReg.test(segment)) {
 							return callback(); // Don't externalize - bundle it instead
 						}
@@ -66,13 +80,48 @@ class DelegatedEnactFactoryPlugin {
 						.replace(/\\/g, '/')
 						.replace(/.*[\\/]node_modules[\\/]/, '')
 						.replace(/[\\/]$/, '');
-					return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
+
+					// Only delegate node_modules packages that are in our libraries list
+					const isInNodeModules = resource.includes('node_modules');
+					if (isInNodeModules) {
+						const packageName = localID.split('/')[0];
+						const isLibrary = libReg.test(packageName) || libReg.test('@' + packageName);
+
+						if (!isLibrary) {
+							// Not in libraries list - bundle it instead of delegating
+							return callback();
+						}
+					}
+
+					// Safety check: ensure localID is valid before delegating
+					if (localID && localID !== '.' && localID !== './' && !/^\.\.?[\\/]/.test(localID)) {
+						return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
+					}
+					// If localID is invalid, bundle it normally
+					return callback();
 				}
 			}
-			if (request && libReg.test(request) && (!ignReg || !ignReg.test(request))) {
-				return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
+
+			// Only externalize packages that explicitly match our libraries list
+			if (request) {
+				if (libReg.test(request) && (!ignReg || !ignReg.test(request))) {
+					return callback(null, new DelegatedModule(name, {id: request}, 'require', request, request));
+				}
+
+				// Check if this import originates from an ignored package
+				// If so, bundle all its dependencies
+				if (ignReg && context) {
+					const contextSegments = context.split(/[\\/]node_modules[\\/]/);
+					for (const segment of contextSegments) {
+						if (ignReg.test(segment)) {
+							// Import originates from ignored package - bundle it
+							return callback();
+						}
+					}
+				}
 			}
 
+			// Default: let webpack handle it normally (bundle it)
 			return callback();
 		});
 	}
@@ -110,9 +159,7 @@ class EnactFrameworkRefPlugin {
 			'@enact/dev-utils',
 			'@enact/storybook-utils',
 			'@enact/ui-test-utils',
-			'@enact/screenshot-test-utils',
-			'readable-stream', // ignore for screenshot test build
-			'react-is' // ignore for ui test build
+			'@enact/screenshot-test-utils'
 		];
 		this.options.external = this.options.external || {};
 		this.options.external.publicPath =
@@ -138,6 +185,41 @@ class EnactFrameworkRefPlugin {
 
 	apply(compiler) {
 		const {name, libraries, ignore, external, polyfill, htmlPlugin, webOSMetaPlugin} = this.options;
+
+		// Build regex for libraries we want to externalize
+		// Filter out '.' (special flag for local handling) and escape special regex characters
+		const escapedLibraries = libraries
+			.filter(lib => lib !== '.')
+			.map(lib => lib.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\//g, '[\\\\/]'));
+		const libReg = new RegExp('^(' + escapedLibraries.join('|') + ')(?=[\\\\/]|$)');
+
+		// Build regex for packages in ignore list
+		const ignReg =
+			ignore && new RegExp('^(' + ignore.map(p => p.replace(/\//g, '[\\\\/]')).join('|') + ')(?=[\\\\/]|$)');
+
+		// Add externals function to control what gets externalized
+		if (!compiler.options.externals) {
+			compiler.options.externals = [];
+		}
+		if (!Array.isArray(compiler.options.externals)) {
+			compiler.options.externals = [compiler.options.externals];
+		}
+
+		compiler.options.externals.unshift(function ({request}, callback) {
+			if (!request) return callback();
+
+			// Check if request matches our libraries to externalize
+			if (libReg.test(request)) {
+				// Don't externalize if it's in the ignore list
+				if (!ignReg || !ignReg.test(request)) {
+					// Externalize to the framework
+					return callback(null, 'enact_framework ' + request);
+				}
+			}
+
+			// For everything else, don't externalize - let webpack bundle it
+			callback();
+		});
 
 		// Declare enact_framework as an external dependency
 		const externals = {};
