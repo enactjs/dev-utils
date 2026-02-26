@@ -64,7 +64,7 @@ class DelegatedEnactFactoryPlugin {
 						.replace(app.context, app.name)
 						.replace(/\.js$/, '')
 						.replace(/\\/g, '/')
-						.replace(/.*[\\/]node_modules[\\/]/, '')
+						.replace(app.name + '/node_modules/', '')
 						.replace(/[\\/]$/, '');
 					return callback(null, new DelegatedModule(name, {id: localID}, 'require', localID, localID));
 				}
