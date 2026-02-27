@@ -41,6 +41,18 @@ class DelegatedEnactFactoryPlugin {
 				return callback(null, new DelegatedModule(name, {id: polyID}, 'require', polyID, polyID));
 			} else if (local && request && context && request.startsWith('.')) {
 				let resource = path.join(context, request);
+
+				// Check if the resource path contains any ignored package path
+				// This prevents externalizing internal imports from ignored packages
+				if (ignReg) {
+					const pathSegments = resource.split(/[\\/]node_modules[\\/]/);
+					for (const segment of pathSegments) {
+						if (ignReg.test(segment)) {
+							return callback(); // Don't externalize - bundle it instead
+						}
+					}
+				}
+
 				if (
 					resource.startsWith(app.context) &&
 					!/[\\/]tests[\\/]/.test('./' + path.relative(app.context, resource)) &&
