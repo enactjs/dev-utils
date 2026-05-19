@@ -52,6 +52,12 @@ global.updateEnvironment = function() {
 		} catch (sandEx) {
 			handleException(sandEx);
 		}
+		try {
+			var limestoneBundle = require('@enact/limestone/internal/$L');
+			limestoneBundle.clearResBundle();
+		} catch (limeEx) {
+			handleException(limeEx);
+		}
 
 		// Update the iLib/Enact locale to the active window's locale.
 		var locale = require('@enact/i18n/locale');

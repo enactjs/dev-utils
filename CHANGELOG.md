@@ -3,6 +3,35 @@
 * `option-parser`: Set default theme config to `limestone`.
 * `SnapshotPlugin`: Added `limestone` support for clearing resource bundle.
 
+# 7.0.4 (April 7, 2026)
+
+* Fixed `EnactFrameworkRefPlugin` to detect imports that come from ignored packages and bundle them directly into the view instead of trying to externalize them.
+
+# 7.0.3 (January 13, 2026)
+
+* Updated dependencies.
+
+# 7.0.2 (November 13, 2025)
+
+* Updated dependencies.
+
+# 7.0.1 (July 18, 2025)
+
+* Updated dependencies.
+
+# 7.0.0 (June 10, 2025)
+
+* Updated dependencies.
+
+## 7.0.0-rc.1 (May 15, 2025)
+
+* `PrerenderPlugin`: Updated locale preset with the 2025 language list.
+* Removed eslint-related configs in `package.json`.
+
+## 7.0.0-alpha.5 (March 28, 2025)
+
+* No significant changes.
+
 ## 7.0.0-alpha.4 (February 21, 2025)
 
 * Updated `eslint` to v9 and adopted flat config.
