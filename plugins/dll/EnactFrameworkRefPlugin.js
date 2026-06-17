@@ -1,5 +1,3 @@
-/* eslint-disable import/no-unresolved, import/extensions */
-
 const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
