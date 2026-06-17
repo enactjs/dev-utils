@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
 const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
-const DelegatedModule = require('webpack/lib/DelegatedModule');
+const DelegatedModule = require('webpack/lib/dll/DelegatedModule');
 const ExternalsPlugin = require('webpack/lib/ExternalsPlugin');
 const app = require('../../option-parser');
 
