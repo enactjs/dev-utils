@@ -1,3 +1,8 @@
+# unreleased
+
+* `option-parser`: Set default theme config to `limestone`.
+* `SnapshotPlugin`: Added `limestone` support for clearing resource bundle.
+
 # 7.0.4 (April 7, 2026)
 
 * Fixed `EnactFrameworkRefPlugin` to detect imports that come from ignored packages and bundle them directly into the view instead of trying to externalize them.
