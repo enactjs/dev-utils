@@ -47,8 +47,8 @@ global.updateEnvironment = function() {
 			handleException(moonEx);
 		}
 		try {
-			var limestoneBundle = require('@enact/limestone/internal/$L');
-			limestoneBundle.clearResBundle();
+			var sandstoneBundle = require('@enact/sandstone/internal/$L');
+			sandstoneBundle.clearResBundle();
 		} catch (sandEx) {
 			handleException(sandEx);
 		}
