@@ -1,6 +1,6 @@
 const enactConfig = require('eslint-config-enact');
 const prettierConfig = require('eslint-config-prettier');
-const importPlugin = require('eslint-plugin-import');
+const importPlugin = require('eslint-plugin-import-x');
 const prettierPlugin = require('eslint-plugin-prettier');
 const globals = require('globals');
 
