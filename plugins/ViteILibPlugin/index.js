@@ -92,15 +92,19 @@ module.exports = function ViteILibPlugin(options = {}) {
 	// {urlDir, srcDir, files} — files is a filtered manifest list, or null for a full copy.
 	const assets = [];
 
-	function addBundle(name, dirRel, subdir) {
+	function addBundle(name, dirRel, subdir, loaderAppendsSubdir) {
 		if (!dirRel) return;
 		let abs = path.isAbsolute(dirRel) ? dirRel : path.join(context, dirRel);
 		if (symlinks && fs.existsSync(abs)) abs = fs.realpathSync(abs);
 		const rel = transformPath(context, abs);
-		const url = joinUrl(publicPath, rel);
-		if (name) defined[name] = JSON.stringify(url);
 		const srcDir = subdir ? path.join(abs, subdir) : abs;
 		const urlDir = subdir ? joinUrl(rel, subdir) : rel;
+		// The constant must point at the directory the runtime loader fetches from.
+		// For theme/app resources that is the served data dir (urlDir). For the iLib
+		// *base*, the loader appends the `locale/` subdir itself, so the constant
+		// points at the package dir (rel) instead.
+		const url = joinUrl(publicPath, loaderAppendsSubdir ? rel : urlDir);
+		if (name) defined[name] = JSON.stringify(url);
 		if (emit && fs.existsSync(srcDir)) {
 			let files = null;
 			if (allowedLocales) {
@@ -119,8 +123,9 @@ module.exports = function ViteILibPlugin(options = {}) {
 		return url;
 	}
 
-	// iLib base data lives under <ilib>/locale; ILIB_BASE_PATH points at <ilib>.
-	addBundle('ILIB_BASE_PATH', ilibRel, 'locale');
+	// iLib base data lives under <ilib>/locale; ILIB_BASE_PATH points at <ilib>
+	// (the loader appends `locale/` itself).
+	addBundle('ILIB_BASE_PATH', ilibRel, 'locale', true);
 	// App resources.
 	const resourcesUrl = addBundle('ILIB_RESOURCES_PATH', resourcesRel);
 	// Per-app + per-theme bundle path constants (theme resources supply locale data too).
