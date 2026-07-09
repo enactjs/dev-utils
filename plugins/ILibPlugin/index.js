@@ -4,6 +4,7 @@ const fs = require('graceful-fs');
 const {SyncWaterfallHook} = require('tapable');
 const {ContextReplacementPlugin, Compilation, DefinePlugin, Template, sources} = require('webpack');
 const app = require('../../option-parser');
+const {packageSearch, transformPath, bundleConst} = require('./ilib-paths');
 
 function packageName(file) {
 	try {
@@ -13,44 +14,10 @@ function packageName(file) {
 	}
 }
 
-function packageSearch(dir, pkg) {
-	let pkgPath;
-	if (!path.isAbsolute(dir)) dir = path.join(process.cwd(), dir);
-	while (dir.length > 0 && dir !== path.dirname(dir) && !pkgPath) {
-		const full = path.join(dir, 'node_modules', pkg);
-		if (fs.existsSync(full)) {
-			pkgPath = path.relative(process.cwd(), full);
-		} else {
-			dir = path.dirname(dir);
-		}
-	}
-	return pkgPath;
-}
-
 // Determine if it's a NodeJS output filesystem or if it's a foreign/virtual one.
 // The internal webpack5 implementation of outputFileSystem is graceful-fs.
 function isNodeOutputFS(compiler) {
 	return compiler.outputFileSystem && JSON.stringify(compiler.outputFileSystem) === JSON.stringify(fs);
-}
-
-// Normalize a filepath to be relative to the webpack context, using forward-slashes, and
-// replace each '..' with '_', keeping in line with the file-loader and other webpack standards.
-function transformPath(context, file) {
-	return path
-		.relative(context, file)
-		.replace(/\\/g, '/')
-		.replace(/\.\.(\/)?/g, '_$1');
-}
-
-function bundleConst(name) {
-	return (
-		'ILIB_' +
-		path
-			.basename(name)
-			.toUpperCase()
-			.replace(/[-_\s]/g, '_') +
-		'_PATH'
-	);
 }
 
 function resolveBundle({dir, context, symlinks, relative, publicPath}) {
