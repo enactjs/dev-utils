@@ -22,6 +22,9 @@ const ENACT_TOOL_PKGS = new Set(nonRuntimeEnactPackages);
 // react family + ilib are CJS and need enumerate-named-export wrappers (see below).
 const CJS_SPECS = ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom', 'react-dom/client', 'ilib'];
 
+// The core-js polyfill entry, included in the framework only with --externals-polyfill.
+const POLYFILL_SPEC = 'core-js/stable';
+
 // Whether an import specifier belongs in / should resolve to the shared framework.
 function isFrameworkSpec(id) {
 	if (/^react($|\/)/.test(id) || /^react-dom($|\/)/.test(id) || id === 'ilib') return true;
@@ -33,6 +36,11 @@ function isCjsSpec(id) {
 	return /^react($|\/)/.test(id) || /^react-dom($|\/)/.test(id) || id === 'ilib';
 }
 
+// Side-effect-only specifiers (core-js polyfill): no default/named exports to re-export.
+function isSideEffectSpec(id) {
+	return /^core-js(\/|$)/.test(id);
+}
+
 // Turn a specifier into a safe, unique output basename.
 function specToName(id) {
 	return id.replace(/[@]/g, '').replace(/[/]/g, '-').replace(/^-+/, '');
@@ -41,9 +49,11 @@ function specToName(id) {
 // Enumerate the importable specifiers of the shared framework, independent of any app:
 // every @enact/<pkg> package root + each of its component subpaths (dirs with a
 // package.json `main` or an index.js), plus the react family and ilib.
-function enumerateSpecifiers(context) {
+function enumerateSpecifiers(context, opts = {}) {
 	const nm = path.join(context, 'node_modules');
 	const specs = new Set(CJS_SPECS);
+	// --externals-polyfill: bundle core-js into the shared framework instead of each app.
+	if (opts.polyfill) specs.add(POLYFILL_SPEC);
 	const enactDir = path.join(nm, '@enact');
 	let pkgs = [];
 
@@ -108,13 +118,16 @@ function writeWrappers(specifiers, srcDir, appRequire) {
 	const input = {};
 	const names = {};
 	for (const spec of specifiers) {
-		let file;
 		const name = specToName(spec);
+		const file = path.join(srcDir, name + '.js');
 		try {
-			if (isCjsSpec(spec)) {
+			if (isSideEffectSpec(spec)) {
+				// core-js polyfill: side-effect only, no exports. Resolves via the build's
+				// core-js alias (apps don't depend on core-js directly), so no resolve check.
+				fs.writeFileSync(file, `import '${spec}';\n`);
+			} else if (isCjsSpec(spec)) {
 				const mod = appRequire(spec);
 				const exp = Object.keys(mod).filter(k => k !== 'default' && k !== '__esModule' && idRe.test(k));
-				file = path.join(srcDir, name + '.js');
 				fs.writeFileSync(
 					file,
 					`import __m from '${spec}';\nexport default __m;\n` +
@@ -123,7 +136,6 @@ function writeWrappers(specifiers, srcDir, appRequire) {
 			} else {
 				// verify it resolves before emitting a wrapper (skip phantom specifiers)
 				appRequire.resolve(spec);
-				file = path.join(srcDir, name + '.js');
 				fs.writeFileSync(
 					file,
 					`import * as __m from '${spec}';\n` +
@@ -161,11 +173,21 @@ function applyFramework(config, {input, outDir}) {
 }
 
 // Mutate a resolved app-build config to EXTERNALIZE the framework specifiers, recording
-// which specifiers were actually imported into `collected`.
-function applyExternals(config, collected) {
+// which are actually imported into `collected`. Externalization is manifest-aware: a
+// specifier is only externalized if the framework actually provides it, so an app whose
+// imports the framework doesn't cover still builds (the uncovered pieces stay bundled).
+function applyExternals(config, collected, manifest, opts = {}) {
+	const inManifest = id => Boolean(manifest && manifest.imports && manifest.imports[id]);
+	// --externals-polyfill: the framework provides core-js. Externalizing it as one unit
+	// needs it to stay a bare specifier, so drop the core-js alias (the app config points
+	// it at the CLI's copy) before it gets resolved+inlined.
+	if (opts.polyfill && inManifest(POLYFILL_SPEC) && config.resolve && Array.isArray(config.resolve.alias)) {
+		config.resolve.alias = config.resolve.alias.filter(a => String(a.find) !== 'core-js');
+	}
 	config.build.rollupOptions = config.build.rollupOptions || {};
 	config.build.rollupOptions.external = id => {
-		if (isFrameworkSpec(id)) {
+		const wanted = isFrameworkSpec(id) || (opts.polyfill && id === POLYFILL_SPEC);
+		if (wanted && inManifest(id)) {
 			collected.add(id);
 			return true;
 		}
