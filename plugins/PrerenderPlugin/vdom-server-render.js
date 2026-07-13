@@ -16,17 +16,31 @@ require('console.mute');
 let chunkTarget;
 let prerenderCache;
 
-import('find-cache-directory').then(({default: findCacheDirectory}) => {
-	prerenderCache = path.join(
-		findCacheDirectory({
-			name: 'enact-dev',
-			create: true
-		}),
-		'prerender'
-	);
+function clearReactModules () {
+	Object.keys(require.cache)
+		.filter(c => /[\\/]node_modules[\\/]react(-dom)?[\\/]/.test(c))
+		.forEach(c => delete require.cache[c]);
+}
 
-	if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
-});
+function getPrerenderCache () {
+	if (prerenderCache) return prerenderCache;
+
+	try {
+		const findCacheDirectory = require('find-cache-directory');
+		prerenderCache = path.join(
+			findCacheDirectory({
+				name: 'enact-dev',
+				create: true
+			}),
+			'prerender'
+		);
+	} catch (e) {
+		prerenderCache = path.join(process.cwd(), 'node_modules', '.cache', 'enact-dev', 'prerender');
+	}
+
+	fs.mkdirSync(prerenderCache, {recursive: true});
+	return prerenderCache;
+}
 
 // Skip using the polyfills embedded within the bundle and instead use a local core-js,
 // since the bundle's target may differ in compatibility from the active Node process
@@ -57,7 +71,7 @@ module.exports = {
 				'require("' + path.resolve(path.join(opts.externals, 'enact.js')) + '")'
 			);
 		}
-		chunkTarget = path.join(prerenderCache, opts.chunk);
+		chunkTarget = path.join(getPrerenderCache(), opts.chunk);
 		fs.writeFileSync(chunkTarget, code, {encoding: 'utf8'});
 	},
 
@@ -102,26 +116,46 @@ module.exports = {
 
 			global.process.env.LANG = opts.locale;
 
+			clearReactModules();
+
 			if (opts.externals) {
-				// Ensure locale switching  support is loaded globally with external framework usage.
-				const framework = requireUncached(path.resolve(path.join(opts.externals, 'enact.js')));
+				const frameworkPath = path.resolve(path.join(opts.externals, 'enact.js'));
+				let framework = requireUncached(frameworkPath);
+				if (framework && typeof framework.default === 'function') {
+					framework = framework.default;
+				}
+				if (typeof framework !== 'function') {
+					const previousFramework = global.enact_framework;
+					delete global.enact_framework;
+					requireUncached(frameworkPath);
+					framework = global.enact_framework;
+					if (previousFramework !== undefined) {
+						global.enact_framework = previousFramework;
+					} else {
+						delete global.enact_framework;
+					}
+				}
+				if (typeof framework !== 'function') {
+					throw new Error('External Enact framework must export enact_framework(id).');
+				}
+				global.enact_framework = framework;
 				global.React = framework('react');
-			} else {
-				delete global.React;
+			} else if (!global.React) {
+				global.React = require('react');
 			}
 
+			reroute('react', global.React);
+
 			const chunk = requireUncached(path.resolve(chunkTarget));
-
-			// Clear any server-related children modules from cache
-			Object.keys(require.cache)
-				.filter(c => c.startsWith(path.dirname(opts.server)))
-				.forEach(c => delete require.cache[c]);
-
-			// Use the specified server, optionally with exposed React, and generate HTML string
-			if (global.React) reroute('react', global.React);
-			const server = requireUncached(opts.server);
+			let server;
+			if (opts.externals && global.enact_framework) {
+				const domServer = global.enact_framework('react-dom/server');
+				server = domServer.default || domServer;
+			} else {
+				server = requireUncached(opts.server);
+			}
 			rendered = server.renderToString(chunk['default'] || chunk);
-			if (global.React) reroute.stop('react');
+			reroute.stop('react');
 
 			if (style) {
 				rendered = '<!-- head append start -->\n' + style + '\n<!-- head append end -->' + rendered;
