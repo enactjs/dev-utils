@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
 const {SyncHook} = require('tapable');

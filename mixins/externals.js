@@ -3,6 +3,7 @@ const path = require('path');
 const helper = require('../config-helper');
 const packageRoot = require('../package-root');
 const EnactFrameworkRefPlugin = require('../plugins/dll/EnactFrameworkRefPlugin');
+const {reactLibraries} = require('./framework-libraries');
 
 module.exports = {
 	apply: function (config, opts = {}) {
@@ -13,7 +14,7 @@ module.exports = {
 		const htmlPluginInstance = helper.getPluginByName(config, 'HtmlWebpackPlugin');
 		const webOSMetaPluginInstance = helper.getPluginByName(config, 'WebOSMetaPlugin');
 
-		const libraries = ['@enact', 'react', 'react-dom', 'react-dom/client', 'react-dom/server', 'ilib'];
+		const libraries = ['@enact', ...reactLibraries, 'ilib'];
 
 		const app = packageRoot();
 		if (

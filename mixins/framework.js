@@ -4,6 +4,7 @@ const fastGlob = require('fast-glob');
 const helper = require('../config-helper');
 const packageRoot = require('../package-root');
 const EnactFrameworkPlugin = require('../plugins/dll/EnactFrameworkPlugin');
+const {nonRuntimeEnactPackages, reactLibraries} = require('./framework-libraries');
 
 module.exports = {
 	apply: function (config, opts = {}) {
@@ -24,11 +25,7 @@ module.exports = {
 						'**/karma.conf.js',
 						'**/build/**/*.*',
 						'**/dist/**/*.*',
-						'**/@enact/dev-utils/**/*.*',
-						'**/@enact/docs-utils/**/*.*',
-						'**/@enact/storybook-utils/**/*.*',
-						'**/@enact/ui-test-utils/**/*.*',
-						'**/@enact/screenshot-test-utils/**/*.*',
+						...nonRuntimeEnactPackages.map(p => '**/@enact/' + p + '/**/*.*'),
 						'**/ilib/localedata/**/*.*',
 						path.join(config.output.path, '*'),
 						'**/node_modules/**/*.*',
@@ -52,7 +49,7 @@ module.exports = {
 						followSymbolicLinks: true
 					})
 				)
-				.concat(['react', 'react-dom', 'react-dom/client', 'react-dom/server'])
+				.concat(reactLibraries)
 		};
 		if (
 			app.meta.name.startsWith('@enact/') &&

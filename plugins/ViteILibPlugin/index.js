@@ -29,7 +29,6 @@ const app = require('../../option-parser');
 // Shared with PrerenderPlugin (webpack `--isomorphic`) — dependency-free locale
 // resolution, so reusing it here does not pull webpack into the Vite path.
 const {parseLocales} = require('../PrerenderPlugin/parse-locales');
-
 // Path/constant helpers shared with ILibPlugin (webpack) — dependency-free.
 const {transformPath, bundleConst, packageSearch} = require('../ILibPlugin/ilib-paths');
 
