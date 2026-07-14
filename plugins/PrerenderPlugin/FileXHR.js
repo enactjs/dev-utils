@@ -11,12 +11,25 @@ function untransformPath (uri) {
 		.replace(/(^|\/)(_)($|\/)/g, (match, before, segment, after) => before + '..' + (after || ''));
 }
 
+const ILIB_URL_PREFIXES = [
+	'/node_modules/ilib',
+	'/node_modules/@enact/i18n/ilib',
+	'/node_modules/_enact/i18n/ilib',
+	'node_modules/ilib',
+	'node_modules/@enact/i18n/ilib',
+	'node_modules/_enact/i18n/ilib'
+];
+
+function normalizePathSlashes (filePath) {
+	return filePath.replace(/\\/g, '/');
+}
+
 function resolveIlibReplacement () {
 	if (process.env.ILIB_FS_PATH) {
-		return process.env.ILIB_FS_PATH.replace(/\\/g, '/');
+		return normalizePathSlashes(process.env.ILIB_FS_PATH);
 	}
 
-	const basePath = (process.env.ILIB_BASE_PATH || '').replace(/\\/g, '/');
+	const basePath = normalizePathSlashes(process.env.ILIB_BASE_PATH || '');
 	if (/i18n[/\\]ilib[/\\]*$/.test(basePath)) {
 		return 'node_modules/@enact/i18n/ilib';
 	}
@@ -24,21 +37,87 @@ function resolveIlibReplacement () {
 	return 'node_modules/ilib';
 }
 
+function getIlibUrlPrefixes () {
+	const prefixes = [
+		process.env.ILIB_BASE_PATH,
+		...ILIB_URL_PREFIXES
+	]
+		.filter(Boolean)
+		.map(normalizePathSlashes);
+
+	return [...new Set(prefixes)];
+}
+
+function tryResolvePath (candidate) {
+	return fs.existsSync(candidate) ? candidate : null;
+}
+
+function resolveFromIlibPrefix (filePath, prefix, cwd) {
+	if (!prefix || !filePath.startsWith(prefix)) {
+		return null;
+	}
+
+	const suffix = filePath.slice(prefix.length).replace(/^\//, '');
+	const fsPath = process.env.ILIB_FS_PATH;
+
+	if (fsPath) {
+		const fromFs = tryResolvePath(path.join(fsPath, suffix));
+		if (fromFs) {
+			return fromFs;
+		}
+	}
+
+	const replacement = resolveIlibReplacement();
+	const relative = normalizePathSlashes(path.join(replacement, suffix));
+
+	let resolved = tryResolvePath(path.resolve(cwd, relative));
+	if (resolved) {
+		return resolved;
+	}
+
+	if (relative.includes('@enact/i18n/ilib')) {
+		resolved = tryResolvePath(path.resolve(cwd, relative.replace('@enact/i18n/ilib', 'ilib')));
+		if (resolved) {
+			return resolved;
+		}
+	}
+
+	return null;
+}
+
+function isWebRootNodeModulesPath (filePath) {
+	return /^\/node_modules\//.test(filePath);
+}
+
 function resolveFilePath (uri) {
 	const cwd = process.env.ILIB_CONTEXT || process.cwd();
-	let filePath = uri.replace(/\\/g, '/');
+	let filePath = normalizePathSlashes(uri);
+
+	for (const prefix of getIlibUrlPrefixes()) {
+		const resolved = resolveFromIlibPrefix(filePath, prefix, cwd);
+		if (resolved) {
+			return resolved;
+		}
+	}
 
 	if (process.env.ILIB_BASE_PATH) {
 		const replacement = resolveIlibReplacement();
 		filePath = filePath.replace(
-			new RegExp('^' + escapeRegExp(process.env.ILIB_BASE_PATH.replace(/\\/g, '/'))),
+			new RegExp('^' + escapeRegExp(normalizePathSlashes(process.env.ILIB_BASE_PATH))),
 			replacement
 		);
 	}
 
 	filePath = untransformPath(filePath);
 
-	if (path.isAbsolute(filePath)) {
+	if (isWebRootNodeModulesPath(filePath)) {
+		const resolved = tryResolvePath(path.resolve(cwd, filePath.replace(/^\//, '')));
+		if (resolved) {
+			return resolved;
+		}
+	}
+
+	if (path.isAbsolute(filePath) && !isWebRootNodeModulesPath(filePath)) {
 		return filePath;
 	}
 
@@ -47,7 +126,6 @@ function resolveFilePath (uri) {
 		return resolved;
 	}
 
-	// When linked @enact/i18n/ilib is missing, fall back to standalone ilib.
 	if (filePath.includes('@enact/i18n/ilib')) {
 		const fallback = path.resolve(cwd, filePath.replace('@enact/i18n/ilib', 'ilib'));
 		if (fs.existsSync(fallback)) {
