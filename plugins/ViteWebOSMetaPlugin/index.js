@@ -13,7 +13,9 @@
  * handled in `vite.config.js` where `ViteHtmlPlugin` gets its title, since that
  * plugin owns the HTML document.
  *
- * `$`-prefixed system assets (sys-assets/<spec>/…) are not yet handled.
+ * `$`-prefixed system assets (`$icon.png` → sys-assets/<spec>/icon.png) are
+ * emitted preserving their `sys-assets/<spec>/` layout; the appinfo value is left
+ * untouched (the platform resolves `$` to the active spec at runtime).
  *
  * Options: {context, path (explicit appinfo dir), publicPath}
  */
@@ -53,14 +55,58 @@ function ViteWebOSMetaPlugin(options = {}) {
 
 	// Output entries: {name: output-relative path, src?: source file, source?: string content}.
 	const outputs = [];
+	const seenAssets = new Set();
+
+	function addAsset(name, src) {
+		// De-dupe by output name — sys-assets are shared across locales/props.
+		if (seenAssets.has(name)) return;
+		seenAssets.add(name);
+		outputs.push({name, src});
+	}
+
+	// System assets: appinfo values starting with '$' refer to a file within a
+	// variable spec directory (`$icon.png` → sys-assets/<spec>/icon.png, where
+	// <spec> is 'HD720', 'HD1080', etc.). `sysAssetsBasePath` overrides the base.
+	let sysAssetsPath = 'sys-assets';
+	let variableSysPaths = null;
+
+	function loadSysAssetDirs(appinfo) {
+		// Honor a per-appinfo sysAssetsBasePath override, then list the spec subdirs.
+		if (appinfo.sysAssetsBasePath && appinfo.sysAssetsBasePath !== sysAssetsPath) {
+			sysAssetsPath = appinfo.sysAssetsBasePath;
+			variableSysPaths = null;
+		}
+		if (!variableSysPaths) {
+			const base = path.join(context, sysAssetsPath);
+			variableSysPaths = fs.existsSync(base)
+				? fs
+						.readdirSync(base)
+						.map(name => path.join(base, name))
+						.filter(p => fs.statSync(p).isDirectory())
+				: [];
+		}
+	}
+
+	function detectSysAssets(val) {
+		// Every `<spec>/<name>` (name minus the leading '$') that exists on disk.
+		const trueName = val.substring(1);
+		return variableSysPaths.map(dir => path.resolve(dir, trueName)).filter(abs => fs.existsSync(abs));
+	}
 
 	function addAssets(metaDir, outDir, appinfo) {
 		for (const prop of ASSET_PROPS) {
 			const val = appinfo[prop];
-			if (val && val.charAt(0) !== '$') {
+			if (!val) continue;
+			if (val.charAt(0) === '$') {
+				loadSysAssetDirs(appinfo);
+				for (const abs of detectSysAssets(val)) {
+					// Output name relative to context → preserves the sys-assets/<spec>/ path.
+					addAsset(path.relative(context, abs).replace(/\\/g, '/'), abs);
+				}
+			} else {
 				const src = path.resolve(metaDir, val);
 				if (fs.existsSync(src)) {
-					outputs.push({name: joinUrl(outDir, val), src});
+					addAsset(joinUrl(outDir, val), src);
 				}
 			}
 		}

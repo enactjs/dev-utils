@@ -32,6 +32,12 @@ module.exports = {
 | `path` | — | Explicit directory to search for `appinfo.json` first. |
 | `publicPath` | `'/'` | Public base URL; should match Vite `base`. |
 
-## Not yet migrated
+## System assets (`$`-prefixed)
 
-`$`-prefixed system assets (`sys-assets/<spec>/…`).
+An appinfo value starting with `$` (e.g. `"icon": "$icon.png"`) is a **system
+asset**: the real file lives in a variable spec directory under `sys-assets/`
+(`sys-assets/HD720/icon.png`, `sys-assets/HD1080/icon.png`, …). For each spec that
+has the file, the plugin emits it preserving the `sys-assets/<spec>/` layout and
+**leaves the appinfo value unchanged** — the platform resolves `$` to the active
+spec at runtime. `sysAssetsBasePath` in appinfo overrides the `sys-assets` base.
+Matches the webpack `WebOSMetaPlugin` behavior.
