@@ -1,5 +1,9 @@
 const fs = require('fs');
 
+function escapeRegExp (string) {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function FileXHR() {}
 
 FileXHR.prototype.open = function (method, uri, async) {
@@ -15,15 +19,15 @@ FileXHR.prototype.addEventListener = function (evt, fn) {
 FileXHR.prototype.send = function () {
 	if (this.method.toUpperCase() === 'GET' && this.uri && this.sync) {
 		if (process.env.ILIB_BASE_PATH) {
-			// Backward compatability for old iLib location
-			if (/i18n[/\\]ilib[/\\]*$/.test(process.env.ILIB_BASE_PATH)) {
-				this.uri = this.uri.replace(
-					new RegExp('^' + process.env.ILIB_BASE_PATH),
-					'node_modules/@enact/i18n/ilib'
-				);
-			} else {
-				this.uri = this.uri.replace(new RegExp('^' + process.env.ILIB_BASE_PATH), 'node_modules/ilib');
-			}
+			const replacement = process.env.ILIB_FS_PATH || (
+				/i18n[/\\]ilib[/\\]*$/.test(process.env.ILIB_BASE_PATH)
+					? 'node_modules/@enact/i18n/ilib'
+					: 'node_modules/ilib'
+			);
+			this.uri = this.uri.replace(
+				new RegExp('^' + escapeRegExp(process.env.ILIB_BASE_PATH)),
+				replacement
+			);
 		}
 		const parsedURI = this.uri.replace(/\\/g, '/').replace(/^(_\/)+/g, match => match.replace(/_/g, '..'));
 		try {
