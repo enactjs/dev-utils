@@ -36,8 +36,12 @@ function applySsrBuild(config, {serverEntry, outDir}) {
 		ignore: id => SSR_LOADER_IGNORE.test(id)
 	});
 	// No HTML document / appinfo for the SSR bundle.
+	// Also drop the browser Node polyfills (vite-plugin-node-polyfills:*) — the SSR
+	// bundle runs in Node and must use the real builtins (path/fs/crypto), not shims.
 	const DROP = new Set(['enact-vite-html', 'enact-vite-webosmeta']);
-	config.plugins = (config.plugins || []).flat().filter(p => !p || !DROP.has(p.name));
+	config.plugins = (config.plugins || [])
+		.flat()
+		.filter(p => !p || (!DROP.has(p.name) && !String(p.name).startsWith('vite-plugin-node-polyfills')));
 	return config;
 }
 
