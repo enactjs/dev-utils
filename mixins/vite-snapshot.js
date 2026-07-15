@@ -40,7 +40,15 @@ const HELPER_FILES = ['snapshot-mock.js', 'snapshot-helper-esm.js', 'mock-window
 // the app (absent package, or a missing subpath — e.g. `fbjs` is gone in React 19,
 // a theme may lack `internal/$L`) fall back to a harmless no-op so the helper's
 // calls (clearResBundle, updateLocale, …) do nothing — matching "library not used".
-const OPTIONAL_LIBS = ['@enact/i18n', '@enact/moonstone', '@enact/sandstone', '@enact/limestone', 'ilib', 'react-redux', 'fbjs'];
+const OPTIONAL_LIBS = [
+	'@enact/i18n',
+	'@enact/moonstone',
+	'@enact/sandstone',
+	'@enact/limestone',
+	'ilib',
+	'react-redux',
+	'fbjs'
+];
 
 // Prelude injected at the ABSOLUTE top of main.js (before esbuild's helper block,
 // which captures `__getOwnPropDescs = Object.getOwnPropertyDescriptors` etc. up front).
@@ -60,10 +68,10 @@ const SNAPSHOT_PRELUDE =
 
 // Prepend the prelude to the entry chunk in generateBundle (which runs AFTER the esbuild
 // minify renderChunk pass), so it is genuinely the first code the snapshot V8 executes.
-function snapshotPreludePlugin () {
+function snapshotPreludePlugin() {
 	return {
 		name: 'enact-snapshot-prelude',
-		generateBundle (options, bundle) {
+		generateBundle(options, bundle) {
 			for (const file of Object.keys(bundle)) {
 				const chunk = bundle[file];
 				if (chunk.type === 'chunk' && chunk.isEntry) chunk.code = SNAPSHOT_PRELUDE + chunk.code;
@@ -74,7 +82,7 @@ function snapshotPreludePlugin () {
 
 // Copy the CJS helpers into the build cache (under node_modules so Vite transforms
 // their requires) and a shared no-op module for absent optional libs.
-function stageHelpers (context) {
+function stageHelpers(context) {
 	const dir = path.join(context, 'node_modules', '.cache', 'enact-vite', 'snapshot');
 	fs.mkdirSync(dir, {recursive: true});
 	for (const f of HELPER_FILES) fs.copyFileSync(path.join(SRC_DIR, f), path.join(dir, f));
@@ -91,7 +99,7 @@ function stageHelpers (context) {
 // mock window, initializes react-dom against it, defines updateEnvironment), then
 // core-js, then re-export the app's default so the UMD `App` global becomes the
 // app element.
-function createSnapshotEntry (dir, staged, appEntry) {
+function createSnapshotEntry(dir, staged, appEntry) {
 	const file = path.join(dir, 'snapshot-entry.js');
 	const rel = target => {
 		let r = path.relative(dir, target).replace(/\\/g, '/');
@@ -115,14 +123,14 @@ function createSnapshotEntry (dir, staged, appEntry) {
 // Rollup plugin: redirect app imports of `react-dom/client` to the ESM helper
 // facade (except the facade's own import, which must reach the real module), and
 // resolve absent optional libs to the shared no-op module.
-function snapshotResolvePlugin (staged) {
+function snapshotResolvePlugin(staged) {
 	const norm = id => id && id.replace(/\\/g, '/');
 	const FACADE = norm(staged.helperEsmJs);
 	const inSnapshotDir = id => norm(id) && norm(id).indexOf('/enact-vite/snapshot/') !== -1;
 	return {
 		name: 'enact-snapshot-resolve',
 		enforce: 'pre',
-		async resolveId (source, importer) {
+		async resolveId(source, importer) {
 			// App imports of react-dom/client → the ESM helper facade (but the facade's
 			// own import must reach the real module).
 			if (source === 'react-dom/client' && norm(importer) !== FACADE) return staged.helperEsmJs;
@@ -137,7 +145,7 @@ function snapshotResolvePlugin (staged) {
 }
 
 // Mutate an isomorphic client config into the self-contained UMD snapshot build.
-function applySnapshotBuild (config, {context, appEntry}) {
+function applySnapshotBuild(config, {context, appEntry}) {
 	const staged = stageHelpers(context);
 	const snapshotEntry = createSnapshotEntry(staged.dir, staged, appEntry);
 	config.build = config.build || {};
@@ -173,10 +181,15 @@ function applySnapshotBuild (config, {context, appEntry}) {
 
 // Spawn the V8 `mksnapshot` toolchain against the emitted bundle, producing the
 // startup blob. Returns {ok, blob, error}. No-op (ok:false) when V8_MKSNAPSHOT is unset.
-function runMkSnapshot ({outDir, target = 'main.js', exec = process.env.V8_MKSNAPSHOT}) {
+function runMkSnapshot({outDir, target = 'main.js', exec = process.env.V8_MKSNAPSHOT}) {
 	const args = process.env.V8_SNAPSHOT_ARGS
 		? process.env.V8_SNAPSHOT_ARGS.split(/\s+/)
-		: ['--profile-deserialization', '--random-seed=314159265', '--abort_on_uncaught_exception', '--startup-blob=snapshot_blob.bin'];
+		: [
+				'--profile-deserialization',
+				'--random-seed=314159265',
+				'--abort_on_uncaught_exception',
+				'--startup-blob=snapshot_blob.bin'
+			];
 	const blobArg = args.find(a => a.startsWith('--startup-blob='));
 	const blob = blobArg ? blobArg.replace('--startup-blob=', '') : 'snapshot_blob.bin';
 	if (!exec) return {ok: false, blob, error: new Error('V8_MKSNAPSHOT is not set')};
@@ -184,12 +197,14 @@ function runMkSnapshot ({outDir, target = 'main.js', exec = process.env.V8_MKSNA
 	if (child.status !== 0) return {ok: false, blob, error: new Error(child.stdout + '\n' + child.stderr)};
 	try {
 		if (fs.statSync(path.join(outDir, blob)).size > 0) return {ok: true, blob};
-	} catch (e) { /* fall through */ }
+	} catch (e) {
+		/* fall through */
+	}
 	return {ok: false, blob, error: new Error(child.stdout + '\n' + child.stderr)};
 }
 
 // Record the blob in the root appinfo.json so webOS loads the snapshot at launch.
-function writeSnapshotAppinfo ({outDir, blob = 'snapshot_blob.bin'}) {
+function writeSnapshotAppinfo({outDir, blob = 'snapshot_blob.bin'}) {
 	const p = path.join(outDir, 'appinfo.json');
 	if (!fs.existsSync(p)) return;
 	const meta = JSON.parse(fs.readFileSync(p, 'utf8'));

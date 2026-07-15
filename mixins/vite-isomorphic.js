@@ -134,7 +134,9 @@ function assemble({outDir, locales, prerenders, attr, aliasOf, screenTypes = [],
 	// `this`/window, which a module's undefined `this` would break); leave it classic.
 	const startupJs = snapshot
 		? templates.startup(screenTypes, jsAssets)
-		: templates.startup(screenTypes, jsAssets).replace(/script\.type = 'text\/javascript'/, "script.type = 'module'");
+		: templates
+				.startup(screenTypes, jsAssets)
+				.replace(/script\.type = 'text\/javascript'/, "script.type = 'module'");
 	const startupTag = '<script type="text/javascript">' + startupJs + '</script>';
 	fallback = fallback.replace(/<head[^>]*>/, m => m + '\n' + startupTag);
 
