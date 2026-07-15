@@ -118,7 +118,7 @@ function prerender({locales, load, renderToString, fontGenerator}) {
 // Assemble the isomorphic output from the client build's index.html + the prerenders.
 // Emits the fallback index.html, the deduped index.<variant>.html file(s), and (for >1 locale)
 // locale-map.json. Returns {localeMap, variantOf} where variantOf[v] is the emitted filename.
-function assemble({outDir, locales, prerenders, attr, aliasOf, screenTypes = []}) {
+function assemble({outDir, locales, prerenders, attr, aliasOf, screenTypes = [], snapshot = false}) {
 	const indexPath = path.join(outDir, 'index.html');
 	const clientHtml = fs.readFileSync(indexPath, {encoding: 'utf8'});
 	const rootRe = /<div id="root">\s*<\/div>/;
@@ -129,10 +129,12 @@ function assemble({outDir, locales, prerenders, attr, aliasOf, screenTypes = []}
 	let fallback = clientHtml.replace(/<script[^>]+type="module"[^>]*><\/script>/g, '');
 	// `templates.startup` appends each app asset as a CLASSIC <script> (webpack chunk model).
 	// Vite emits ES modules, so mark the dynamically-added script `type="module"` — a single
-	// `main.js` module self-loads its own chunks, so no sequential classic loading is needed.
-	const startupJs = templates
-		.startup(screenTypes, jsAssets)
-		.replace(/script\.type = 'text\/javascript'/, "script.type = 'module'");
+	// `main.js` module self-loads its own chunks. EXCEPT the snapshot build, whose `main.js`
+	// is a UMD bundle that must load as a classic script (it attaches the `App` global to
+	// `this`/window, which a module's undefined `this` would break); leave it classic.
+	const startupJs = snapshot
+		? templates.startup(screenTypes, jsAssets)
+		: templates.startup(screenTypes, jsAssets).replace(/script\.type = 'text\/javascript'/, "script.type = 'module'");
 	const startupTag = '<script type="text/javascript">' + startupJs + '</script>';
 	fallback = fallback.replace(/<head[^>]*>/, m => m + '\n' + startupTag);
 

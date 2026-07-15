@@ -108,11 +108,59 @@ function enumerateSpecifiers(context, opts = {}) {
 	return [...specs].sort();
 }
 
+// When `--framework` is built INSIDE a theme repo (e.g. limestone), that theme's own
+// components live at the repo root, not in node_modules/@enact — so enumerateSpecifiers
+// (which scans node_modules) misses them. Mirror webpack's `libraries.push('.')`: if the
+// context package is a @enact theme (has ThemeDecorator/MoonstoneDecorator, or is
+// @enact/i18n), enumerate its own component subpaths as `@enact/<name>/<sub>` specifiers.
+// Returns {name, root, specs} (or null when not a theme repo). The specifiers resolve via a
+// self-alias added in applyFramework (they aren't self-resolvable from the repo's node_modules).
+function enumerateSelfSpecs(context) {
+	let pkg;
+	try {
+		pkg = JSON.parse(fs.readFileSync(path.join(context, 'package.json'), 'utf8'));
+	} catch (e) {
+		return null;
+	}
+	const name = pkg && pkg.name;
+	if (!name || !name.startsWith('@enact/') || ENACT_TOOL_PKGS.has(name.slice('@enact/'.length))) return null;
+	const isTheme =
+		fs.existsSync(path.join(context, 'ThemeDecorator')) ||
+		fs.existsSync(path.join(context, 'MoonstoneDecorator')) ||
+		name === '@enact/i18n';
+	if (!isTheme) return null;
+
+	const specs = [];
+	if (fs.existsSync(path.join(context, 'index.js'))) specs.push(name);
+	const SKIP = new Set(['node_modules', 'tests', 'build', 'dist', 'samples', 'coverage', 'resources', 'ilib']);
+	let subs = [];
+	try {
+		subs = fs.readdirSync(context);
+	} catch (e) {
+		subs = [];
+	}
+	for (const sub of subs) {
+		if (SKIP.has(sub) || sub.startsWith('.')) continue;
+		const subDir = path.join(context, sub);
+		try {
+			if (!fs.statSync(subDir).isDirectory()) continue;
+		} catch (e) {
+			continue;
+		}
+		if (fs.existsSync(path.join(subDir, 'package.json')) || fs.existsSync(path.join(subDir, 'index.js'))) {
+			specs.push(name + '/' + sub);
+		}
+	}
+	return specs.length ? {name, root: context, specs} : null;
+}
+
 // Generate a re-export WRAPPER file per specifier into srcDir, returning {input, names}.
 // Wrappers (never the resolved file as an entry) keep the real module transitive, which is
 // what lets Vite's commonjs interop handle @enact's CJS-in-source the way a normal app
 // build does. CJS specifiers additionally need explicit enumerated named exports.
-function writeWrappers(specifiers, srcDir, appRequire) {
+// `selfSet` (optional) marks theme-repo self-specifiers, which resolve via the self-alias
+// (applyFramework) rather than appRequire — so they skip the require-resolve existence check.
+function writeWrappers(specifiers, srcDir, appRequire, selfSet = null) {
 	fs.mkdirSync(srcDir, {recursive: true});
 	const idRe = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 	const input = {};
@@ -125,6 +173,16 @@ function writeWrappers(specifiers, srcDir, appRequire) {
 				// core-js polyfill: side-effect only, no exports. Resolves via the build's
 				// core-js alias (apps don't depend on core-js directly), so no resolve check.
 				fs.writeFileSync(file, `import '${spec}';\n`);
+			} else if (selfSet && selfSet.has(spec)) {
+				// Theme's own component (framework built inside the theme repo): ESM source that
+				// resolves via the self-alias during the build; existence is already confirmed
+				// by enumerateSelfSpecs, so skip the appRequire resolve check.
+				fs.writeFileSync(
+					file,
+					`import * as __m from '${spec}';\n` +
+						`export * from '${spec}';\n` +
+						`export default (__m.default !== undefined ? __m.default : __m);\n`
+				);
 			} else if (isCjsSpec(spec)) {
 				const mod = appRequire(spec);
 				const exp = Object.keys(mod).filter(k => k !== 'default' && k !== '__esModule' && idRe.test(k));
@@ -153,7 +211,19 @@ function writeWrappers(specifiers, srcDir, appRequire) {
 }
 
 // Mutate a resolved app-build config into the FRAMEWORK build config.
-function applyFramework(config, {input, outDir}) {
+function applyFramework(config, {input, outDir, selfAlias}) {
+	// Theme-repo self-inclusion: resolve `@enact/<theme>` (root + subpaths, incl. transitive
+	// self-references) to the repo root, since it isn't in the repo's own node_modules.
+	if (selfAlias && config.resolve && Array.isArray(config.resolve.alias)) {
+		config.resolve.alias.unshift(selfAlias);
+		// The theme's own source (repo root, outside node_modules) can mix CJS (e.g. a
+		// `module.exports.foo = …` fontGenerator) with ESM named imports of it. Vite's default
+		// commonjs only covers node_modules, so extend it to the theme root so those interop.
+		const rootRe = new RegExp(selfAlias.replacement.replace(/\\/g, '/').replace(/[.*+?^${}()|[\]]/g, '\\$&'));
+		config.build.commonjsOptions = Object.assign({transformMixedEsModules: true}, config.build.commonjsOptions, {
+			include: [/node_modules/, rootRe]
+		});
+	}
 	config.build.outDir = outDir;
 	config.build.emptyOutDir = true;
 	// one shared stylesheet (import maps can't load per-chunk CSS)
@@ -238,6 +308,7 @@ function injectHtml(htmlPath, manifest, collected, base) {
 // FRAMEWORK_CSS / isFrameworkSpec are internal helpers.
 module.exports = {
 	enumerateSpecifiers,
+	enumerateSelfSpecs,
 	writeWrappers,
 	applyFramework,
 	applyExternals,
