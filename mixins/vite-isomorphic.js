@@ -45,27 +45,21 @@ function applySsrBuild(config, {serverEntry, outDir}) {
 	return config;
 }
 
-// FileXHR wrapper: Vite's base is '/', so @enact/i18n builds absolute locale URLs; FileXHR
+// FileXHR subclass: Vite's base is '/', so @enact/i18n builds absolute locale URLs; FileXHR
 // reads relative to cwd (the app dir), so strip the leading '/'.
+// Must SUBCLASS rather than wrap: the `xhr` package that @enact/i18n's loader uses assigns
+// its completion handler as a property (`xhr.onload = fn`) instead of calling
+// addEventListener, and FileXHR.send() invokes `this.onload`. A wrapper holding a private
+// FileXHR would strand that handler on the outer object, so no locale data would ever load
+// and every locale would prerender unlocalized.
 function makeLocaleXHR() {
 	function LocaleXHR() {
-		this._x = new FileXHR();
+		FileXHR.call(this);
 	}
+	LocaleXHR.prototype = Object.create(FileXHR.prototype);
+	LocaleXHR.prototype.constructor = LocaleXHR;
 	LocaleXHR.prototype.open = function (m, uri, async) {
-		this._x.open(m, String(uri).replace(/^\/+/, ''), async);
-	};
-	LocaleXHR.prototype.addEventListener = function (e, fn) {
-		this._x.addEventListener(e, fn);
-	};
-	['response', 'responseText', 'status'].forEach(prop =>
-		Object.defineProperty(LocaleXHR.prototype, prop, {
-			get() {
-				return this._x[prop];
-			}
-		})
-	);
-	LocaleXHR.prototype.send = function () {
-		this._x.send();
+		FileXHR.prototype.open.call(this, m, String(uri).replace(/^\/+/, ''), async);
 	};
 	return LocaleXHR;
 }
