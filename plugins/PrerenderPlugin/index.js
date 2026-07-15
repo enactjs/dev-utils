@@ -678,7 +678,8 @@ function applyBunPostBuild(options = {}) {
 				server,
 				locale: locales[i],
 				externals: opts.externals,
-				fontGenerator: opts.fontGenerator
+				fontGenerator: opts.fontGenerator,
+				context: opts.context
 			};
 			let appHtml = vdomServer.render(renderOpts);
 			status.attr[i] = {classes: ''};
