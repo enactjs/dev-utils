@@ -7,13 +7,13 @@ available at the URLs they point to.
 
 - **Constants** (via the `config` hook → `define`): `ILIB_BASE_PATH`,
   `ILIB_RESOURCES_PATH`, `ILIB_CACHE_ID`, `ILIB_NO_ASSETS`, per-app/per-theme
-  `ILIB_<NAME>_PATH`, and optional `ILIB_ADDITIONAL_RESOURCES_PATH` — matching the
+  `ILIB_<NAME>_PATH`, and optional `ILIB_ADDITIONAL_RESOURCES_PATH` matching the
   values the webpack ILibPlugin computes.
-- **Data** — build: copies the iLib `locale/`, app `resources/`, and theme
+- **Data** build: copies the iLib `locale/`, app `resources/`, and theme
   `resources/` trees into the output on `writeBundle` (a directory copy, not 6.7k
   individual `emitFile` calls). Dev: serves them from their on-disk source via
   middleware.
-- **Locale filtering** (`locales` option; webpack's `enact pack -l …`) — when set,
+- **Locale filtering** (`locales` option; webpack's `enact pack -l …`) when set,
   the `ilibmanifest.json` file lists are trimmed to the requested locales plus
   shared (non-locale) data, and a trimmed manifest is emitted/served in place of
   the full one. Accepts a preset (`used`/`tv`/`signage`/`webos`/`all`), a `.json`

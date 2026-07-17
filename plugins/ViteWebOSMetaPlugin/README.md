@@ -3,7 +3,7 @@
 Vite counterpart to the webpack `WebOSMetaPlugin`. Discovers the root
 `appinfo.json` (project root or `./webos-meta/`) and any localized
 `resources/**/appinfo.json`, and makes them — plus the image assets they
-reference (`icon`, `largeIcon`, `splashBackground`, …) — available in the output.
+reference (`icon`, `largeIcon`, `splashBackground`, …).
 
 - **build** — writes the appinfo file(s) and copies referenced assets into the
   output on `writeBundle`.
