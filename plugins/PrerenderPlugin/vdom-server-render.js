@@ -7,6 +7,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
+const Module = require('module');
 const requireUncached = require('import-fresh');
 const reroute = require('mock-require');
 const FileXHR = require('./FileXHR');
@@ -17,10 +19,98 @@ let chunkTarget;
 let prerenderCache;
 
 const ILIB_LOCALEMATCH_GLOBAL = '__ENACT_PRERENDER_LOCALEMATCH__';
-const ILIB_DATA_INIT_PATTERN = /cache: \{\} \}, typeof module2 != "undefined" && \(module2\.exports = ilib, module2\.exports\.ilib = ilib\)/g;
-const ILIB_DATA_INIT_SEED = 'cache: {} }, global.' + ILIB_LOCALEMATCH_GLOBAL + '&&(ilib.data.localematch=global.' + ILIB_LOCALEMATCH_GLOBAL + '), typeof module2 != "undefined" && (module2.exports = ilib, module2.exports.ilib = ilib)';
+const ILIB_DATA_INIT_PATTERN =
+	/cache: \{\} \}, typeof module2 != "undefined" && \(module2\.exports = ilib, module2\.exports\.ilib = ilib\)/g;
+const ILIB_DATA_INIT_SEED =
+	'cache: {} }, global.' +
+	ILIB_LOCALEMATCH_GLOBAL +
+	'&&(ilib.data.localematch=global.' +
+	ILIB_LOCALEMATCH_GLOBAL +
+	'), typeof module2 != "undefined" && (module2.exports = ilib, module2.exports.ilib = ilib)';
 
-function readLocaleMatchData () {
+/**
+ * Load a staged chunk in a vm context that shares Node require / prerender
+ * globals but intentionally omits window/document/self so browser-only paths
+ * see typeof window === 'undefined' without regex-rewriting the bundle text.
+ */
+function loadStagedChunk(chunkPath) {
+	const code = fs.readFileSync(chunkPath, {encoding: 'utf8'});
+	const moduleObject = {exports: {}};
+	const localRequire = Module.createRequire(chunkPath);
+	const context = {
+		module: moduleObject,
+		exports: moduleObject.exports,
+		require: localRequire,
+		__filename: chunkPath,
+		__dirname: path.dirname(chunkPath),
+		console,
+		process,
+		Buffer,
+		setTimeout,
+		clearTimeout,
+		setInterval,
+		clearInterval,
+		setImmediate,
+		clearImmediate,
+		queueMicrotask,
+		URL,
+		URLSearchParams,
+		Promise,
+		Object,
+		Array,
+		String,
+		Number,
+		Boolean,
+		Symbol,
+		Math,
+		Date,
+		RegExp,
+		Error,
+		TypeError,
+		RangeError,
+		SyntaxError,
+		JSON,
+		Map,
+		Set,
+		WeakMap,
+		WeakSet,
+		Proxy,
+		Reflect,
+		parseInt,
+		parseFloat,
+		isNaN,
+		isFinite,
+		encodeURIComponent,
+		decodeURIComponent,
+		encodeURI,
+		decodeURI,
+		// Prerender-shared state (also mirrored onto context.global below)
+		React: global.React,
+		enact_framework: global.enact_framework,
+		enactHooks: global.enactHooks,
+		ilib: global.ilib,
+		XMLHttpRequest: global.XMLHttpRequest,
+		skipPolyfills: global.skipPolyfills
+	};
+	if (global[ILIB_LOCALEMATCH_GLOBAL] !== undefined) {
+		context[ILIB_LOCALEMATCH_GLOBAL] = global[ILIB_LOCALEMATCH_GLOBAL];
+	}
+	// No window / document / self — keeps DOM startup paths inert.
+	context.global = context;
+	context.globalThis = context;
+
+	vm.createContext(context);
+	vm.runInContext(code, context, {
+		filename: chunkPath,
+		displayErrors: true
+	});
+
+	return moduleObject.exports && moduleObject.exports.default !== undefined
+		? moduleObject.exports
+		: context.module.exports;
+}
+
+function readLocaleMatchData() {
 	const fsPath = process.env.ILIB_FS_PATH || process.env.ILIB_BASE_PATH;
 	if (!fsPath) return null;
 
@@ -35,7 +125,7 @@ function readLocaleMatchData () {
 	}
 }
 
-function resetIlibGlobalState () {
+function resetIlibGlobalState() {
 	// ilib.js uses `var ilib = ilib || {}`, so repeated prerender passes share one global
 	// singleton. After many locale renders, cached localematch data can become incomplete.
 	if (global.ilib) {
@@ -46,7 +136,7 @@ function resetIlibGlobalState () {
 	}
 }
 
-function seedIlibLocaleMatch () {
+function seedIlibLocaleMatch() {
 	const localematch = readLocaleMatchData();
 	if (!localematch) return;
 
@@ -58,18 +148,18 @@ function seedIlibLocaleMatch () {
 	}
 }
 
-function injectBundledIlibLocaleMatchSeed (code) {
+function injectBundledIlibLocaleMatchSeed(code) {
 	return code.replace(ILIB_DATA_INIT_PATTERN, ILIB_DATA_INIT_SEED);
 }
 
-function resolveFromContext (moduleName, context) {
+function resolveFromContext(moduleName, context) {
 	if (!context) {
 		return require.resolve(moduleName);
 	}
 	return require.resolve(moduleName, {paths: [path.join(context, 'node_modules')]});
 }
 
-function clearPrerenderModules (serverPath) {
+function clearPrerenderModules(serverPath) {
 	const chunkPath = chunkTarget ? path.resolve(chunkTarget) : null;
 	const serverDir = serverPath ? path.dirname(path.resolve(serverPath)) : null;
 
@@ -92,7 +182,7 @@ function clearPrerenderModules (serverPath) {
 	delete global.enactHooks;
 }
 
-function getPrerenderCache () {
+function getPrerenderCache() {
 	if (prerenderCache) return prerenderCache;
 
 	try {
@@ -230,7 +320,7 @@ module.exports = {
 				}
 			}
 
-			const chunk = requireUncached(path.resolve(chunkTarget));
+			const chunk = loadStagedChunk(path.resolve(chunkTarget));
 
 			if (localeMatchSeed) {
 				delete global[ILIB_LOCALEMATCH_GLOBAL];

@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-function escapeRegExp (string) {
+function escapeRegExp(string) {
 	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function untransformPath (uri) {
+function untransformPath(uri) {
 	return uri
 		.replace(/\\/g, '/')
 		.replace(/(^|\/)(_)($|\/)/g, (match, before, segment, after) => before + '..' + (after || ''));
@@ -20,11 +20,11 @@ const ILIB_URL_PREFIXES = [
 	'node_modules/_enact/i18n/ilib'
 ];
 
-function normalizePathSlashes (filePath) {
+function normalizePathSlashes(filePath) {
 	return filePath.replace(/\\/g, '/');
 }
 
-function resolveIlibReplacement () {
+function resolveIlibReplacement() {
 	if (process.env.ILIB_FS_PATH) {
 		return normalizePathSlashes(process.env.ILIB_FS_PATH);
 	}
@@ -37,22 +37,17 @@ function resolveIlibReplacement () {
 	return 'node_modules/ilib';
 }
 
-function getIlibUrlPrefixes () {
-	const prefixes = [
-		process.env.ILIB_BASE_PATH,
-		...ILIB_URL_PREFIXES
-	]
-		.filter(Boolean)
-		.map(normalizePathSlashes);
+function getIlibUrlPrefixes() {
+	const prefixes = [process.env.ILIB_BASE_PATH, ...ILIB_URL_PREFIXES].filter(Boolean).map(normalizePathSlashes);
 
 	return [...new Set(prefixes)];
 }
 
-function tryResolvePath (candidate) {
+function tryResolvePath(candidate) {
 	return fs.existsSync(candidate) ? candidate : null;
 }
 
-function resolveFromIlibPrefix (filePath, prefix, cwd) {
+function resolveFromIlibPrefix(filePath, prefix, cwd) {
 	if (!prefix || !filePath.startsWith(prefix)) {
 		return null;
 	}
@@ -85,18 +80,18 @@ function resolveFromIlibPrefix (filePath, prefix, cwd) {
 	return null;
 }
 
-function isWebRootNodeModulesPath (filePath) {
+function isWebRootNodeModulesPath(filePath) {
 	return /^\/node_modules\//.test(filePath);
 }
 
-function resolveFilePath (uri) {
+function resolveFilePath(uri) {
 	const cwd = process.env.ILIB_CONTEXT || process.cwd();
 	let filePath = normalizePathSlashes(uri);
 
 	for (const prefix of getIlibUrlPrefixes()) {
-		const resolved = resolveFromIlibPrefix(filePath, prefix, cwd);
-		if (resolved) {
-			return resolved;
+		const fromPrefix = resolveFromIlibPrefix(filePath, prefix, cwd);
+		if (fromPrefix) {
+			return fromPrefix;
 		}
 	}
 
@@ -111,9 +106,9 @@ function resolveFilePath (uri) {
 	filePath = untransformPath(filePath);
 
 	if (isWebRootNodeModulesPath(filePath)) {
-		const resolved = tryResolvePath(path.resolve(cwd, filePath.replace(/^\//, '')));
-		if (resolved) {
-			return resolved;
+		const fromWebRoot = tryResolvePath(path.resolve(cwd, filePath.replace(/^\//, '')));
+		if (fromWebRoot) {
+			return fromWebRoot;
 		}
 	}
 
@@ -136,7 +131,7 @@ function resolveFilePath (uri) {
 	return resolved;
 }
 
-function FileXHR () {}
+function FileXHR() {}
 
 FileXHR.prototype.open = function (method, uri, async) {
 	this.method = method;

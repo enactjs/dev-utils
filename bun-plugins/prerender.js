@@ -1,6 +1,6 @@
 const PrerenderPlugin = require('../plugins/PrerenderPlugin');
 
-function applyPrerender (options = {}) {
+function applyPrerender(options = {}) {
 	return PrerenderPlugin.applyBunPostBuild(options);
 }
 

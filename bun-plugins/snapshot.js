@@ -1,6 +1,6 @@
 const path = require('path');
 
-function resolveCliModule (subpath) {
+function resolveCliModule(subpath) {
 	const roots = [
 		path.join(__dirname, '..', '..', 'cli', subpath),
 		path.join(__dirname, '..', '..', '..', 'cli', subpath)

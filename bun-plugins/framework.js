@@ -1,7 +1,7 @@
 const path = require('path');
-const fs = require('fs-extra');
+const fs = require('fs');
 
-function resolveCliFramework () {
+function resolveCliFramework() {
 	const roots = [
 		path.join(__dirname, '..', '..', 'cli', 'config', 'bun', 'framework.js'),
 		path.join(__dirname, '..', '..', '..', 'cli', 'config', 'bun', 'framework.js')
@@ -14,7 +14,7 @@ function resolveCliFramework () {
 	return null;
 }
 
-async function applyFramework (options = {}) {
+async function applyFramework(options = {}) {
 	const cliFramework = resolveCliFramework();
 	if (cliFramework) {
 		return cliFramework.applyFramework(options);

@@ -633,17 +633,9 @@ function stageBunChunk(code, opts) {
 		);
 	}
 
-	// Prevent browser-only startup paths from running under Node during prerender.
-	code = code.replace(/typeof\s+window\s*!==?\s*["']undefined["']/g, 'false');
-	code = code.replace(/typeof\s+window\s*===?\s*["']undefined["']/g, 'true');
-	code = code.replace(/typeof\s+document\s*!==?\s*["']undefined["']/g, 'false');
-	code = code.replace(/typeof\s+document\s*===?\s*["']undefined["']/g, 'true');
-	code = code.replace(/typeof\s+window\s*<\s*["']u["']/g, 'false');
-	code = code.replace(/typeof\s+document\s*<\s*["']u["']/g, 'false');
-
-	code = code.replace(/(?<![.$\w])window(?![.\w])/g, 'undefined');
-	code = code.replace(/(?<![.$\w])document(?![.\w])/g, 'undefined');
-
+	// Do not regex-replace bare window/document — that corrupts string literals
+	// (e.g. "window" → "undefined"). vdom-server-render loads the chunk in a vm
+	// context that omits those globals instead.
 	vdomServer.stage(code, opts);
 }
 
@@ -716,7 +708,10 @@ function applyBunPostBuild(options = {}) {
 	];
 	const startupScript = templates.startup(opts.screenTypes, jsAssets);
 	html = html.replace(/type="module"/g, 'type="text/javascript"');
-	html = html.replace(/<\/head>/i, match => `\t<script type="text/javascript">${startupScript.trim()}</script>\n\t${match}`);
+	html = html.replace(
+		/<\/head>/i,
+		match => `\t<script type="text/javascript">${startupScript.trim()}</script>\n\t${match}`
+	);
 
 	const applyToRoot = rootInjection(html);
 	for (let i = 0; i < locales.length; i++) {
@@ -729,16 +724,16 @@ function applyBunPostBuild(options = {}) {
 				'$1' + status.attr[i].classes + '"'
 			);
 		} else {
-			mapping = linked.reduce(
-				(m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}),
-				{}
-			);
+			mapping = linked.reduce((m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}), {});
 		}
 		const appHtml = parsePrerender(status.prerender[i]);
 		const updater = templates.update(mapping, opts.deep, appHtml.prerender);
 		let localeHtml = applyToRoot(appHtml.prerender);
 		if (updater) {
-			localeHtml = localeHtml.replace(/<\/body>/i, match => `\t<script type="text/javascript">${updater.trim()}</script>\n\t${match}`);
+			localeHtml = localeHtml.replace(
+				/<\/body>/i,
+				match => `\t<script type="text/javascript">${updater.trim()}</script>\n\t${match}`
+			);
 		}
 		if (locales.length === 1) {
 			html = localeHtml;
