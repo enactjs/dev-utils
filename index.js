@@ -29,7 +29,7 @@ exportOnDemand({
 	WebOSMetaPlugin: () => require('./plugins/WebOSMetaPlugin'),
 	ViteHtmlPlugin: () => require('./plugins/ViteHtmlPlugin'),
 	ViteILibPlugin: () => require('./plugins/ViteILibPlugin'),
-	ViteWebOSMetaPlugin: () => require('./plugins/ViteWebOSMetaPlugin')
+	ViteWebOSMetaPlugin: () => require('./plugins/ViteWebOSMetaPlugin'),
 	EsbuildHtmlPlugin: () => require('./plugins/EsbuildHtmlPlugin'),
 	EsbuildILibPlugin: () => require('./plugins/EsbuildILibPlugin'),
 	EsbuildWebOSMetaPlugin: () => require('./plugins/EsbuildWebOSMetaPlugin')
