@@ -1,3 +1,10 @@
+# unreleased
+
+* `ViteHtmlPlugin`: Added a new plugin to render the HTML document for Vite builds, the counterpart to `HtmlWebpackPlugin`.
+* `ViteILibPlugin`: Added a new plugin to define the `ILIB_*` constants and supply the iLib locale and resource data for Vite builds, with locale filtering support.
+* `ViteWebOSMetaPlugin`: Added a new plugin to emit the webOS `appinfo.json` and its referenced assets for Vite builds.
+* `mixins`: Added `applyVite` and the Vite mixins supporting `--isomorphic`, `--framework`/`--externals`, `--snapshot`, and the `--no-minify`/`--verbose`/`--stats` build options.
+
 # 7.0.5 (June 23, 2026)
 
 * `option-parser`: Set default theme config to `limestone`.

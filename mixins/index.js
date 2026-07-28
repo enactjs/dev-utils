@@ -26,5 +26,11 @@ module.exports = {
 		}
 
 		return config;
+	},
+	// Vite counterpart to `apply`: shapes a resolved Vite config from the same opts
+	// (--no-minify, --verbose, --stats). The webpack `apply` above can't be reused
+	// because it mutates webpack-specific config (plugins/minimizers/output).
+	applyVite: function (config, opts = {}) {
+		return require('./vite').apply(config, opts);
 	}
 };
