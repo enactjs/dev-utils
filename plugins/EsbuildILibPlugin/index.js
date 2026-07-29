@@ -156,71 +156,74 @@ module.exports = function EsbuildILibPlugin(options = {}) {
 	}
 
 	// The iLib tree is ~70 MB / 6,700 small JSON files and is effectively
-	// immutable between runs, so re-copying it wholesale on every build start
-	// costs far more than the bundling itself (measured: 36s of a 37s dev
-	// start). Copy only what's missing or actually changed — a stat pair per
-	// file is orders of magnitude cheaper than the copy.
-	function copyFileIfChanged(src, dest) {
+	// immutable between runs, so copying it dominates the build tail if done
+	// naively. Two defenses, mirroring ViteILibPlugin: files whose destination
+	// is already current (same size, not older) are skipped — a stat pair per
+	// file is orders of magnitude cheaper than a copy — and the copies that ARE
+	// needed run async with a concurrency pool (fs.promises.copyFile fans out
+	// over libuv's threadpool) instead of a synchronous single-threaded walk.
+	const listPairs = (srcDir, dest, files) => {
+		const pairs = [];
+		if (files) {
+			for (const f of files) pairs.push([path.join(srcDir, f), path.join(dest, f)]);
+		} else {
+			const stack = [[srcDir, dest]];
+			while (stack.length) {
+				const [s, d] = stack.pop();
+				let entries;
+				try {
+					entries = fs.readdirSync(s, {withFileTypes: true});
+				} catch (e) {
+					continue;
+				}
+				for (const entry of entries) {
+					const sp = path.join(s, entry.name);
+					const dp = path.join(d, entry.name);
+					if (entry.isDirectory()) stack.push([sp, dp]);
+					else pairs.push([sp, dp]);
+				}
+			}
+		}
+		return pairs;
+	};
+
+	const copyOne = async ([src, dst]) => {
 		let s;
 		try {
-			s = fs.statSync(src);
+			s = await fs.promises.stat(src);
 		} catch (e) {
-			return false;
+			return; // missing source (manifest drift) — skip
 		}
 		try {
-			const d = fs.statSync(dest);
-			if (d.size === s.size && d.mtimeMs >= s.mtimeMs) return false; // already current
+			const d = await fs.promises.stat(dst);
+			if (d.size === s.size && d.mtimeMs >= s.mtimeMs) return; // already current
 		} catch (e) {
-			// missing destination — fall through and copy
+			// missing destination — copy below
 		}
-		try {
-			fs.mkdirSync(path.dirname(dest), {recursive: true});
-			fs.copyFileSync(src, dest);
-			return true;
-		} catch (e) {
-			return false;
-		}
-	}
-
-	function copyTreeIfChanged(src, dest) {
-		const stack = [[src, dest]];
-		while (stack.length) {
-			const [s, d] = stack.pop();
-			let entries;
-			try {
-				entries = fs.readdirSync(s, {withFileTypes: true});
-			} catch (e) {
-				continue;
-			}
-			try {
-				fs.mkdirSync(d, {recursive: true});
-			} catch (e) {
-				continue;
-			}
-			for (const entry of entries) {
-				const sp = path.join(s, entry.name);
-				const dp = path.join(d, entry.name);
-				if (entry.isDirectory()) stack.push([sp, dp]);
-				else copyFileIfChanged(sp, dp);
-			}
-		}
-	}
+		await fs.promises.mkdir(path.dirname(dst), {recursive: true});
+		await fs.promises.copyFile(src, dst);
+	};
 
 	// Copy the collected iLib/resource data into the output — the filtered file
 	// set (with a trimmed manifest) when locale filtering is active, otherwise
 	// the whole tree.
-	function copyAssets(outdir) {
+	async function copyAssets(outdir) {
 		for (const {urlDir, srcDir, files} of assets) {
 			const dest = path.join(outdir, urlDir);
 			try {
+				const pairs = listPairs(srcDir, dest, files);
+				const POOL = 32;
+				let next = 0;
+				const worker = async () => {
+					while (next < pairs.length) await copyOne(pairs[next++]);
+				};
+				await Promise.all(Array.from({length: Math.min(POOL, pairs.length)}, worker));
 				if (files) {
-					fs.mkdirSync(dest, {recursive: true});
-					for (const f of files) {
-						copyFileIfChanged(path.join(srcDir, f), path.join(dest, f));
-					}
-					fs.writeFileSync(path.join(dest, 'ilibmanifest.json'), JSON.stringify({files}, null, '\t'));
-				} else {
-					copyTreeIfChanged(srcDir, dest);
+					await fs.promises.mkdir(dest, {recursive: true});
+					await fs.promises.writeFile(
+						path.join(dest, 'ilibmanifest.json'),
+						JSON.stringify({files}, null, '\t')
+					);
 				}
 			} catch (e) {
 				// eslint-disable-next-line no-console
@@ -238,7 +241,9 @@ module.exports = function EsbuildILibPlugin(options = {}) {
 				// esbuild's dev server reruns onEnd on every request; the data
 				// doesn't change between rebuilds, so copy it once per process.
 				let copied = false;
-				build.onEnd(() => {
+				// Async and awaited: esbuild waits for onEnd promises, so the build
+				// (and `pack`'s process exit) can't outrun the copy pool.
+				build.onEnd(async () => {
 					if (copied) return;
 					copied = true;
 					const outdir =
@@ -246,7 +251,7 @@ module.exports = function EsbuildILibPlugin(options = {}) {
 						(build.initialOptions.outfile && path.dirname(build.initialOptions.outfile)) ||
 						opts.outdir ||
 						path.resolve(context, 'dist');
-					copyAssets(outdir);
+					await copyAssets(outdir);
 				});
 			}
 		}
