@@ -26,5 +26,8 @@ exportOnDemand({
 	PrerenderPlugin: () => require('./plugins/PrerenderPlugin'),
 	SnapshotPlugin: () => require('./plugins/SnapshotPlugin'),
 	VerboseLogPlugin: () => require('./plugins/VerboseLogPlugin'),
-	WebOSMetaPlugin: () => require('./plugins/WebOSMetaPlugin')
+	WebOSMetaPlugin: () => require('./plugins/WebOSMetaPlugin'),
+	ViteHtmlPlugin: () => require('./plugins/ViteHtmlPlugin'),
+	ViteILibPlugin: () => require('./plugins/ViteILibPlugin'),
+	ViteWebOSMetaPlugin: () => require('./plugins/ViteWebOSMetaPlugin')
 });

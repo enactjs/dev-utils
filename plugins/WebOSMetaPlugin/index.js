@@ -3,19 +3,8 @@ const path = require('path');
 const glob = require('fast-glob');
 const {SyncWaterfallHook} = require('tapable');
 const {Compilation, sources} = require('webpack');
+const {props, readAppInfo, rootAppInfo} = require('./appinfo');
 
-// List of asset-pointing appinfo properties.
-const props = [
-	'icon',
-	'largeIcon',
-	'extraLargeIcon',
-	'miniicon',
-	'smallicon',
-	'splashicon',
-	'splashBackground',
-	'bgImage',
-	'imageForRecents'
-];
 // System assets starting with '$' are dynamic and will be within a variable
 // directory within sysAssetsPath to denote system spec ('HD720', 'HD1080', etc.).
 let sysAssetsPath = 'sys-assets';
@@ -24,18 +13,6 @@ let variableSysPaths = null;
 // This allows us to avoid having multiple of the same files for locales that
 // share assets.
 const assetPathCache = {};
-
-function readAppInfo(file) {
-	// Read and parse appinfo.json file if it exists.
-	if (fs.existsSync(file)) {
-		try {
-			const meta = JSON.parse(fs.readFileSync(file, {encoding: 'utf8'}));
-			return meta;
-		} catch (e) {
-			console.log('ERROR: unable to read/parse appinfo.json at ' + file);
-		}
-	}
-}
 
 function handleSysAssetPath(context, appinfo) {
 	// If the sysAsset base is specified, override the default one
@@ -70,28 +47,6 @@ function detectSysAssets(name) {
 		}
 	}
 	return result;
-}
-
-function rootAppInfo(context, specific) {
-	// The accepted root locations to search for the appinfo.json and its relative
-	// assets are project root or ./webos-meta.
-	const rootDir = [context, path.join(context, './webos-meta')];
-	// If a specific path is requested, prepend it to the search list
-	if (specific) {
-		if (path.isAbsolute(specific)) {
-			rootDir.unshift(specific);
-		} else {
-			rootDir.unshift(path.join(context, specific));
-		}
-	}
-	// Check each search location, and if found, return the data and path it was found at.
-	let meta;
-	for (let i = 0; i < rootDir.length; i++) {
-		meta = readAppInfo(path.join(rootDir[i], 'appinfo.json'));
-		if (meta) {
-			return {path: rootDir[i], obj: meta};
-		}
-	}
 }
 
 function addMetaAssets(metaDir, outDir, appinfo, compilation) {
