@@ -164,25 +164,70 @@ module.exports = function ViteILibPlugin(options = {}) {
 		},
 		// Build: copy the data into the output — the filtered file set (with a trimmed
 		// manifest) when locale filtering is active, otherwise the whole tree.
-		writeBundle(outputOptions) {
+		async writeBundle(outputOptions) {
 			const outDir = outputOptions.dir || (outputOptions.file && path.dirname(outputOptions.file));
 			if (!outDir) return;
+
+			// Enumerate [src, dst] pairs for one bundle dir (manifest list or full walk).
+			const listPairs = (srcDir, dest, files) => {
+				const pairs = [];
+				if (files) {
+					for (const f of files) pairs.push([path.join(srcDir, f), path.join(dest, f)]);
+				} else {
+					const stack = [[srcDir, dest]];
+					while (stack.length) {
+						const [s, d] = stack.pop();
+						let entries;
+						try {
+							entries = fs.readdirSync(s, {withFileTypes: true});
+						} catch (e) {
+							continue;
+						}
+						for (const entry of entries) {
+							const sp = path.join(s, entry.name);
+							const dp = path.join(d, entry.name);
+							if (entry.isDirectory()) stack.push([sp, dp]);
+							else pairs.push([sp, dp]);
+						}
+					}
+				}
+				return pairs;
+			};
+
+			const copyOne = async ([src, dst]) => {
+				let st;
+				try {
+					st = await fs.promises.stat(src);
+				} catch (e) {
+					return; // missing source (manifest drift) — skip, matching old behavior
+				}
+				try {
+					const dt = await fs.promises.stat(dst);
+					if (dt.size === st.size && dt.mtimeMs >= st.mtimeMs) return; // already current
+				} catch (e) {
+					// destination missing — copy below
+				}
+				await fs.promises.mkdir(path.dirname(dst), {recursive: true});
+				await fs.promises.copyFile(src, dst);
+			};
+
 			for (const {urlDir, srcDir, files} of assets) {
 				const dest = path.join(outDir, urlDir);
 				try {
+					const pairs = listPairs(srcDir, dest, files);
+					// Simple promise pool; libuv's threadpool does the parallel I/O.
+					const POOL = 32;
+					let next = 0;
+					const worker = async () => {
+						while (next < pairs.length) await copyOne(pairs[next++]);
+					};
+					await Promise.all(Array.from({length: Math.min(POOL, pairs.length)}, worker));
 					if (files) {
-						fs.mkdirSync(dest, {recursive: true});
-						for (const f of files) {
-							const s = path.join(srcDir, f);
-							const d = path.join(dest, f);
-							if (fs.existsSync(s)) {
-								fs.mkdirSync(path.dirname(d), {recursive: true});
-								fs.copyFileSync(s, d);
-							}
-						}
-						fs.writeFileSync(path.join(dest, 'ilibmanifest.json'), JSON.stringify({files}, null, '\t'));
-					} else {
-						fs.cpSync(srcDir, dest, {recursive: true});
+						await fs.promises.mkdir(dest, {recursive: true});
+						await fs.promises.writeFile(
+							path.join(dest, 'ilibmanifest.json'),
+							JSON.stringify({files}, null, '\t')
+						);
 					}
 				} catch (e) {
 					this.warn(`ViteILibPlugin: failed to copy iLib data ${srcDir} -> ${dest}: ${e.message}`);
