@@ -622,4 +622,136 @@ function emitAsset(compilation, name, data) {
 // Usage: PrerenderPlugin.getHooks(compilation).HOOK_NAME.tapAsync('YourPluginName', () => { ... });
 PrerenderPlugin.getHooks = getPrerenderPluginHooks;
 
+function stageBunChunk(code, opts) {
+	if (/__webpack_require__\.e\s*=/.test(code)) {
+		code = code.replace('__webpack_require__.e =', '__webpack_require__.e = function() {}; var origE =');
+	}
+	if (/function webpackAsyncContext\(req\)/.test(code)) {
+		code = code.replace(
+			'function webpackAsyncContext(req) {',
+			'function webpackAsyncContext(req) {\n\treturn new Promise(function() {});'
+		);
+	}
+
+	// Do not regex-replace bare window/document — that corrupts string literals
+	// (e.g. "window" → "undefined"). vdom-server-render loads the chunk in a vm
+	// context that omits those globals instead.
+	vdomServer.stage(code, opts);
+}
+
+function applyBunPostBuild(options = {}) {
+	const opts = Object.assign(
+		{
+			chunk: 'main.js',
+			locales: 'en-US',
+			mapfile: 'locale-map.json',
+			publicPath: '/',
+			screenTypes: [],
+			deep: null,
+			externals: null,
+			fontGenerator: null,
+			externalStartup: false
+		},
+		options
+	);
+	const chunkPath = path.join(opts.output, opts.chunk);
+	if (!fs.existsSync(chunkPath)) {
+		throw new Error('PrerenderPlugin: Unable to find build chunk at ' + chunkPath);
+	}
+	const code = fs.readFileSync(chunkPath, {encoding: 'utf8'});
+	const locales = parseLocales(opts.context, opts.locales);
+	const server = opts.server || path.join(opts.context, 'node_modules', 'react-dom', 'server.js');
+	const status = {prerender: [], attr: [], alias: []};
+
+	stageBunChunk(code, {chunk: opts.chunk, externals: opts.externals});
+	for (let i = 0; i < locales.length; i++) {
+		try {
+			const renderOpts = {
+				server,
+				locale: locales[i],
+				externals: opts.externals,
+				fontGenerator: opts.fontGenerator,
+				context: opts.context
+			};
+			let appHtml = vdomServer.render(renderOpts);
+			status.attr[i] = {classes: ''};
+			appHtml = appHtml.replace(
+				/(<div[^>]*class="((?!enact-locale-)[^"])*)(\senact-locale-[^"]*)"/i,
+				(match, before, s, classAttr) => {
+					status.attr[i].classes = classAttr;
+					return before + '"';
+				}
+			);
+			const index = status.prerender.indexOf(appHtml);
+			if (index === -1) {
+				status.prerender[i] = appHtml;
+			} else {
+				status.alias[i] = locales[index];
+			}
+		} catch (e) {
+			status.err = {locale: locales[i], result: e};
+			break;
+		}
+	}
+	vdomServer.unstage();
+	if (status.err) {
+		throw status.err.result;
+	}
+	if (status.alias.some(Boolean)) {
+		simplifyAliases(locales, status);
+	}
+
+	const indexPath = path.join(opts.output, 'index.html');
+	let html = fs.readFileSync(indexPath, {encoding: 'utf8'});
+	const jsAssets = opts.startupAssets || [
+		path.posix.join(opts.publicPath || '/', opts.chunk).replace(/\/{2,}/g, '/')
+	];
+	const startupScript = templates.startup(opts.screenTypes, jsAssets);
+	html = html.replace(/type="module"/g, 'type="text/javascript"');
+	html = html.replace(
+		/<\/head>/i,
+		match => `\t<script type="text/javascript">${startupScript.trim()}</script>\n\t${match}`
+	);
+
+	const applyToRoot = rootInjection(html);
+	for (let i = 0; i < locales.length; i++) {
+		if (!status.prerender[i] || status.alias[i]) continue;
+		const linked = Object.keys(status.alias).filter(key => status.alias[key] === locales[i]);
+		let mapping;
+		if (linked.length === 0) {
+			status.prerender[i] = status.prerender[i].replace(
+				/(<div[^>]*class="[^"]*)"/i,
+				'$1' + status.attr[i].classes + '"'
+			);
+		} else {
+			mapping = linked.reduce((m, c) => Object.assign(m, {[locales[c].toLowerCase()]: status.attr[c]}), {});
+		}
+		const appHtml = parsePrerender(status.prerender[i]);
+		const updater = templates.update(mapping, opts.deep, appHtml.prerender);
+		let localeHtml = applyToRoot(appHtml.prerender);
+		if (updater) {
+			localeHtml = localeHtml.replace(
+				/<\/body>/i,
+				match => `\t<script type="text/javascript">${updater.trim()}</script>\n\t${match}`
+			);
+		}
+		if (locales.length === 1) {
+			html = localeHtml;
+		} else {
+			fs.writeFileSync(path.join(opts.output, 'index.' + locales[i] + '.html'), localeHtml, {encoding: 'utf8'});
+		}
+	}
+	fs.writeFileSync(indexPath, html, {encoding: 'utf8'});
+
+	if (opts.mapfile && locales.length > 1) {
+		const mapper = (m, c, i) =>
+			status.alias.includes(c) ? m : Object.assign(m, {[c]: `index.${status.alias[i] || c}.html`});
+		const mapping = {fallback: 'index.html', locales: locales.reduce(mapper, {})};
+		fs.writeFileSync(path.join(opts.output, opts.mapfile), JSON.stringify(mapping, null, '\t'), {encoding: 'utf8'});
+	}
+}
+
+PrerenderPlugin.applyBunPostBuild = applyBunPostBuild;
+PrerenderPlugin.parseLocales = parseLocales;
+
 module.exports = PrerenderPlugin;
