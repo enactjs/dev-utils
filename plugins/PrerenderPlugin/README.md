@@ -48,8 +48,8 @@ Allowed values are as follows:
 - `server`: Virtual DOM server module filepath to use when rendering static HTML. Defaults to `require.resolve('react-dom/server')`.
 - `externals`: Local filepath to a directory containing an external enact library bundle js and css files. Only needed if using external Enact framework bundle.
 - `deep`: A string or array of string conditions, that when met at runtime, should not display the prerendered HTML.
-- `screenTypes`: Array of 1 or more screentype definitions to be used with prerender HTML initialization. See [here](https://github.com/enactjs/sandstone/blob/master/ThemeDecorator/screenTypes.json) for an example of the sandstone screenTypes.
-- `fontGenerator`: Module path to a font stylesheet generator for prerendering fontface definitions. See [here](https://github.com/enactjs/sandstone/blob/master/ThemeDecorator/fontGenerator.js) for an example of the sandstone font generator.
+- `screenTypes`: Array of 1 or more screentype definitions to be used with prerender HTML initialization. See [here](https://github.com/enactjs/limestone/blob/master/ThemeDecorator/screenTypes.json) for an example of the limestone screenTypes.
+- `fontGenerator`: Module path to a font stylesheet generator for prerendering fontface definitions. See [here](https://github.com/enactjs/limestone/blob/master/ThemeDecorator/fontGenerator.js) for an example of the limestone font generator.
 - `externalStartup`:  A flag whether to externalize the startup javascript normally inlined with prerendered HTML output.
 
 Here's an example webpack config illustrating how to use these options:
