@@ -41,7 +41,20 @@ function applySsrBuild(config, {serverEntry, outDir}) {
 	const DROP = new Set(['enact-vite-html', 'enact-vite-webosmeta']);
 	config.plugins = (config.plugins || [])
 		.flat()
-		.filter(p => !p || (!DROP.has(p.name) && !String(p.name).startsWith('vite-plugin-node-polyfills')));
+		.filter(p => !p || (!DROP.has(p.name) && !String(p.name).startsWith('vite-plugin-node-polyfills')))
+		.map(p => {
+			// Keep ViteILibPlugin's `config()` hook (it defines the ILIB_* URL
+			// constants the SSR bundle's iLib loader reads) but drop its
+			// `writeBundle`: prerendering loads locale data via FileXHR straight
+			// from the app's source tree, so copying the ~70 MB iLib tree into the
+			// throwaway SSR outDir was pure waste (~10s per isomorphic build).
+			if (p && p.name === 'enact-vite-ilib' && p.writeBundle) {
+				const copy = Object.assign({}, p);
+				delete copy.writeBundle;
+				return copy;
+			}
+			return p;
+		});
 	return config;
 }
 
