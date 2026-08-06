@@ -10,7 +10,7 @@ const findParentMain = function (dir) {
 	const currPkg = path.join(dir, 'package.json');
 	if (fs.existsSync(currPkg)) {
 		const meta = JSON.parse(fs.readFileSync(currPkg, {encoding: 'utf8'}));
-		if (meta.main) return {path: dir, pointsTo: path.join(dir, meta.main).replace(/\.js/, '')};
+		if (meta.main) return {path: dir, pointsTo: path.join(dir, meta.main).replace(/\.(js|jsx|ts|tsx)$/, '')};
 	}
 	if (dir === '/' || dir === '' || dir === '.') return null;
 	return findParentMain(path.dirname(dir));
@@ -62,7 +62,7 @@ class DelegatedEnactFactoryPlugin {
 					if (parent.pointsTo === resource) resource = parent.path;
 					let localID = resource
 						.replace(app.context, app.name)
-						.replace(/\.js$/, '')
+						.replace(/\.(js|jsx|ts|tsx)$/, '')
 						.replace(/\\/g, '/')
 						.replace(app.name + '/node_modules/', '')
 						.replace(/[\\/]$/, '');

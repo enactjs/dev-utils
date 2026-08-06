@@ -66,10 +66,9 @@ function normalizeModuleID(id, polyfill) {
 		// shorthand to load core-js
 		id = '@enact/polyfills';
 	} else if (!id.includes('node_modules')) {
-		// Remove any js file extension
-		if (id.endsWith('.js')) {
-			id = id.substring(0, id.length - 3);
-		}
+		// Remove any source file extension so module IDs match the
+		// extensionless request form used by consuming apps
+		id = id.replace(/\.(js|jsx|ts|tsx)$/, '');
 		// Remove any /index suffix as we want the user-accessible ID
 		if (id.endsWith('/index') && id.length > 6 && !id.startsWith('core-js')) {
 			id = id.substring(0, id.length - 6);

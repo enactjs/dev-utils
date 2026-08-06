@@ -15,10 +15,11 @@ module.exports = {
 		// Form list of framework entries; Every @enact/* js file as well as react/react-dom
 		config.entry = {
 			enact: fastGlob
-				.sync('@enact/**/*.@(js|jsx|es6)', {
+				.sync('@enact/**/*.@(js|jsx|es6|ts|tsx)', {
 					cwd: path.resolve(path.join(app.path, 'node_modules')),
 					onlyFiles: true,
 					ignore: [
+						'**/*.d.ts',
 						'**/webpack.config.js',
 						'**/eslint.config.js',
 						'**/karma.conf.js',
@@ -62,10 +63,11 @@ module.exports = {
 		) {
 			config.entry.enact = config.entry.enact.concat(
 				fastGlob
-					.sync('**/*.@(js|jsx|es6)', {
+					.sync('**/*.@(js|jsx|es6|ts|tsx)', {
 						cwd: app.path,
 						onlyFiles: true,
 						ignore: [
+							'**/*.d.ts',
 							'!node_modules',
 							'!samples',
 							'!dist',
