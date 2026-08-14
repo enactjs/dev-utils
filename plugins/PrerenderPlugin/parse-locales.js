@@ -1,9 +1,11 @@
-/* eslint-env node, es6 */
-/**
- * parse-locales
+/*
+ *  parse-locales.js
  *
- * Locale-list resolution shared by `PrerenderPlugin` (webpack `--isomorphic`) and
- * `ViteILibPlugin` (Vite iLib locale filtering, `-l`).
+ *  Locale-list resolution shared by PrerenderPlugin (webpack) and the
+ *  esbuild-path plugins (EsbuildILibPlugin, and the esbuild-isomorphic
+ *  prerender build in @enact/cli). Extracted from PrerenderPlugin/index.js's
+ *  *  private `parseLocales`/`detectLocales` functions so both bundler paths
+ *  can share one implementation instead of diverging copies.
  */
 const fs = require('fs');
 const path = require('path');
@@ -11,17 +13,23 @@ const path = require('path');
 // Determine the desired target locales based of option content.
 // Can be a preset like 'tv' or 'signage', 'used' for all used app-level locales, 'all' for
 // all locales supported by ilib, a custom json file input, or a comma-separated lists
-function parseLocales(context, target) {
+function parseLocales (context, target) {
 	if (!target || target === 'none') {
 		return [];
 	} else if (Array.isArray(target)) {
 		return target;
 	} else if (target.toLowerCase() === 'webos') {
-		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-webos.json'), {encoding: 'utf8'})).locales;
+		return JSON.parse(
+			fs.readFileSync(path.join(__dirname, '..', 'PrerenderPlugin', 'locales-webos.json'), {encoding: 'utf8'})
+		).locales;
 	} else if (target === 'tv') {
-		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-tv.json'), {encoding: 'utf8'})).locales;
+		return JSON.parse(
+			fs.readFileSync(path.join(__dirname, '..', 'PrerenderPlugin', 'locales-tv.json'), {encoding: 'utf8'})
+		).locales;
 	} else if (target === 'signage') {
-		return JSON.parse(fs.readFileSync(path.join(__dirname, 'locales-signage.json'), {encoding: 'utf8'})).locales;
+		return JSON.parse(
+			fs.readFileSync(path.join(__dirname, '..', 'PrerenderPlugin', 'locales-signage.json'), {encoding: 'utf8'})
+		).locales;
 	} else if (target === 'used') {
 		return detectLocales(path.join(context, 'resources', 'ilibmanifest.json'));
 	} else if (target === 'all') {
@@ -34,7 +42,7 @@ function parseLocales(context, target) {
 }
 
 // Scan an ilib manifest and detect all locales that it uses.
-function detectLocales(manifest, deepestOnly) {
+function detectLocales (manifest, deepestOnly) {
 	try {
 		const meta = JSON.parse(fs.readFileSync(manifest, {encoding: 'utf8'}));
 		const locales = [];

@@ -1,11 +1,11 @@
-/* eslint-env node, es6 */
-/**
- * appinfo
+/*
+ *  app info.js
  *
- * appinfo.json helpers shared by `WebOSMetaPlugin` (webpack) and
- * `ViteWebOSMetaPlugin` (Vite). Kept dependency-free (only `fs`/`path`) so the
- * Vite path can reuse them without pulling webpack, tapable, or fast-glob (which
- * `WebOSMetaPlugin/index.js` requires at module load).
+ *  appinfo.json reading/discovery helpers shared by WebOSMetaPlugin
+ *  (webpack) and the esbuild-path plugins (EsbuildWebOSMetaPlugin).
+ *  Extracted from WebOSMetaPlugin/index.js's private `props`/`readAppInfo`/
+ *  `rootAppInfo` so both bundler paths can share one implementation instead
+ *  of diverging copies.
  */
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +23,7 @@ const props = [
 	'imageForRecents'
 ];
 
-function readAppInfo(file) {
+function readAppInfo (file) {
 	// Read and parse appinfo.json file if it exists.
 	if (fs.existsSync(file)) {
 		try {
@@ -35,7 +35,7 @@ function readAppInfo(file) {
 	}
 }
 
-function rootAppInfo(context, specific) {
+function rootAppInfo (context, specific) {
 	// The accepted root locations to search for the appinfo.json and its relative
 	// assets are project root or ./webos-meta.
 	const rootDir = [context, path.join(context, './webos-meta')];

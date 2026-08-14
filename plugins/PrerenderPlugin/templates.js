@@ -6,7 +6,7 @@ const fn = (js) => js && `
 		})();
 	`;
 
-const startup = (screenTypes, jsAssets) => `
+const startup = (screenTypes, jsAssets, moduleType) => `
 	// Initialize font scaling for resolution independence.
 	var screenTypes = ${JSON.stringify(screenTypes)} || [];
 	var defaultType = {name: 'standard', pxPerRem: 16, width: window.innerWidth, height: window.innerHeight, aspectRatioName: 'standard', base: true};
@@ -44,7 +44,7 @@ const startup = (screenTypes, jsAssets) => `
 				if(js.length>0) {
 					var src = js.shift();
 					var script = document.createElement('script');
-					script.type = 'text/javascript';
+					script.type = ${JSON.stringify(moduleType ? 'module' : 'text/javascript')};
 					script.src = src;
 					script.onload = function() {
 						appendScripts(js);
@@ -97,7 +97,11 @@ const multiLocale = (mapping) => mapping && `
 
 module.exports = {
 	// Startup inline script, which initializes the window scaling and loads the app.
-	startup: (screenTypes, jsAssets) => fn(startup(screenTypes, jsAssets)),
+	// `moduleType` (optional): pass true when `jsAssets` is an ESM bundle (e.g.
+	// a Vite/esbuild `--externals` build, which leaves bare-specifier `import`s
+	// for the browser's import map to resolve) — a plain `text/javascript`
+	// dynamically-created script tag can't parse `import`/`export` syntax.
+	startup: (screenTypes, jsAssets, moduleType) => fn(startup(screenTypes, jsAssets, moduleType)),
 	// Update inline script, which updates the template/prerender content prior to app render.
 	// Used for locale and deeplinking customizations.
 	update: (mapping, deep, prerender) => fn(deepLink(deep, prerender, resolution(multiLocale(mapping))))
