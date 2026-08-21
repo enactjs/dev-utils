@@ -97,6 +97,43 @@ function readManifest(compilation, manifest, opts) {
 	return files;
 }
 
+// Module-level cache of iLib file contents, keyed by absolute source path.
+// The iLib tree is ~70 MB / 6,700 small, effectively-immutable JSON files;
+// `shouldEmit` below already lets a `pack` rerun skip re-reading files whose
+// on-disk *destination* is current, but that check depends on stat-ing a real
+// destination file — `serve`'s output filesystem is in-memory (memfs, via
+// webpack-dev-middleware), so there is no destination to stat and every file
+// gets read fresh on every single compile of a dev-server session. This cache
+// (keyed by the *source* file's mtime/size) makes a repeat compile within the
+// same process reuse the already-read Buffer instead of hitting disk again.
+const readCache = new Map();
+
+// `stat` is the source file's already-computed fs.Stats (from `shouldEmit`,
+// which needs it too, to decide whether to emit at all) — passed in rather
+// than re-stat-ing here, so each file gets exactly one source stat call, same
+// as the original implementation, instead of two.
+function cachedReadFile(file, stat, callback) {
+	// stat is null when shouldEmit's own source stat failed (e.g. a manifest
+	// entry whose file went missing between the manifest read and now) — skip
+	// the cache and let fs.readFile below surface the real error, same as the
+	// original implementation's behavior for a missing source file.
+	if (stat) {
+		const cached = readCache.get(file);
+		if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+			callback(null, cached.data);
+			return;
+		}
+	}
+	fs.readFile(file, (err, data) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+		if (stat) readCache.set(file, {mtimeMs: stat.mtimeMs, size: stat.size, data});
+		callback(null, data);
+	});
+}
+
 // Read each manifest and process their contents.
 function handleBundles(compilation, manifests, opts, callback) {
 	if (manifests.length === 0) {
@@ -120,41 +157,79 @@ function handleBundles(compilation, manifests, opts, callback) {
 	}
 }
 
-// Read and emit all the assets in a particular manifest.
+// Read and emit all the assets in a particular manifest. The original version
+// of this function read one file at a time via a callback-per-file recursion
+// (`fs.readFile`, wait, recurse) — for the ~6,700-file iLib tree that
+// serializes thousands of disk round-trips into the build's critical path.
+// This instead fans reads out over a bounded concurrency pool.
+// `pump()`'s while loop advances past skipped files (via `shouldEmit`)
+// synchronously with no added recursion depth; only genuine async reads
+// increment `pending` and re-enter `pump()` from their callback, so depth
+// stays O(1) regardless of file count (unlike a naive recursive pool).
 function handleManifestFiles(compilation, dir, files, opts, callback) {
 	if (files.length === 0) {
 		callback();
-	} else {
-		const outfile = path.join(dir, files.shift());
-		if (shouldEmit(compilation.compiler, outfile, opts.cache)) {
-			fs.readFile(outfile, (err, data) => {
+		return;
+	}
+	const POOL = 32;
+	let next = 0;
+	let pending = 0;
+	let finished = false;
+
+	function finishIfDone() {
+		if (!finished && next >= files.length && pending === 0) {
+			finished = true;
+			callback();
+		}
+	}
+
+	function pump() {
+		while (pending < POOL && next < files.length) {
+			const outfile = path.join(dir, files[next++]);
+			const decision = shouldEmit(compilation.compiler, outfile, opts.cache);
+			if (!decision.emit) {
+				continue;
+			}
+			pending++;
+			cachedReadFile(outfile, decision.srcStat, (err, data) => {
 				if (err) {
 					compilation.errors.push(err);
 				} else {
 					emitAsset(compilation, transformPath(opts.context, outfile), data);
 				}
-				handleManifestFiles(compilation, dir, files, opts, callback);
+				pending--;
+				pump();
 			});
-		} else {
-			handleManifestFiles(compilation, dir, files, opts, callback);
 		}
+		finishIfDone();
 	}
+
+	pump();
 }
 
 // Determine if the output file exists and if its newer to determine if it should be emitted.
+// Returns {emit, srcStat}: srcStat is the source file's fs.Stats (or null if it
+// couldn't be stat-ed), returned alongside the decision so handleManifestFiles's
+// read doesn't need to stat the same source file a second time.
 function shouldEmit(compiler, file, cache) {
+	let srcStat = null;
+	try {
+		srcStat = fs.statSync(file);
+	} catch (e) {
+		return {emit: true, srcStat: null};
+	}
 	if (isNodeOutputFS(compiler)) {
 		try {
-			const src = fs.statSync(file);
 			const dest = fs.statSync(
 				path.join(compiler.options.output.path, transformPath(compiler.options.context, file))
 			);
-			return src.isDirectory() || src.mtime.getTime() > dest.mtime.getTime() || !cache;
+			const emit = srcStat.isDirectory() || srcStat.mtime.getTime() > dest.mtime.getTime() || !cache;
+			return {emit, srcStat};
 		} catch (e) {
-			return true;
+			return {emit: true, srcStat};
 		}
 	} else {
-		return true;
+		return {emit: true, srcStat};
 	}
 }
 
