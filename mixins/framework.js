@@ -34,6 +34,7 @@ module.exports = {
 						path.join(config.output.path, '*'),
 						'**/node_modules/**/*.*',
 						'**/samples/**/*.*',
+						'**/scripts/**/*.*',
 						'**/tests/**/*.*'
 					],
 					followSymbolicLinks: true
@@ -75,6 +76,7 @@ module.exports = {
 							'!resources',
 							'!coverage',
 							'!tests',
+							'**/scripts/**',
 							'**/__tests__/**/*.{js,jsx,ts,tsx}',
 							'**/?(*.)+(spec|test).[jt]s?(x)',
 							'**/*-specs.{js,jsx,ts,tsx}'
