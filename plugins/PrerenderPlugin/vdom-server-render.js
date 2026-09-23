@@ -7,6 +7,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
+const Module = require('module');
 const requireUncached = require('import-fresh');
 const reroute = require('mock-require');
 const FileXHR = require('./FileXHR');
@@ -16,17 +18,189 @@ require('console.mute');
 let chunkTarget;
 let prerenderCache;
 
-import('find-cache-directory').then(({default: findCacheDirectory}) => {
-	prerenderCache = path.join(
-		findCacheDirectory({
-			name: 'enact-dev',
-			create: true
-		}),
-		'prerender'
-	);
+const ILIB_LOCALEMATCH_GLOBAL = '__ENACT_PRERENDER_LOCALEMATCH__';
+const ILIB_DATA_INIT_PATTERN =
+	/cache: \{\} \}, typeof module2 != "undefined" && \(module2\.exports = ilib, module2\.exports\.ilib = ilib\)/g;
+const ILIB_DATA_INIT_SEED =
+	'cache: {} }, global.' +
+	ILIB_LOCALEMATCH_GLOBAL +
+	'&&(ilib.data.localematch=global.' +
+	ILIB_LOCALEMATCH_GLOBAL +
+	'), typeof module2 != "undefined" && (module2.exports = ilib, module2.exports.ilib = ilib)';
 
-	if (!fs.existsSync(prerenderCache)) fs.mkdirSync(prerenderCache);
-});
+/**
+ * Load a staged chunk in a vm context that shares Node require / prerender
+ * globals but intentionally omits window/document/self so browser-only paths
+ * see typeof window === 'undefined' without regex-rewriting the bundle text.
+ */
+function loadStagedChunk(chunkPath) {
+	const code = fs.readFileSync(chunkPath, {encoding: 'utf8'});
+	const moduleObject = {exports: {}};
+	const localRequire = Module.createRequire(chunkPath);
+	const context = {
+		module: moduleObject,
+		exports: moduleObject.exports,
+		require: localRequire,
+		__filename: chunkPath,
+		__dirname: path.dirname(chunkPath),
+		console,
+		process,
+		Buffer,
+		setTimeout,
+		clearTimeout,
+		setInterval,
+		clearInterval,
+		setImmediate,
+		clearImmediate,
+		queueMicrotask,
+		URL,
+		URLSearchParams,
+		Promise,
+		Object,
+		Array,
+		String,
+		Number,
+		Boolean,
+		Symbol,
+		Math,
+		Date,
+		RegExp,
+		Error,
+		TypeError,
+		RangeError,
+		SyntaxError,
+		JSON,
+		Map,
+		Set,
+		WeakMap,
+		WeakSet,
+		Proxy,
+		Reflect,
+		parseInt,
+		parseFloat,
+		isNaN,
+		isFinite,
+		encodeURIComponent,
+		decodeURIComponent,
+		encodeURI,
+		decodeURI,
+		// Prerender-shared state (also mirrored onto context.global below)
+		React: global.React,
+		enact_framework: global.enact_framework,
+		enactHooks: global.enactHooks,
+		ilib: global.ilib,
+		XMLHttpRequest: global.XMLHttpRequest,
+		skipPolyfills: global.skipPolyfills
+	};
+	if (global[ILIB_LOCALEMATCH_GLOBAL] !== undefined) {
+		context[ILIB_LOCALEMATCH_GLOBAL] = global[ILIB_LOCALEMATCH_GLOBAL];
+	}
+	// No window / document / self — keeps DOM startup paths inert.
+	context.global = context;
+	context.globalThis = context;
+
+	vm.createContext(context);
+	vm.runInContext(code, context, {
+		filename: chunkPath,
+		displayErrors: true
+	});
+
+	return moduleObject.exports && moduleObject.exports.default !== undefined
+		? moduleObject.exports
+		: context.module.exports;
+}
+
+function readLocaleMatchData() {
+	const fsPath = process.env.ILIB_FS_PATH || process.env.ILIB_BASE_PATH;
+	if (!fsPath) return null;
+
+	const localeMatchPath = path.join(fsPath, 'locale', 'localematch.json');
+	if (!fs.existsSync(localeMatchPath)) return null;
+
+	try {
+		const localematch = JSON.parse(fs.readFileSync(localeMatchPath, {encoding: 'utf8'}));
+		return localematch && localematch.likelyLocales ? localematch : null;
+	} catch (_e) {
+		return null;
+	}
+}
+
+function resetIlibGlobalState() {
+	// ilib.js uses `var ilib = ilib || {}`, so repeated prerender passes share one global
+	// singleton. After many locale renders, cached localematch data can become incomplete.
+	if (global.ilib) {
+		if (global.ilib.data && typeof global.ilib.clearCache === 'function') {
+			global.ilib.clearCache();
+		}
+		delete global.ilib;
+	}
+}
+
+function seedIlibLocaleMatch() {
+	const localematch = readLocaleMatchData();
+	if (!localematch) return;
+
+	global.ilib = global.ilib || {};
+	global.ilib.data = global.ilib.data || {};
+	global.ilib.data.localematch = localematch;
+	if (global.ilib._load) {
+		global.ilib._load._cacheValidated = false;
+	}
+}
+
+function injectBundledIlibLocaleMatchSeed(code) {
+	return code.replace(ILIB_DATA_INIT_PATTERN, ILIB_DATA_INIT_SEED);
+}
+
+function resolveFromContext(moduleName, context) {
+	if (!context) {
+		return require.resolve(moduleName);
+	}
+	return require.resolve(moduleName, {paths: [path.join(context, 'node_modules')]});
+}
+
+function clearPrerenderModules(serverPath) {
+	const chunkPath = chunkTarget ? path.resolve(chunkTarget) : null;
+	const serverDir = serverPath ? path.dirname(path.resolve(serverPath)) : null;
+
+	Object.keys(require.cache)
+		.filter(c => {
+			if (chunkPath && path.resolve(c) === chunkPath) return true;
+			if (serverDir && c.startsWith(serverDir)) return true;
+			return /[\\/]node_modules[\\/](react(-dom)?|ilib|@enact)([\\/]|$)/.test(c);
+		})
+		.forEach(c => delete require.cache[c]);
+
+	try {
+		reroute.stop('react');
+	} catch (_e) {
+		// ignore if react was not rerouted yet
+	}
+
+	delete global.React;
+	delete global.enact_framework;
+	delete global.enactHooks;
+}
+
+function getPrerenderCache() {
+	if (prerenderCache) return prerenderCache;
+
+	try {
+		const findCacheDirectory = require('find-cache-directory');
+		prerenderCache = path.join(
+			findCacheDirectory({
+				name: 'enact-dev',
+				create: true
+			}),
+			'prerender'
+		);
+	} catch (e) {
+		prerenderCache = path.join(process.cwd(), 'node_modules', '.cache', 'enact-dev', 'prerender');
+	}
+
+	fs.mkdirSync(prerenderCache, {recursive: true});
+	return prerenderCache;
+}
 
 // Skip using the polyfills embedded within the bundle and instead use a local core-js,
 // since the bundle's target may differ in compatibility from the active Node process
@@ -57,7 +231,8 @@ module.exports = {
 				'require("' + path.resolve(path.join(opts.externals, 'enact.js')) + '")'
 			);
 		}
-		chunkTarget = path.join(prerenderCache, opts.chunk);
+		code = injectBundledIlibLocaleMatchSeed(code);
+		chunkTarget = path.join(getPrerenderCache(), opts.chunk);
 		fs.writeFileSync(chunkTarget, code, {encoding: 'utf8'});
 	},
 
@@ -86,7 +261,7 @@ module.exports = {
 			console.mute();
 
 			try {
-				const generator = require(path.resolve(opts.fontGenerator));
+				const generator = requireUncached(path.resolve(opts.fontGenerator));
 				const locale = opts.locale || 'en-US';
 				style = generator(locale);
 				if (generator.fontOverrideGenerator) style += generator.fontOverrideGenerator(locale);
@@ -102,26 +277,63 @@ module.exports = {
 
 			global.process.env.LANG = opts.locale;
 
-			if (opts.externals) {
-				// Ensure locale switching  support is loaded globally with external framework usage.
-				const framework = requireUncached(path.resolve(path.join(opts.externals, 'enact.js')));
-				global.React = framework('react');
-			} else {
-				delete global.React;
+			clearPrerenderModules(opts.server);
+
+			if (opts.locale) {
+				resetIlibGlobalState();
+				seedIlibLocaleMatch();
 			}
 
-			const chunk = requireUncached(path.resolve(chunkTarget));
+			if (opts.externals) {
+				const frameworkPath = path.resolve(path.join(opts.externals, 'enact.js'));
+				let framework = requireUncached(frameworkPath);
+				if (framework && typeof framework.default === 'function') {
+					framework = framework.default;
+				}
+				if (typeof framework !== 'function') {
+					const previousFramework = global.enact_framework;
+					delete global.enact_framework;
+					requireUncached(frameworkPath);
+					framework = global.enact_framework;
+					if (previousFramework !== undefined) {
+						global.enact_framework = previousFramework;
+					} else {
+						delete global.enact_framework;
+					}
+				}
+				if (typeof framework !== 'function') {
+					throw new Error('External Enact framework must export enact_framework(id).');
+				}
+				global.enact_framework = framework;
+				global.React = framework('react');
+			} else {
+				global.React = requireUncached(resolveFromContext('react', opts.context));
+			}
 
-			// Clear any server-related children modules from cache
-			Object.keys(require.cache)
-				.filter(c => c.startsWith(path.dirname(opts.server)))
-				.forEach(c => delete require.cache[c]);
+			reroute('react', global.React);
 
-			// Use the specified server, optionally with exposed React, and generate HTML string
-			if (global.React) reroute('react', global.React);
-			const server = requireUncached(opts.server);
+			let localeMatchSeed;
+			if (opts.locale) {
+				localeMatchSeed = readLocaleMatchData();
+				if (localeMatchSeed) {
+					global[ILIB_LOCALEMATCH_GLOBAL] = localeMatchSeed;
+				}
+			}
+
+			const chunk = loadStagedChunk(path.resolve(chunkTarget));
+
+			if (localeMatchSeed) {
+				delete global[ILIB_LOCALEMATCH_GLOBAL];
+			}
+			let server;
+			if (opts.externals && global.enact_framework) {
+				const domServer = global.enact_framework('react-dom/server');
+				server = domServer.default || domServer;
+			} else {
+				server = requireUncached(opts.server);
+			}
 			rendered = server.renderToString(chunk['default'] || chunk);
-			if (global.React) reroute.stop('react');
+			reroute.stop('react');
 
 			if (style) {
 				rendered = '<!-- head append start -->\n' + style + '\n<!-- head append end -->' + rendered;

@@ -28,3 +28,8 @@ exportOnDemand({
 	VerboseLogPlugin: () => require('./plugins/VerboseLogPlugin'),
 	WebOSMetaPlugin: () => require('./plugins/WebOSMetaPlugin')
 });
+
+// Export Bun build helpers.
+exportOnDemand({
+	bunPlugins: () => require('./bun-plugins')
+});
