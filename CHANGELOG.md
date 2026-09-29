@@ -1,3 +1,7 @@
+# 7.0.6 (August 21, 2026)
+
+* Updated dependencies.
+
 # 7.0.5 (June 23, 2026)
 
 * `option-parser`: Set default theme config to `limestone`.
