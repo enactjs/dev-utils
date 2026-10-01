@@ -1,3 +1,7 @@
+# unreleased
+
+* Updated `eslint` to version 10 and replaced `eslint-plugin-import` with `eslint-plugin-import-x`.
+
 # 7.0.6 (August 21, 2026)
 
 * Updated dependencies.
