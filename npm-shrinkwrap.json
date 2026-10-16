@@ -3034,7 +3034,7 @@
     },
     "node_modules/eslint-config-enact": {
       "version": "5.1.3",
-      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#71fe2f25cd26b3c2c41dff3c8c5161adb8c9808e",
+      "resolved": "git+ssh://git@github.com/enactjs/eslint-config-enact.git#8fcd9eb13aa4f9984e0451b8a42e8e0ee3bdd79f",
       "dev": true,
       "license": "Apache-2.0",
       "dependencies": {
@@ -3055,7 +3055,7 @@
         "globals": "^17.13.0"
       },
       "engines": {
-        "node": "^22.18.0 || >=24.11.0"
+        "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
       },
       "peerDependencies": {
         "eslint": "^10.12.0"
