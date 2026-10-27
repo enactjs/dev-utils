@@ -2,7 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const DllEntryPlugin = require('webpack/lib/dll/DllEntryPlugin');
 const DllModule = require('webpack/lib/dll/DllModule');
-const RuntimeGlobals = require('webpack/lib/RuntimeGlobals');
+// Use the public webpack API for RuntimeGlobals. The internal path moved from
+// `webpack/lib/RuntimeGlobals` to `webpack/lib/runtime/RuntimeGlobals` in
+// webpack 5.112, so requiring the deep path directly breaks on newer webpack.
+// `require('webpack').RuntimeGlobals` resolves to the same module across
+// webpack 5 versions.
+const {RuntimeGlobals} = require('webpack');
 const {RawSource} = require('webpack-sources');
 const app = require('../../option-parser');
 
