@@ -1,30 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
-// `ExternalsPlugin` is available on the public webpack API, which is stable
-// across webpack 5 versions (its internal path moved to lib/externals/ in
-// webpack 5.112).
+const DelegatedSourceDependency = require('webpack/lib/dll/DelegatedSourceDependency');
+const DelegatedModule = require('webpack/lib/dll/DelegatedModule');
 const {ExternalsPlugin} = require('webpack');
-// `DelegatedSourceDependency` and `DelegatedModule` are internal and not
-// exposed on the public API. webpack 5.112 relocated
-// `DelegatedSourceDependency` from lib/dependencies/ to lib/dll/, so try the
-// known locations in order to stay compatible with both older and newer
-// webpack 5 releases.
-const requireFirst = candidates => {
-	for (const id of candidates) {
-		try {
-			return require(id);
-		} catch (err) {
-			if (err && err.code !== 'MODULE_NOT_FOUND') throw err;
-		}
-	}
-	throw new Error('Unable to resolve any of: ' + candidates.join(', '));
-};
-const DelegatedSourceDependency = requireFirst([
-	'webpack/lib/dll/DelegatedSourceDependency',
-	'webpack/lib/dependencies/DelegatedSourceDependency'
-]);
-const DelegatedModule = requireFirst(['webpack/lib/dll/DelegatedModule']);
 const app = require('../../option-parser');
 
 const findParentMain = function (dir) {
