@@ -26,25 +26,24 @@
     "arrowParens": "avoid"
   },
   "dependencies": {
-    "browserslist": "^4.28.2",
-    "chalk": "^5.6.2",
+    "browserslist": "^4.29.5",
+    "chalk": "^6.0.1",
     "console.mute": "^0.3.0",
     "core-js": "3.22.8",
     "fast-glob": "^3.3.3",
     "fbjs": "^3.0.5",
     "find-cache-directory": "^6.0.0",
     "graceful-fs": "^4.2.11",
-    "import-fresh": "^3.3.1",
     "loader-utils": "^3.3.1",
     "mock-require": "^3.0.3",
-    "resolve": "^1.22.12",
+    "resolve": "^1.22.13",
     "tapable": "^2.3.3",
-    "webpack-bundle-analyzer": "^5.3.0",
-    "webpack-sources": "^3.5.0"
+    "webpack-bundle-analyzer": "^5.4.0",
+    "webpack-sources": "^3.6.0"
   },
   "peerDependencies": {
     "html-webpack-plugin": ">=5.0.0",
-    "webpack": ">=5.0.0"
+    "webpack": ">=5.112.0"
   },
   "peerDependenciesMeta": {
     "html-webpack-plugin": {
@@ -62,11 +61,11 @@
     "eslint-config-enact": "enactjs/eslint-config-enact#feature/NXT-10859",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.6.0",
-    "html-webpack-plugin": "^5.6.7",
-    "prettier": "^3.8.4",
-    "react": "^19.2.7",
-    "webpack": "^5.107.2"
+    "eslint-plugin-prettier": "^5.5.7",
+    "globals": "^17.13.0",
+    "html-webpack-plugin": "^5.6.8",
+    "prettier": "^3.9.10",
+    "react": "^19.3.1",
+    "webpack": "^5.112.2"
   }
 }
