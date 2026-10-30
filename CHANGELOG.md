@@ -4,6 +4,7 @@
 * `EnactFrameworkPlugin`: Used the public `require('webpack').RuntimeGlobals` API, as `webpack` 5.112 relocated the internal `webpack/lib/RuntimeGlobals` module.
 * `EnactFrameworkRefPlugin`: Used the public `require('webpack').ExternalsPlugin` API and updated the `DelegatedSourceDependency` import path, as `webpack` 5.112 relocated those internal modules.
 * Updated dependencies, including a major update to `chalk` (v6).
+* Updated `eslint` to version 10 and replaced `eslint-plugin-import` with `eslint-plugin-import-x`.
 
 # 7.0.6 (August 21, 2026)
 
