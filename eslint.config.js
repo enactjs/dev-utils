@@ -26,7 +26,12 @@ module.exports = [
 		ignores: ['plugins/SnapshotPlugin/snapshot-helper.js', 'plugins/SnapshotPlugin/mock-window.js'],
 		rules: {
 			// import plugin rules
-			'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true}],
+			// `chalk` is ESM-only and, since v6, ships a conditional `exports`
+			// map that eslint-import-resolver-node (used by eslint-plugin-import)
+			// cannot resolve, producing false `import/no-unresolved` errors for
+			// our dynamic `import('chalk')` calls. The import resolves fine at
+			// runtime, so ignore it here.
+			'import/no-unresolved': ['error', {commonjs: true, caseSensitive: true, ignore: ['^chalk$']}],
 			'import/named': 'error',
 			'import/first': 'warn',
 			'import/no-duplicates': 'error',

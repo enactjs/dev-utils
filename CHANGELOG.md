@@ -1,3 +1,10 @@
+# unreleased
+
+* `PrerenderPlugin`: Removed the `import-fresh` dependency and inlined its synchronous uncached-require behavior, since `import-fresh` 4 is ESM-only and asynchronous, which is incompatible with the synchronous prerender path.
+* `EnactFrameworkPlugin`: Used the public `require('webpack').RuntimeGlobals` API, as `webpack` 5.112 relocated the internal `webpack/lib/RuntimeGlobals` module.
+* `EnactFrameworkRefPlugin`: Used the public `require('webpack').ExternalsPlugin` API and updated the `DelegatedSourceDependency` import path, as `webpack` 5.112 relocated those internal modules.
+* Updated dependencies, including a major update to `chalk` (v6).
+
 # 7.0.6 (August 21, 2026)
 
 * Updated dependencies.
