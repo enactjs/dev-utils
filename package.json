@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "html-webpack-plugin": ">=5.0.0",
-    "webpack": ">=5.0.0"
+    "webpack": ">=5.112.0"
   },
   "peerDependenciesMeta": {
     "html-webpack-plugin": {
