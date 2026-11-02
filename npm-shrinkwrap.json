@@ -1474,6 +1474,9 @@
         "arm64"
       ],
       "dev": true,
+      "libc": [
+        "glibc"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1488,6 +1491,9 @@
         "arm64"
       ],
       "dev": true,
+      "libc": [
+        "musl"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1502,6 +1508,9 @@
         "loong64"
       ],
       "dev": true,
+      "libc": [
+        "glibc"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1516,6 +1525,9 @@
         "loong64"
       ],
       "dev": true,
+      "libc": [
+        "musl"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1530,6 +1542,9 @@
         "ppc64"
       ],
       "dev": true,
+      "libc": [
+        "glibc"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1544,6 +1559,9 @@
         "riscv64"
       ],
       "dev": true,
+      "libc": [
+        "glibc"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1558,6 +1576,9 @@
         "riscv64"
       ],
       "dev": true,
+      "libc": [
+        "musl"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1572,6 +1593,9 @@
         "s390x"
       ],
       "dev": true,
+      "libc": [
+        "glibc"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1586,6 +1610,9 @@
         "x64"
       ],
       "dev": true,
+      "libc": [
+        "glibc"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1600,6 +1627,9 @@
         "x64"
       ],
       "dev": true,
+      "libc": [
+        "musl"
+      ],
       "license": "MIT",
       "optional": true,
       "os": [
