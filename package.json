@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "eslint": "^10.11.0",
-    "eslint-config-enact": "github:enactjs/eslint-config-enact#release/6.0.0",
+    "eslint-config-enact": "github:enactjs/eslint-config-enact#test/6.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-prettier": "^5.5.7",
