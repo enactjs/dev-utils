@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const gracefulFs = require('graceful-fs');
-const DelegatedSourceDependency = require('webpack/lib/dependencies/DelegatedSourceDependency');
+const DelegatedSourceDependency = require('webpack/lib/dll/DelegatedSourceDependency');
 const DelegatedModule = require('webpack/lib/dll/DelegatedModule');
-const ExternalsPlugin = require('webpack/lib/ExternalsPlugin');
+const {ExternalsPlugin} = require('webpack');
 const app = require('../../option-parser');
 
 const findParentMain = function (dir) {

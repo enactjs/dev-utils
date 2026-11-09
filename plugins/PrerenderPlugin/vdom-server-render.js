@@ -7,7 +7,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const requireUncached = require('import-fresh');
 const reroute = require('mock-require');
 const FileXHR = require('./FileXHR');
 
@@ -15,6 +14,38 @@ require('console.mute');
 
 let chunkTarget;
 let prerenderCache;
+
+// Synchronously require a module while bypassing the require cache.
+//
+// This previously used the `import-fresh` package (v3). import-fresh 4 is
+// ESM-only and exposes an asynchronous, module-loader-hook based importer,
+// which is incompatible with this synchronous prerender path (it runs inside
+// webpack's synchronous `chunkAsset` hook). The behavior relied on here is
+// small and purely CommonJS, so it is inlined: resolve the module, drop it
+// (and its stale parent linkage) from `require.cache`, then require it again
+// to obtain a fresh instance.
+function requireUncached(moduleId) {
+	if (typeof moduleId !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	const filePath = require.resolve(moduleId);
+	const oldModule = require.cache[filePath];
+
+	// Detach the stale module from its parent's children to avoid leaking it.
+	if (oldModule && oldModule.parent) {
+		let i = oldModule.parent.children.length;
+		while (i--) {
+			if (oldModule.parent.children[i].id === filePath) {
+				oldModule.parent.children.splice(i, 1);
+			}
+		}
+	}
+
+	delete require.cache[filePath];
+
+	return require(filePath);
+}
 
 import('find-cache-directory').then(({default: findCacheDirectory}) => {
 	prerenderCache = path.join(

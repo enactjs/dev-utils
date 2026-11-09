@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const DllEntryPlugin = require('webpack/lib/dll/DllEntryPlugin');
 const DllModule = require('webpack/lib/dll/DllModule');
-const RuntimeGlobals = require('webpack/lib/RuntimeGlobals');
+const {RuntimeGlobals} = require('webpack');
 const {RawSource} = require('webpack-sources');
 const app = require('../../option-parser');
 
